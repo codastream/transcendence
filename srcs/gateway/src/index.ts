@@ -55,10 +55,10 @@ app.addHook("onRequest", async (request: any, reply: any) => {
 // preHandler ajouter header interne : x-user-name (username dans DB) + x-user-id (id dans DB)
 app.addHook("preHandler", async (request: any, reply: any) => {
   if (request.user) {
-    const username = (request.user as any).username || null;
-    const id = (request.user as any).sub || (request.user as any).id || null;
+    const username = request.user.username || null;
+    const id = request.user.sub || request.user.id || null;
     if (username)
-      reply.header("x-user-name", username);
+       reply.header("x-user-name", username);
     if (id !== null && id !== undefined)
       reply.header("x-user-id", String(id));
   }
@@ -67,18 +67,17 @@ app.addHook("preHandler", async (request: any, reply: any) => {
 // Décorateur requêtes internes : ajoute automatiquement
 // header `x-user-name` + `x-user-id` + cookies de fetchInternal dans proxyRequest
 app.decorate("fetchInternal", async (request: any, url: string, init: any = {}) => {
-    const userName = request.user?.username || request.headers["x-user-name"] || "";
-    const userId = request.user?.sub || request.user?.id || request.headers["x-user-id"] || "";
+  const userName = request.user?.username || request.headers["x-user-name"] || "";
+  const userId = request.user?.sub || request.user?.id || request.headers["x-user-id"] || "";
 
-    const headers = Object.assign({}, init.headers || {}, {
-      "x-user-name": userName,
-      "x-user-id": String(userId),
-      cookie: request.headers?.cookie || "",
-    });
+  const headers = Object.assign({}, init.headers || {}, {
+    "x-user-name": userName,
+    "x-user-id": String(userId),
+    cookie: request.headers?.cookie || "",
+  });
 
-    return fetch(url, Object.assign({}, init, { headers }));
-  }
-);
+  return fetch(url, Object.assign({}, init, { headers }));
+});
 
 // Log request end
 app.addHook("onResponse", async (request: any, reply: any) => {
@@ -113,31 +112,21 @@ app.setErrorHandler((error: any, request: any, reply: any) => {
   reply.code(status).send(payload);
 });
 
-// Disable cors sauf nginx devant
-// Allow credentials forward/set cookies (JWT) auth service.
 app.register(fastifyCors, {
-  // allow localhost:8000 and file:// (origin === null). Don't use wildcard if credentials=true.
-  origin: (origin, cb) => {
-    // allow requests with no origin (e.g., file:// => origin is null)
-    if (!origin) return cb(null, true);
-    // allow localhost origins (adjust if you serve UI from another host/port)
-    if (
-      origin.startsWith("http://localhost") ||
-      origin.startsWith("http://127.0.0.1")
-    )
-      return cb(null, true);
-    // otherwise deny
-    cb(new Error("Not allowed"), false);
-  },
+  origin: [
+    "http://localhost:80",    // Dev
+    "https://localhost:443"  // Dev HTTPS
+  ],
   credentials: true,
 });
+
 
 // Register routes
 app.register(gatewayRoutes, { prefix: "/api" });
 app.register(gatewayNonApiRoutes);
 
 // Start the server
-app.listen({ host: '0.0.0.0', port: 3000 }, (err, address) => {
+app.listen({ host: '0.0.0.0', port: 3000 }, (err: Error | null, address: string) => {
   if (err) {
     console.error(err);
     process.exit(1);
