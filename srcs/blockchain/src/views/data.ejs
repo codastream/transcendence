@@ -1,0 +1,12 @@
+<%- include('header.ejs', {title}) %>
+
+<div class="container">
+  <h1><%= message %></h1>
+      <p>
+        ID: <%= datadb.id %> —
+        Prénom: <%= datadb.first_name %> —
+        Nom: <%= datadb.last_name %>
+      </p>
+</div>
+
+<%- include('footer.ejs') %>
