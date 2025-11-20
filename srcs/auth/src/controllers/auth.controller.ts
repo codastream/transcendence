@@ -123,7 +123,13 @@ export async function loginHandler(this: FastifyInstance, request: FastifyReques
   }
 }
 
-// ⚠️ DEV ONLY - À supprimer 
+export async function logoutHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+  const username = (request.headers as any)["x-user-name"] || null;
+  logger.info({ event: 'logout', user: username });
+  return reply.clearCookie("token").send({ result: { message: 'Logged out successfully' } });
+}
+
+// DEV ONLY - À supprimer
 export async function meHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
   const username = (request.headers as any)["x-user-name"] || null;
   const idHeader = (request.headers as any)["x-user-id"] || null;
@@ -132,8 +138,17 @@ export async function meHandler(this: FastifyInstance, request: FastifyRequest, 
   return reply.code(200).send({ data: { user: username ? { id, username } : null } });
 }
 
-export async function logoutHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+export async function listAllUsers(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
   const username = (request.headers as any)["x-user-name"] || null;
-  logger.info({ event: 'logout', user: username });
-  return reply.clearCookie("token").send({ result: { message: 'Logged out successfully' } });
+  logger.info({ event: 'list_users_attempt', user: username });
+  if (username !== 'admin')
+    return reply.code(403).send({ error: { message: 'Forbidden', code: 'FORBIDDEN' } });
+  try {
+	const users = authService.listUsers();
+	logger.info({ event: 'list_users_success', user: username, count: users.length });
+	return reply.code(200).send({ result: { users } });
+  } catch (err: any) {
+	logger.error({ event: 'list_users_error', user: username, err: err?.message || err });
+	return reply.code(500).send({ error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' } });
+  }
 }

@@ -13,18 +13,6 @@ export async function authHealthHandler(this: FastifyInstance, request: FastifyR
   return proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/health`);
 }
 
-export async function meHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-  // ⚠️ Route DEV ONLY - À supprimer en production
-  logger.warn({
-    event: 'dev_route_accessed',
-    route: '/api/auth/me',
-    user: (request.headers as any)['x-user-name'] || null,
-    warning: 'This route exposes internal headers and should be removed in production'
-  });
-
-  return proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/me`);
-}
-
 export async function loginHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
   const startTime = Date.now();
   const username = (request.body as any)?.username || (request.body as any)?.email || 'unknown';
@@ -100,6 +88,41 @@ export async function logoutHandler(this: FastifyInstance, request: FastifyReque
     status: reply.statusCode,
     user,
     success: reply.statusCode === 200
+  });
+
+  return res;
+}
+
+// DEV ONLY - À supprimer en production
+export async function meHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+  // Route DEV ONLY - À supprimer en production
+  logger.warn({
+    event: 'dev_route_accessed',
+    route: '/api/auth/me',
+    user: (request.headers as any)['x-user-name'] || null,
+    warning: 'This route exposes internal headers and should be removed in production'
+  });
+
+  return proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/me`);
+}
+
+export async function listHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+  const user = (request.headers as any)['x-user-name'] || null;
+
+  logger.info({
+	event: 'auth_list_users_attempt',
+	user
+  });
+
+  const res = await proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/list`, {
+	method: "GET",
+  });
+
+  logger.info({
+	event: 'auth_list_users_result',
+	status: reply.statusCode,
+	user,
+	success: reply.statusCode === 200
   });
 
   return res;

@@ -26,4 +26,9 @@ export function validateUser(identifier: string, password: string) {
   return bcrypt.compareSync(password, user.password);
 }
 
+// DEV ONLY - À supprimer en production
+export function listUsers() {
+  return db.listUsers();
+}
+
 export type UserRow = ReturnType<typeof db.findUserByIdentifier>;

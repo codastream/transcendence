@@ -248,6 +248,42 @@
 			});
 		</script>
 
+		<div class="card" id="userList" >
+			<h2>Liste des utilisateurs</h2>
+			<button id="listUsersBtn">Lister tous les utilisateurs</button>
+			<div class="msg" id="listUsersMsg" style="word-wrap: break-word; white-space: pre-wrap; max-width: 100%; overflow-wrap: break-word;"></div>
+		</div>
+		<script>
+			// Code de la carte Liste des utilisateurs
+			const listUsersBtn = document.getElementById('listUsersBtn');
+			const listUsersMsg = document.getElementById('listUsersMsg');
+
+			listUsersBtn.addEventListener('click', async () => {
+				listUsersMsg.textContent = ''; listUsersMsg.className = 'msg';
+				listUsersBtn.disabled = true;
+				try {
+					const res = await fetch('/api/auth/list', {
+						method: 'GET',
+						credentials: 'include',
+					});
+					const text = await res.text();
+					let data;
+					try { data = JSON.parse(text); } catch { data = text; }
+					if (res.ok) {
+						listUsersMsg.textContent = 'Données reçues: ' + JSON.stringify(data);
+						listUsersMsg.classList.add('success');
+					} else {
+						listUsersMsg.textContent = `Erreur (${res.status}): ${JSON.stringify(data)}`;
+						listUsersMsg.classList.add('error');
+					}
+				} catch (err) {
+					listUsersMsg.textContent = 'Requête impossible: ' + err.message;
+					listUsersMsg.classList.add('error');
+				} finally {
+					listUsersBtn.disabled = false;
+				}
+			});
+		</script>
 	</div>
 </body>
 </html>
