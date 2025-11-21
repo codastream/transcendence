@@ -67,7 +67,7 @@ services:
       retries: 3
       start_period: 10s
 
-  # Auth service
+  # Blockchain service
   blockchain:
     build:
       context: ./blockchain
@@ -92,8 +92,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
- 
-    game-service:
+
+  game-service:
     build:
       context: ./game
       dockerfile: Dockerfile

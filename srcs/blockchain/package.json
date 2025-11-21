@@ -3,6 +3,8 @@
     "@types/better-sqlite3": "^7.6.13",
     "@types/ejs": "^3.1.5",
     "@types/node": "^24.10.1",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.11",
     "prettier": "^3.6.2",
     "prettier-plugin-ejs": "^1.0.3",
     "typescript": "^5.9.3"
@@ -14,7 +16,9 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-     "dev": "concurrently \"tsc -p tsconfig.json -w\" \"nodemon --watch dist --exec node dist/server.js\"",
+    "devold": "concurrently \"tsc -p tsconfig.json -w\" \"nodemon --watch dist --exec node dist/server.js\"",
+    "dev": "concurrently -k -n TSC,NODE -c yellow,cyan \"tsc -w\" \"nodemon dist/server.js\"",
+    "devmac": "tsc -w & node --watch dist/server.js",
     "build": "tsc -p tsconfig.json",
     "start": "tsc -p tsconfig.json && node dist/server.js"
   },

@@ -19,10 +19,10 @@ JM = $(findstring Jean, $(shell uname -a))
 
 ifeq ($(JM), Jean)
 	CONTAINER_CMD=podman
-	COMPOSE_CMD=docker compose
+	COMPOSE_CMD=podman-compose
 else
 	CONTAINER_CMD=docker
-	COMPOSE_CMD=docker-compose
+	COMPOSE_CMD=docker compose
 endif
 
 all : volumes build
@@ -54,7 +54,7 @@ user:
 game:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build game-service
 build:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml -f build
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build
 
 start :
 	$(COMPOSE_CMD) -f srcs/docker-compose.yml start 
@@ -81,14 +81,12 @@ show:
 	$(CONTAINER_CMD) ps
 	$(CONTAINER_CMD) network ls
 
-logs:
-	@$(COMPOSE_CMD) -f $(COMPOSE_FILE) logs
-
-clean :
-	@if [ -n "$$($(CONTAINER_CMD) ps -q)" ]; then docker stop $$(docker ps -q); else echo "No running containers to stop."; fi
-	@if [ -n "$$($(CONTAINER_CMD) ps -aq)" ]; then docker rm -f $$(docker ps -aq); else echo "No running containers to remove."; fi
-	@if [ -n "$$($(CONTAINER_CMD) -q)" ]; then docker rmi -f $$(docker images -q); else echo "No images to remove."; fi
-	@if [ -n "$$($(CONTAINER_CMD) volume ls -q)" ]; then docker volume rm $$(docker volume ls -q); else echo "No volumes to remove."; fi
+clean : stop
+	$(CONTAINER_CMD) system prune -f
+	@if [ -n "$$($(CONTAINER_CMD) ps -q)" ]; then $(CONTAINER_CMD) stop $$($(CONTAINER_CMD) ps -q); else echo "No running containers to stop."; fi
+	@if [ -n "$$($(CONTAINER_CMD) ps -aq)" ]; then $(CONTAINER_CMD) rm -f $$($(CONTAINER_CMD) ps -aq); else echo "No running containers to remove."; fi
+	@if [ -n "$$($(CONTAINER_CMD) -q)" ]; then $(CONTAINER_CMD) rmi -f $$($(CONTAINER_CMD) images -q); else echo "No images to remove."; fi
+	@if [ -n "$$($(CONTAINER_CMD) volume ls -q)" ]; then $(CONTAINER_CMD) volume rm $$($(CONTAINER_CMD) volume ls -q); else echo "No volumes to remove."; fi
 
 fclean: clean
 	$(CONTAINER_CMD) system prune -a --volumes --force
