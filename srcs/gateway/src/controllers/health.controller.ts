@@ -3,6 +3,7 @@ import { logger } from "../utils/logger.js";
 
 const SERVICES: Record<string, { host: string; port: number }> = {
   auth: { host: "auth-service", port: 3001 },
+  game: { host: "game-service", port: 3003 }
 };
 
 
@@ -49,17 +50,14 @@ export async function healthByNameHandler(request: FastifyRequest, reply: Fastif
 }
 
 export async function healthAllHandler(request: FastifyRequest, reply: FastifyReply) {
-  const services = [
-    { name: "api-gateway", port: 3000 },
-    { name: "auth-service", port: 3001 }
-  ];
+  const services = Object.values(SERVICES);
 
   const results: Record<string, string> = {};
 
   await Promise.all(services.map(async (service) => {
-    const serviceKey = `${service.name}:${service.port}`;
+    const serviceKey = `${service.host}:${service.port}`;
     try {
-      const res = await fetch(`http://${service.name}:${service.port}/health`);
+      const res = await fetch(`http://${service.host}:${service.port}/health`);
       results[serviceKey] = res.status === 200 ? "healthy" : "unhealthy";
     } catch (error) {
       results[serviceKey] = `unhealthy (error: ${(error as Error).message})`;

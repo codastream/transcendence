@@ -6,7 +6,8 @@ import websocketPlugin from "@fastify/websocket";
 import { apiRoutes, publicRoutes } from "./routes/gateway.routes.js";
 import { logger, optimizeErrorHandler } from "./utils/logger.js";
 
-const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/auth/health", "/api/game/sessions"];
+const PUBLIC_HEALTH_ROUTES = ["/api/auth/health", "/api/game/health"];
+const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/game/sessions", ...PUBLIC_HEALTH_ROUTES];
 
 const app = fastify({
   logger: false, // Utiliser notre logger
