@@ -1,76 +1,17 @@
 import { FastifyInstance } from "fastify";
-import { registerAuthRoutes } from "../controllers/auth.controller.js";
-import { registerGameRoutes } from "../controllers/game.controller.js";
+import { authRoutes } from "./auth.routes.js";
+import { registerGameRoutes } from "../controllers/game.controller.js"; // Passer par routes puis controller
 
-export async function gatewayRoutes(app: FastifyInstance) {
-  app.register(registerAuthRoutes, { prefix: "/auth" });
+import { healthRoutes } from "./health.routes.js";
+import { rootHandler, helpHandler } from "../controllers/gateway.controller.js";
+
+export async function apiRoutes(app: FastifyInstance) {
+  app.register(authRoutes, { prefix: "/auth" });
   app.register(registerGameRoutes, { prefix: "/game" });
 }
 
-export async function gatewayNonApiRoutes(app: FastifyInstance) {
-  app.get("/", async (request, reply) => {
-	return { message: "Welcome to the Gateway API, check /help" };
-  });
-
-  app.get("/help", async (request, reply) => {
-	return {
-	  routes: {
-		"/": "GET - Welcome message",
-		"/help": "GET - This help message",
-		"/healthAll": "GET - Health check all services",
-		"/health/:name": "GET - Health check service by name",
-		"/auth/health": "GET - Health check auth service",
-		"/auth/me": "GET - Get current user info",
-		"/auth/login": "POST - User login",
-		"/auth/register": "POST - User registration",
-		"/auth/logout": "POST - User logout"
-	  }
-	};
-  });
-
-  app.get("/health", async (request, reply) => {
-    return { status: "healthy" };
-  });
-
-  app.get("/health/:name", async (request, reply) => {
-    const { name } = request.params as { name: string };
-    const services: Record<string, { host: string; port: number }> = {
-      auth: { host: "auth-service", port: 3001 },
-      // Add other services as needed
-    };
-    const service = services[name];
-    if (!service) {
-      return reply.code(404).send({ error: { message: "Service not found", code: "SERVICE_NOT_FOUND" } });
-    }
-    try {
-      const res = await fetch(`http://${service.host}:${service.port}/health`);
-      if (res.status === 200) {
-        return { status: "healthy" };
-      } else {
-        return reply.code(500).send({ status: "unhealthy" });
-      }
-    } catch (error) {
-      return reply.code(500).send({ status: `unhealthy (error: ${(error as Error).message})` });
-    }
-  });
-
-  app.get("/healthAll", async (request, reply) => {
-    const services = [{ name: "api-gateway", port: 3000 }, 
-                      { name: "auth-service", port: 3001 },
-                      { name: "game-service", port: 3003 }]; // Add other services as needed
-    const results: Record<string, string> = {};
-    await Promise.all(services.map(async (service) => {
-      try {
-        const res = await fetch(`http://${service.name}:${service.port}/health`);
-        if (res.status === 200) {
-          results[`${service.name}:${service.port}`] = "healthy";
-        } else {
-          results[`${service.name}:${service.port}`] = "unhealthy";
-        }
-      } catch (error) {
-        results[`${service.name}:${service.port}`] = `unhealthy (error: ${(error as Error).message})`;
-      }
-    }));
-    return results;
-  });
+export async function publicRoutes(app: FastifyInstance) {
+  app.register(healthRoutes);
+  app.get("/", rootHandler);
+  app.get("/help", helpHandler);
 }

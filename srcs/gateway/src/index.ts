@@ -1,20 +1,25 @@
 import fastify from "fastify";
 import fastifyCors from "@fastify/cors";
-import { gatewayNonApiRoutes, gatewayRoutes } from "./routes/gateway.routes.js";
 import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
 import websocketPlugin from "@fastify/websocket";
+import { apiRoutes, publicRoutes } from "./routes/gateway.routes.js";
+import { logger, optimizeErrorHandler } from "./utils/logger.js";
 
-const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/auth/health", "/api/game/sessions"];
+const PUBLIC_HEALTH_ROUTES = ["/api/auth/health", "/api/game/health"];
+const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/game/sessions", ...PUBLIC_HEALTH_ROUTES];
 
-const app = fastify({ logger: { level: process.env.LOG_LEVEL || "info" } });
+const app = fastify({
+  logger: false, // Utiliser notre logger
+  disableRequestLogging: true // Désactiver les logs automatiques
+});
 
 // Register fastify-cookie
 app.register(fastifyCookie);
 
 // Register fastify-jwt
 app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET || "supersecretkey",  // USE Hashicorp Vault ------------------------------------
+  secret: (globalThis as any).process?.env?.JWT_SECRET || "supersecretkey",  // USE Hashicorp Vault ------------------------------------
 });
 
 console.log("register");
@@ -27,13 +32,16 @@ app.addHook("onRequest", async (request: any, reply: any) => {
   if (!url.startsWith("/api")) return;
 
   // Routes publiques juste `/api/auth/login` et `/api/auth/register` (pas de cookie nécessaire)
-  if (PUBLIC_ROUTES.includes(url)) return;
+  if (PUBLIC_ROUTES.includes(url)) {
+    logger.logAuth({ url, user: request.user?.username }, true);
+    return;
+  }
 
   const token = request.cookies && (request.cookies.token as string | undefined);
 
   // No token present
   if (!token) {
-    app.log.warn({ event: "jwt_missing", url: request.url });
+    logger.logAuth({ url: request.url, token: false }, false);
     return reply
       .code(401)
       .send({ error: { message: "Unauthorized", code: "UNAUTHORIZED" } });
@@ -43,27 +51,16 @@ app.addHook("onRequest", async (request: any, reply: any) => {
   try {
     const decoded = app.jwt.verify(token);
     request.user = decoded; // injecte user dans la requête (username, id, etc.)
+    logger.logAuth({ url: request.url, user: request.user.username }, true);
   } catch (err: any) {
-    app.log.warn({
-      event: "jwt_verify_failed",
-      message: err?.message,
+    logger.logAuth({
       url: request.url,
-    });
+      token: true,
+      jwtError: err?.message
+    }, false);
     return reply
       .code(401)
       .send({ error: { message: "Unauthorized", code: "UNAUTHORIZED" } });
-  }
-});
-
-// preHandler ajouter header interne : x-user-name (username dans DB) + x-user-id (id dans DB)
-app.addHook("preHandler", async (request: any, reply: any) => {
-  if (request.user) {
-    const username = request.user.username || null;
-    const id = request.user.sub || request.user.id || null;
-    if (username)
-       reply.header("x-user-name", username);
-    if (id !== null && id !== undefined)
-      reply.header("x-user-id", String(id));
   }
 });
 
@@ -84,35 +81,30 @@ app.decorate("fetchInternal", async (request: any, url: string, init: any = {}) 
 
 // Log request end
 app.addHook("onResponse", async (request: any, reply: any) => {
-  app.log.info({
-    event: "request_end",
+  logger.logRequest({
     method: request.method,
     url: request.url,
     status: reply.statusCode,
     user: request.user?.username || null,
-  });
+  }, 'end');
 });
 
 // Central error handler: structured errors
 app.setErrorHandler((error: any, request: any, reply: any) => {
-  app.log.error({
+  logger.error({
     event: "unhandled_error",
-    message: error?.message,
-    stack: error?.stack,
-    url: request?.url,
     method: request?.method,
+    url: request?.url,
     user: request?.user?.username || null,
+    err: error?.message,
+    stack: error?.stack
   });
+
   const status = error?.statusCode || 500;
-  const payload: any = {
-    error: {
-      message: status === 500 ? "Internal server error" : error?.message,
-      code: error?.code || "INTERNAL_ERROR",
-    },
-  };
-  if (process.env.NODE_ENV === "development")
-    payload.error.details = { stack: error?.stack };
-  reply.code(status).send(payload);
+  const isDev = (globalThis as any).process?.env?.NODE_ENV === "development";
+  const errorResponse = optimizeErrorHandler(error, isDev);
+
+  reply.code(status).send({ error: errorResponse });
 });
 
 app.register(fastifyCors, {
@@ -125,14 +117,24 @@ app.register(fastifyCors, {
 
 
 // Register routes
-app.register(gatewayRoutes, { prefix: "/api" });
-app.register(gatewayNonApiRoutes);
+app.register(apiRoutes, { prefix: "/api" });
+app.register(publicRoutes);
 
 // Start the server
 app.listen({ host: '0.0.0.0', port: 3000 }, (err: Error | null, address: string) => {
   if (err) {
-    console.error(err);
-    process.exit(1);
+    logger.error({
+      event: "server_startup_failed",
+      err: err.message,
+      stack: err.stack
+    });
+    (globalThis as any).process?.exit?.(1);
   }
-  console.log(`Server listening at ${address}`);
+
+  logger.info({
+    event: "server_started",
+    address,
+    port: 3000,
+    environment: (globalThis as any).process?.env?.NODE_ENV || 'unknown'
+  });
 });

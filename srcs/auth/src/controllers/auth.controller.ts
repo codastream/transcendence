@@ -1,31 +1,36 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import * as authService from "../services/auth.service.js";
-
-interface User {
-  username?: string;
-  email?: string;
-  password: string;
-}
+import { logger } from "../utils/logger.js";
+import { ValidationSchemas } from "../utils/validation.js";
 
 export async function registerHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-  const { username, email, password } = request.body as User;
-  this.log.info({ event: 'register_attempt', username, email });
-  if (!username || !email || !password) {
-    this.log.warn({ event: 'register_failed', username, email, reason: 'missing_fields' });
-    return reply.code(400).send({ error: { message: 'username, email and password are required', code: 'MISSING_FIELDS' } });
+  // Validation Zod
+  const validation = ValidationSchemas.register.safeParse(request.body);
+  if (!validation.success) {
+    this.log.warn({ event: 'register_validation_failed', errors: validation.error.issues });
+    return reply.code(400).send({
+      error: {
+        message: 'Invalid registration data',
+        code: 'VALIDATION_ERROR',
+        details: validation.error.issues
+      }
+    });
   }
+
+  const { username, email, password } = validation.data;
+  logger.info({ event: 'register_attempt', username, email });
 
   try {
     if (authService.findByUsername(username)) {
-      this.log.warn({ event: 'register_failed', username, reason: 'user_exists' });
+      logger.warn({ event: 'register_failed', username, reason: 'user_exists' });
       return reply.code(400).send({ error: { message: 'User already exists', code: 'USER_EXISTS' } });
     }
     if (authService.findByEmail(email)) {
-      this.log.warn({ event: 'register_failed', email, reason: 'email_exists' });
+      logger.warn({ event: 'register_failed', email, reason: 'email_exists' });
       return reply.code(400).send({ error: { message: 'Email already in use', code: 'EMAIL_EXISTS' } });
     }
   } catch (err: any) {
-    this.log.error({ event: 'register_validation_error', username, email, err: err?.message || err });
+    logger.error({ event: 'register_validation_error', username, email, err: err?.message || err });
     if (err && err.code === 'DB_FIND_USER_BY_USERNAME_ERROR') {
       return reply.code(500).send({ error: { message: 'Database error during username verification', code: 'DB_FIND_USER_BY_USERNAME_ERROR' } });
     }
@@ -37,10 +42,10 @@ export async function registerHandler(this: FastifyInstance, request: FastifyReq
 
   try {
     const id = authService.createUser({ username, email, password });
-    this.log.info({ event: 'register_success', username, email, id });
+    logger.info({ event: 'register_success', username, email, id });
     return reply.code(201).send({ result: { message: 'User registered successfully', id } });
   } catch (err: any) {
-    this.log.error({ event: 'register_error', username, email, err: err?.message || err });
+    logger.error({ event: 'register_error', username, email, err: err?.message || err });
     // Add errors handling
     if (err && err.code === 'USER_EXISTS') {
       return reply.code(400).send({ error: { message: err.message || 'User already exists', code: 'USER_EXISTS' } });
@@ -61,19 +66,35 @@ export async function registerHandler(this: FastifyInstance, request: FastifyReq
 }
 
 export async function loginHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-  const { username, email, password } = request.body as User;
-  const identifier = username || email;
-  this.log.info({ event: 'login_attempt', identifier });
-  if (!identifier || !password) {
-    this.log.warn({ event: 'login_failed', identifier, reason: 'missing_fields' });
-    return reply.code(400).send({ error: { message: 'Username/email and password required', code: 'MISSING_FIELDS' } });
+  // Validation Zod
+  const validation = ValidationSchemas.login.safeParse(request.body);
+  if (!validation.success) {
+    this.log.warn({ event: 'login_validation_failed', errors: validation.error.issues });
+    return reply.code(400).send({
+      error: {
+        message: 'Invalid login data',
+        code: 'VALIDATION_ERROR',
+        details: validation.error.issues
+      }
+    });
   }
+
+  const { username, email, password } = validation.data;
+  const identifier = username || email;
+
+  // TypeScript safety check
+  if (!identifier) {
+    logger.warn({ event: 'login_failed', reason: 'missing_identifier' });
+    return reply.code(400).send({ error: { message: 'Username or email required', code: 'MISSING_IDENTIFIER' } });
+  }
+
+  logger.info({ event: 'login_attempt', identifier });
 
   try {
     const user = authService.findUser(identifier);
     const valid = user && authService.validateUser(identifier, password);
     if (!valid) {
-      this.log.warn({ event: 'login_failed', identifier, reason: 'invalid_credentials' });
+      logger.warn({ event: 'login_failed', identifier, reason: 'invalid_credentials' });
       return reply.code(401).send({ error: { message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' } });
     }
 
@@ -83,10 +104,10 @@ export async function loginHandler(this: FastifyInstance, request: FastifyReques
     };
 
     const token = this.jwt.sign(payload, { expiresIn: '1h' });
-    this.log.info({ event: 'login_success', identifier });
+    logger.info({ event: 'login_success', identifier });
     reply.setCookie("token", token, {
       httpOnly: true,
-      secure: true,
+      secure: (globalThis as any).process?.env?.NODE_ENV === 'production',
       sameSite: "strict",
       path: "/",
       maxAge: 60 * 60,        // 1h comme le JWT
@@ -94,7 +115,7 @@ export async function loginHandler(this: FastifyInstance, request: FastifyReques
       .code(200)
       .send({ result: { message: 'Login successful' } });
   } catch (err: any) {
-    this.log.error({ event: 'login_error', identifier, err: err?.message || err });
+    logger.error({ event: 'login_error', identifier, err: err?.message || err });
     if (err && err.code === 'DB_FIND_USER_BY_IDENTIFIER_ERROR') {
       return reply.code(500).send({ error: { message: 'Database error during user lookup', code: 'DB_FIND_USER_BY_IDENTIFIER_ERROR' } });
     }
@@ -102,16 +123,32 @@ export async function loginHandler(this: FastifyInstance, request: FastifyReques
   }
 }
 
+export async function logoutHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+  const username = (request.headers as any)["x-user-name"] || null;
+  logger.info({ event: 'logout', user: username });
+  return reply.clearCookie("token").send({ result: { message: 'Logged out successfully' } });
+}
+
+// DEV ONLY - À supprimer
 export async function meHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
   const username = (request.headers as any)["x-user-name"] || null;
   const idHeader = (request.headers as any)["x-user-id"] || null;
   const id = idHeader ? Number(idHeader) : null;
-  this.log.info({ event: 'me_request', user: username, id });
+  logger.info({ event: 'me_request_dev_only', user: username, id });
   return reply.code(200).send({ data: { user: username ? { id, username } : null } });
 }
 
-export async function logoutHandler(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+export async function listAllUsers(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
   const username = (request.headers as any)["x-user-name"] || null;
-  this.log.info({ event: 'logout', user: username });
-  return reply.clearCookie("token").send({ result: { message: 'Logged out successfully' } });
+  logger.info({ event: 'list_users_attempt', user: username });
+  if (username !== 'admin')
+    return reply.code(403).send({ error: { message: 'Forbidden', code: 'FORBIDDEN' } });
+  try {
+	const users = authService.listUsers();
+	logger.info({ event: 'list_users_success', user: username, count: users.length });
+	return reply.code(200).send({ result: { users } });
+  } catch (err: any) {
+	logger.error({ event: 'list_users_error', user: username, err: err?.message || err });
+	return reply.code(500).send({ error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' } });
+  }
 }

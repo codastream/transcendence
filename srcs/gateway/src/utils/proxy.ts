@@ -1,5 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import WebSocket from "ws";
+import { logger, createLogContext } from "./logger.js";
+
 //
 // Message types for type safety
 interface ClientMessage {
@@ -23,12 +25,12 @@ export function webSocketProxyRequest(
 ) {
   const userName = request.headers['x-user-name'] || 'anonymous';
   const userId = request.headers['x-user-id'] || 'unknown';
-  
-  app.log.info({ 
+
+  app.log.info({
     event: 'game_ws_connect_attempt',
     path,
     user: userName,
-    userId: userId 
+    userId: userId
   });
 
   // Create WebSocket connection to game-service
@@ -43,10 +45,10 @@ export function webSocketProxyRequest(
 
   // Handle upstream connection open
   upstreamWs.on("open", () => {
-    app.log.info({ 
+    app.log.info({
       event: 'game_ws_upstream_connected',
       path,
-      user: userName 
+      user: userName
     });
   });
 
@@ -57,7 +59,7 @@ export function webSocketProxyRequest(
         // Parse and validate client message
         const messageStr = data.toString();
         const clientMessage: ClientMessage = JSON.parse(messageStr);
-        
+
         // Validate message structure
         if (!clientMessage.type) {
           throw new Error('Missing message type');
@@ -65,8 +67,8 @@ export function webSocketProxyRequest(
 
         // Send validated JSON to game service
         upstreamWs.send(JSON.stringify(clientMessage));
-        
-        app.log.debug({ 
+
+        app.log.debug({
           event: 'game_ws_client_to_upstream',
           path,
           user: userName,
@@ -76,7 +78,7 @@ export function webSocketProxyRequest(
       } catch (error) {
         // Properly handle unknown type
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        
+
         app.log.error({
           event: 'game_ws_invalid_client_message',
           path,
@@ -84,7 +86,7 @@ export function webSocketProxyRequest(
           error: errorMessage,
           rawData: data.toString()
         });
-        
+
         // Send error back to client
         const errorResponse: ServerMessage = {
           type: 'error',
@@ -102,7 +104,7 @@ export function webSocketProxyRequest(
         // Parse and validate server message
         const messageStr = data.toString();
         const serverMessage: ServerMessage = JSON.parse(messageStr);
-        
+
         // Validate message structure
         if (!serverMessage.type) {
           throw new Error('Missing message type');
@@ -110,8 +112,8 @@ export function webSocketProxyRequest(
 
         // Send validated JSON to client
         connection.send(JSON.stringify(serverMessage));
-        
-        app.log.debug({ 
+
+        app.log.debug({
           event: 'game_ws_upstream_to_client',
           path,
           user: userName,
@@ -121,7 +123,7 @@ export function webSocketProxyRequest(
       } catch (error) {
         // Properly handle unknown type
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        
+
         app.log.error({
           event: 'game_ws_invalid_server_message',
           path,
@@ -129,7 +131,7 @@ export function webSocketProxyRequest(
           error: errorMessage,
           rawData: data.toString()
         });
-        
+
         // Send error to client
         const errorResponse: ServerMessage = {
           type: 'error',
@@ -142,46 +144,46 @@ export function webSocketProxyRequest(
 
   // Handle client disconnect
   connection.on("close", (code: number, reason: Buffer) => {
-    app.log.info({ 
+    app.log.info({
       event: 'game_ws_client_disconnect',
       path,
       user: userName,
       code,
-      reason: reason.toString() 
+      reason: reason.toString()
     });
     upstreamWs.close();
   });
 
   // Handle upstream disconnect
   upstreamWs.on("close", (code: number, reason: Buffer) => {
-    app.log.info({ 
+    app.log.info({
       event: 'game_ws_upstream_disconnect',
       path,
       user: userName,
       code,
-      reason: reason.toString() 
+      reason: reason.toString()
     });
     connection.close();
   });
 
   // Handle client errors
   connection.on("error", (error: Error) => {
-    app.log.error({ 
+    app.log.error({
       event: 'game_ws_client_error',
       path,
       user: userName,
-      error: error.message 
+      error: error.message
     });
     upstreamWs.close();
   });
 
   // Handle upstream errors
   upstreamWs.on("error", (error: Error) => {
-    app.log.error({ 
+    app.log.error({
       event: 'game_ws_upstream_error',
       path,
       user: userName,
-      error: error.message 
+      error: error.message
     });
     connection.close();
   });
@@ -193,6 +195,18 @@ export async function proxyRequest(
   url: string,
   init?: RequestInit
 ) {
+  const startTime = Date.now();
+  const method = init?.method || 'GET';
+  const userName = (request.headers as any)["x-user-name"] || null;
+
+  // Log début de proxy
+  logger.logProxyRequest({
+    targetUrl: url,
+    method,
+    user: userName,
+    url: request.url
+  });
+
   // Timeout (5 secondes)
   const timeoutMs = (init as any)?.timeout ?? 5000;
   const controller = new AbortController();
@@ -210,10 +224,17 @@ export async function proxyRequest(
     }
 
     const contentType = response.headers.get("content-type") || "";
+    const duration = Date.now() - startTime;
 
-    // Log proxy request + response status
-    const userName = (request.headers as any)["x-user-name"] || null;
-    app.log.info({ event: 'proxy', url, method: init?.method || 'GET', status: response.status, user: userName });
+    // Log résultat proxy avec nouveau logger
+    logger.logProxyRequest({
+      targetUrl: url,
+      method,
+      status: response.status,
+      user: userName,
+      url: request.url,
+      upstreamDuration: duration
+    });
 
     // Forward status code Service -> Gateway -> Client
     reply.code(response.status);
@@ -227,7 +248,14 @@ export async function proxyRequest(
         return body;
       } catch (jsonErr) {
         const errorMessage = (jsonErr as Error)?.message || 'Unknown JSON error';
-        app.log.warn({ event: 'proxy_json_error', url, err: errorMessage });
+        logger.error({
+          event: 'proxy_json_error',
+          targetUrl: url,
+          method,
+          user: userName,
+          err: errorMessage,
+          upstreamDuration: Date.now() - startTime
+        });
         reply.code(502);
         return { error: { message: 'Invalid JSON from upstream', code: 'BAD_GATEWAY', details: errorMessage } };
       }
@@ -241,7 +269,14 @@ export async function proxyRequest(
       return text;
     } catch (textErr) {
       const errorMessage = (textErr as Error)?.message || 'Unknown text error';
-      app.log.warn({ event: 'proxy_text_error', url, err: errorMessage });
+      logger.error({
+        event: 'proxy_text_error',
+        targetUrl: url,
+        method,
+        user: userName,
+        err: errorMessage,
+        upstreamDuration: Date.now() - startTime
+      });
       reply.code(502);
       return { error: { message: 'Error reading upstream response', code: 'BAD_GATEWAY', details: errorMessage } };
     }
@@ -249,7 +284,17 @@ export async function proxyRequest(
     clearTimeout(timeoutHandle);
     const isAbort = err && (err.name === 'AbortError' || err.type === 'aborted');
     const errorMessage = (err as Error)?.message || 'Unknown network error';
-    app.log.warn({ event: 'proxy_error', url, err: errorMessage, timeout: isAbort });
+    const duration = Date.now() - startTime;
+
+    logger.error({
+      event: isAbort ? 'proxy_timeout' : 'proxy_error',
+      targetUrl: url,
+      method,
+      user: userName,
+      err: errorMessage,
+      upstreamDuration: duration,
+      timeout: isAbort
+    });
     reply.code(502);
     if (isAbort) {
       return { error: { message: 'Upstream request timed out', code: 'BAD_GATEWAY', details: errorMessage } };

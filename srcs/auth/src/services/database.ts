@@ -119,3 +119,16 @@ export function closeDatabase() {
 export function getDatabasePath() {
   return DB_PATH;
 }
+
+// DEV ONLY - À supprimer en production
+export function listUsers(): DBUser[] {
+  try {
+	const stmt = db.prepare('SELECT * FROM users');
+	const users = stmt.all() as DBUser[];
+	return users;
+  } catch (err) {
+	const error: any = new Error(`Error during listing users: ${((err as any)?.message) || String(err)}`);
+	error.code = 'DB_LIST_USERS_ERROR';
+	throw error;
+  }
+}
