@@ -4,10 +4,12 @@ import { registerGameRoutes } from "../controllers/game.controller.js"; // Passe
 
 import { healthRoutes } from "./health.routes.js";
 import { rootHandler, helpHandler } from "../controllers/gateway.controller.js";
+import { registerBlockRoutes } from "../controllers/block.controller.js";
 
 export async function apiRoutes(app: FastifyInstance) {
   app.register(authRoutes, { prefix: "/auth" });
   app.register(registerGameRoutes, { prefix: "/game" });
+  app.register(registerBlockRoutes, { prefix: "/block" });
 }
 
 export async function publicRoutes(app: FastifyInstance) {

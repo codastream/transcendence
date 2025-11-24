@@ -124,6 +124,27 @@ class HealthChecker {
         }
     }
 
+    private async checkBlockchain(): Promise<boolean> {
+        const blockDot = document.getElementById('game-status');
+        const blockLabel = blockDot?.nextElementSibling?.nextElementSibling as HTMLElement;
+
+        try {
+            const response = await fetch('/api/block/health');
+            const data = await response.json();
+
+            if (response.ok) {
+                await this.updateStatus(blockDot, blockLabel, true);
+                return true;
+            } else {
+                throw new Error('Blockchain-service offline');
+            }
+        } catch (error) {
+            console.warn('Blockchain check failed:', error);
+            await this.updateStatus(blockDot, blockLabel, false);
+            return false;
+        }
+    }
+
     private async checkAllServices(): Promise<void> {
         const statusElement = document.getElementById('status');
         const nginxOnline = await this.checkNginx();
@@ -131,9 +152,10 @@ class HealthChecker {
         const usersOnline = await this.checkUsers();
         const redisOnline = await this.checkRedis();
         const gameOnline = await this.checkGame();
+        const blockchainOnline = await this.checkBlockchain();
 
         if (statusElement) {
-            if (nginxOnline && apiOnline && redisOnline && usersOnline && gameOnline) {
+            if (nginxOnline && apiOnline && redisOnline && usersOnline && gameOnline && blockchainOnline) {
                 statusElement.textContent = 'Online';
                 statusElement.className = 'px-3 py-1 rounded-full text-sm font-semibold bg-green-500 text-white';
             } else {
@@ -299,7 +321,7 @@ class TranscendenceApp {
     private updateConnectionStatus(connected: boolean, text: string): void {
         const statusDot = document.getElementById('game-connection-status');
         const statusText = document.getElementById('game-connection-text');
-        
+
         if (statusDot && statusText) {
             if (connected) {
                 statusDot.className = 'w-3 h-3 rounded-full bg-green-500 animate-pulse';
@@ -317,19 +339,19 @@ class TranscendenceApp {
             // Determine WebSocket URL (assuming same host)
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}/api/game/${sessionId}`;
-            
+
             this.addGameLog(`Connecting to ${wsUrl}`, 'info');
-            
+
             this.ws = new WebSocket(wsUrl);
 
             this.ws.onopen = () => {
                 this.addGameLog('WebSocket connected', 'success');
                 this.updateConnectionStatus(true, 'Connected (WebSocket)');
                 this.reconnectAttempts = 0;
-                
+
                 // Start ping interval to keep connection alive
                 this.startPingInterval();
-                
+
                 resolve();
             };
 
@@ -352,7 +374,7 @@ class TranscendenceApp {
                 this.addGameLog(`WebSocket closed (code: ${event.code})`, 'warning');
                 this.updateConnectionStatus(false, 'Disconnected');
                 this.stopPingInterval();
-                
+
                 // Attempt reconnection if not intentional
                 if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
                     this.reconnectAttempts++;
@@ -389,16 +411,15 @@ class TranscendenceApp {
                     this.gameState = message.data;
                     this.updateScores(message.data.scores);
                     this.renderGame();
-                    
+
                     // Update status text
                     const statusText = document.getElementById('game-status-text');
                     if (statusText && message.data.status) {
                         statusText.textContent = message.data.status.charAt(0).toUpperCase() + message.data.status.slice(1);
-                        statusText.className = `text-xl font-semibold ${
-                            message.data.status === 'playing' ? 'text-green-400' : 
-                            message.data.status === 'finished' ? 'text-red-400' : 
-                            'text-yellow-400'
-                        }`;
+                        statusText.className = `text-xl font-semibold ${message.data.status === 'playing' ? 'text-green-400' :
+                            message.data.status === 'finished' ? 'text-red-400' :
+                                'text-yellow-400'
+                            }`;
                     }
                 }
                 break;
@@ -455,7 +476,7 @@ class TranscendenceApp {
             // Create game session via HTTP first
             const response = await fetch('/api/game/create-session', {
                 method: 'POST',
-						    credentials: 'include'
+                credentials: 'include'
             });
 
             const data = await response.json();
@@ -465,7 +486,7 @@ class TranscendenceApp {
             if (response.ok && data.sessionId) {
                 this.sessionId = data.sessionId;
                 console.log('Created game session:', this.sessionId);
-                
+
                 // Hide main content
                 const mainContent = document.querySelector('.relative.z-10') as HTMLElement;
                 if (mainContent) {
@@ -483,7 +504,7 @@ class TranscendenceApp {
 
                 // Connect via WebSocket
                 await this.createWebSocketConnection(this.sessionId);
-                
+
                 this.addGameLog('Ready to play! Press START GAME', 'info');
                 this.drawWaitingScreen();
 
@@ -520,7 +541,7 @@ class TranscendenceApp {
         } catch (error) {
             console.error('Failed to start game:', error);
             this.addGameLog(`Error: ${error}`, 'error');
-            
+
             const startBtn = document.getElementById('start-game-btn');
             if (startBtn) {
                 startBtn.textContent = 'START GAME';
@@ -532,7 +553,7 @@ class TranscendenceApp {
     private updateScores(scores: { left: number; right: number }): void {
         const player1Score = document.getElementById('player1-score');
         const player2Score = document.getElementById('player2-score');
-        
+
         if (player1Score) player1Score.textContent = scores.left.toString();
         if (player2Score) player2Score.textContent = scores.right.toString();
     }
@@ -577,27 +598,27 @@ class TranscendenceApp {
         // Draw left paddle
         this.ctx.fillStyle = '#ffffff';
         this.ctx.fillRect(
-            20, 
-            this.gameState.paddles.left.y, 
-            10, 
+            20,
+            this.gameState.paddles.left.y,
+            10,
             this.gameState.paddles.left.height
         );
 
         // Draw right paddle
         this.ctx.fillRect(
-            this.canvas.width - 30, 
-            this.gameState.paddles.right.y, 
-            10, 
+            this.canvas.width - 30,
+            this.gameState.paddles.right.y,
+            10,
             this.gameState.paddles.right.height
         );
 
         // Draw ball
         this.ctx.beginPath();
         this.ctx.arc(
-            this.gameState.ball.x, 
-            this.gameState.ball.y, 
-            this.gameState.ball.radius, 
-            0, 
+            this.gameState.ball.x,
+            this.gameState.ball.y,
+            this.gameState.ball.radius,
+            0,
             Math.PI * 2
         );
         this.ctx.fill();
@@ -615,7 +636,7 @@ class TranscendenceApp {
             this.ws.close(1000, 'User exited game');
             this.ws = null;
         }
-        
+
         if (this.gameContainer) {
             this.gameContainer.classList.add('hidden');
         }
@@ -736,10 +757,10 @@ class TranscendenceApp {
         }
 
         if (paddle && direction) {
-            this.sendWebSocketMessage({ 
-                type: 'paddle', 
-                paddle, 
-                direction 
+            this.sendWebSocketMessage({
+                type: 'paddle',
+                paddle,
+                direction
             });
         }
     }
@@ -757,10 +778,10 @@ class TranscendenceApp {
         }
 
         if (paddle) {
-            this.sendWebSocketMessage({ 
-                type: 'paddle', 
-                paddle, 
-                direction: 'stop' 
+            this.sendWebSocketMessage({
+                type: 'paddle',
+                paddle,
+                direction: 'stop'
             });
         }
     }

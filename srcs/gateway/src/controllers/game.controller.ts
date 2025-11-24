@@ -23,17 +23,22 @@ export function registerGameRoutes(app: FastifyInstance) {
     webSocketProxyRequest(app, connection, request, `/${sessionId}`);
   });
 
+
+
   app.all("/*", async (request, reply) => {
-    const path = (request.params as any)['*'];
-    const url = `http://game-service:3003/${path}`;
+    const rawPath = (request.params as any)['*'];
+    const cleanPath = rawPath.replace(/^api\/game\//, ""); // 🔥 FIX
+    const url = `http://game-service:3003/${cleanPath}`;
+    // const path = (request.params as any)['*'];
+    // const url = `http://game-service:3003/${path}`;
     const queryString = new URL(request.url, 'http://localhost').search;
     const fullUrl = `${url}${queryString}`;
-    
-    app.log.info({ 
-      event: 'game_proxy_request', 
-      path,
+
+    app.log.info({
+      event: 'game_proxy_request',
+      // path,
       method: request.method,
-      user: request.headers['x-user-name'] || null 
+      user: request.headers['x-user-name'] || null
     });
 
     const init: RequestInit = {

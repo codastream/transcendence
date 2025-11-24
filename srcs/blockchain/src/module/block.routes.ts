@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { blockIdSchema, blockSchema } from "./block.schema.js";
 import { addRow, addRowJSON, listRows, listRowsJSON, showRow } from "./block.controller.js";
 
@@ -16,7 +16,7 @@ async function blockRoutes(app: FastifyInstance) {
 }
 
 async function healthRoutes(app: FastifyInstance) {
-  app.get("/", async () => {
-    return { status: "ok" };
+  app.get("/", async function(this: FastifyInstance, _request: FastifyRequest, reply: FastifyReply) {
+    return reply.code(200).send({ status: "healthy" });
   });
-}
+} 

@@ -15,10 +15,16 @@ RUN apk add --no-cache wget
 # Supprime la conf par défaut si besoin
 RUN rm /etc/nginx/conf.d/default.conf || true
 
+# Supprime les entrypoint de l'image officiel
+RUN rm -f /docker-entrypoint.d/*
+
 COPY --from=builder /build/app.js /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY ./html /usr/share/nginx/html
+
+# RUN DNS=$(grep nameserver /etc/resolv.conf | head -n1 | awk '{print $2}') \
+#     && sed -i "s|__DNS__|$DNS|g" /etc/nginx/nginx.conf
 
 EXPOSE 80 443
 CMD ["nginx", "-g", "daemon off;"]

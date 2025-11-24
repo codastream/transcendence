@@ -72,6 +72,8 @@ logs-api:
 	$(CONTAINER_CMD) logs -f api-gateway
 logs-auth:
 	$(CONTAINER_CMD) logs -f auth-service
+logs-game:
+	$(CONTAINER_CMD) logs -f game-service
 
 re : fclean all
 
