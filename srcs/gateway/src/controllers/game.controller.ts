@@ -1,9 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { proxyRequest, webSocketProxyRequest } from "../utils/proxy.js";
 
-
-
-
 export function registerGameRoutes(app: FastifyInstance) {
   // Regular HTTP routes
   app.get("/health", async (request, reply) => {
