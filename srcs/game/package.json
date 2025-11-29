@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "node server.js",
-    "dev": "tsx watch server.ts"
+    "dev": "tsc -p tsconfig.json -w",
+    "build": "tsc -p tsconfig.json",
+    "start": "tsc -p tsconfig.json && node dist/server.js"
   },
   "dependencies": {
     "fastify": "^4.28.1",

@@ -483,44 +483,7 @@
 	</div>
 
 	<script>
-		// Code de la carte Game
-		const gameBtn = document.getElementById('gameBtn');
-		const gameMsg = document.getElementById('gameMsg');
 
-		gameBtn.addEventListener('click', async () => {
-			gameMsg.innerHTML = '';
-			gameMsg.className = 'msg mt-3';
-			gameBtn.disabled = true;
-			try {
-				const res = await fetch('/api/game/create-session', {
-					method: 'POST',
-					credentials: 'include',
-				});
-				const text = await res.text();
-				let data;
-				try { data = JSON.parse(text); } catch { data = text; }
-				if (res.ok) {
-					let html = '<div class="text-green-700 font-medium mb-2">✓ Session créée</div>';
-					if (data.sessionId) {
-						html += `<div class="bg-gray-50 p-3 rounded-lg">`;
-						html += `<div class="text-sm font-medium text-gray-700">Session ID:</div>`;
-						html += `<div class="text-sm text-gray-900 font-mono bg-white p-2 rounded border mt-1">${data.sessionId}</div>`;
-						if (data.wsUrl) {
-							html += `<div class="text-sm font-medium text-gray-700 mt-2">WebSocket URL:</div>`;
-							html += `<div class="text-sm text-gray-900 font-mono bg-white p-2 rounded border mt-1">${data.wsUrl}</div>`;
-						}
-						html += `</div>`;
-					}
-					gameMsg.innerHTML = html;
-				} else {
-					gameMsg.innerHTML = formatErrorMessage({ ok: false, status: res.status, data });
-				}
-			} catch (err) {
-				gameMsg.innerHTML = `<div class="text-red-700">Requête impossible: ${err.message}</div>`;
-			} finally {
-				gameBtn.disabled = false;
-			}
-		});
 
 		// Code de la carte Liste des utilisateurs
 		const listUsersBtn = document.getElementById('listUsersBtn');
@@ -625,7 +588,6 @@
 			}
 		});
 	</script>
-		
 
     <script src="app.js"></script>
 </body>

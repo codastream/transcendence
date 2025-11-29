@@ -1,14 +1,19 @@
-// Perlin Noise implementation for force field generation
+// import { Vector2 } from './game.vector.ts'
+import { Vector2 } from './game.vector.js'
+
 class PerlinNoise {
-  constructor(seed = 0) {
+  private permutation: number[];
+  private p: number[];
+
+  constructor(seed: number = 0) {
     this.permutation = this.generatePermutation(seed);
     this.p = [...this.permutation, ...this.permutation];
   }
 
-  generatePermutation(seed) {
-    const p = Array.from({ length: 256 }, (_, i) => i);
+  private generatePermutation(seed: number): number[] {
+    const p: number[] = Array.from({ length: 256 }, (_, i) => i);
     
-    // Shuffle using seed
+    // Shuffle using seed - see standard LCG formula: next = (a × current + c) mod m
     let random = seed;
     for (let i = 255; i > 0; i--) {
       random = (random * 9301 + 49297) % 233280;
@@ -19,15 +24,15 @@ class PerlinNoise {
     return p;
   }
 
-  fade(t) {
+  private fade(t: number): number {
     return t * t * t * (t * (t * 6 - 15) + 10);
   }
 
-  lerp(t, a, b) {
+  private lerp(t: number, a: number, b: number): number {
     return a + t * (b - a);
   }
 
-  grad(hash, x, y, z) {
+  private grad(hash: number, x: number, y: number, z: number): number {
     const h = hash & 15;
     const u = h < 8 ? x : y;
     const v = h < 4 ? y : h === 12 || h === 14 ? x : z;
@@ -35,7 +40,7 @@ class PerlinNoise {
   }
 
   // Main noise function - returns value between -1 and 1
-  noise(x, y, z) {
+  public noise(x: number, y: number, z: number): number {
     // Find unit cube that contains point
     const X = Math.floor(x) & 255;
     const Y = Math.floor(y) & 255;
@@ -76,12 +81,18 @@ class PerlinNoise {
   }
 
   // Normalized noise - returns value between 0 and 1
-  noise01(x, y, z) {
+  public noise01(x: number, y: number, z: number): number {
     return (this.noise(x, y, z) + 1) / 2;
   }
 
   // Octave noise for more detailed results
-  octaveNoise(x, y, z, octaves = 4, persistence = 0.5) {
+  public octaveNoise(
+    x: number, 
+    y: number, 
+    z: number, 
+    octaves: number = 4, 
+    persistence: number = 0.5
+  ): number {
     let total = 0;
     let frequency = 1;
     let amplitude = 1;
@@ -102,31 +113,69 @@ class PerlinNoise {
 const perlin = new PerlinNoise(12345);
 
 // Simple function that returns Perlin noise value from x, y, z
-export function getPerlinNoise(x, y, z) {
+export function getPerlinNoise(x: number, y: number, z: number): number {
   return perlin.noise(x, y, z); // Returns value between -1 and 1
 }
 
 // Normalized version (0 to 1)
-export function getPerlinNoise01(x, y, z) {
+export function getPerlinNoise01(x: number, y: number, z: number): number {
   return perlin.noise01(x, y, z);
 }
 
 // Multi-octave version for more detail
-export function getPerlinNoiseOctave(x, y, z, octaves = 4) {
+export function getPerlinNoiseOctave(
+  x: number, 
+  y: number, 
+  z: number, 
+  octaves: number = 4
+): number {
   return perlin.octaveNoise(x, y, z, octaves);
 }
 
-// Example usage for force field:
-export function getForceField(x, y, z, scale = 0.1, strength = 10) {
-  const noiseValue = perlin.octaveNoise(x * scale, y * scale, z * scale, 3);
-  return {
-    fx: noiseValue * strength,
-    fy: perlin.octaveNoise(x * scale + 100, y * scale, z * scale, 3) * strength,
-    fz: perlin.octaveNoise(x * scale, y * scale + 100, z * scale, 3) * strength
-  };
+// Generate a 2D force field grid
+export function generateForceField2D(
+  width: number,
+  height: number,
+  resolution: number = 20,
+  scale: number = 0.05,
+  strength: number = 1,
+  time: number = 0
+): Vector2[] {
+  const vectors: Vector2[] = [];
+  
+  for (let y = 0; y < height; y += resolution) {
+    for (let x = 0; x < width; x += resolution) {
+      // Use Perlin noise to generate force direction
+      const angle = perlin.octaveNoise(
+        x * scale, 
+        y * scale, 
+        time, 
+        3
+      ) * Math.PI * 2; // Convert noise to angle (0 to 2π)
+      
+      vectors.push(new Vector2(
+          Math.cos(angle) * strength,
+          Math.sin(angle) * strength
+        )
+      );
+      time += 0.1;
+    }
+  }
+  
+  return vectors;
 }
 
-// Usage examples:
-// const value = getPerlinNoise(0.5, 1.2, 3.4);
-// const normalized = getPerlinNoise01(0.5, 1.2, 3.4);
-// const force = getForceField(x, y, z, 0.05, 15);
+// Get force at a specific 2D point
+export function getForceAt2D(
+  x: number, 
+  y: number, 
+  scale: number = 0.05, 
+  strength: number = 1,
+  time: number = 0
+): Vector2 {
+  const angle = perlin.noise(x * scale, y * scale, time) * Math.PI * 2;
+  //const angle = perlin.octaveNoise(x * scale, y * scale, time, 4) * Math.PI * 2;
+  
+  const vec = new Vector2( Math.cos(angle) * strength, Math.sin(angle) * strength);
+  return vec;
+}

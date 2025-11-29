@@ -22,7 +22,6 @@ app.register(fastifyJwt, {
   secret: (globalThis as any).process?.env?.JWT_SECRET || "supersecretkey",  // USE Hashicorp Vault ------------------------------------
 });
 
-console.log("register");
 app.register(websocketPlugin);
 // Hook verify JWT routes `/api` sauf les routes PUBLIC_ROUTES
 app.addHook("onRequest", async (request: any, reply: any) => {
