@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "concurrently \"tsc -p tsconfig.json -w\" \"nodemon --watch dist --exec node dist/index.js\"",
     "build": "tsc -p tsconfig.json",
     "start": "tsc -p tsconfig.json && node dist/index.js"
   },
@@ -12,7 +12,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^24.10.1",
-    "tsx": "^4.16.2",
+    "@types/qrcode": "^1.5.6",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
@@ -24,6 +24,8 @@
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.4.1",
     "fastify": "^5.6.2",
+    "otplib": "^12.0.1",
+    "qrcode": "^1.5.4",
     "zod": "^3.25.2"
   }
 }
