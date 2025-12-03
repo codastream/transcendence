@@ -155,15 +155,21 @@ export class PongGame {
     // );
 
     this.cosmicBackground.update(this.time);
+    this.cosmicBackground.affectedFrom(this.ball.pos, 2, 1);
+
     const force = this.cosmicBackground.getVectorAt(
       this.ball.pos.x,
       this.ball.pos.y,
       this.time,
     )
+
+    // const noiseAtPosition = this.cosmicBackground.getNoiseFrom(this.ball.pos);
+
+    
     // inverse the forcefield each time the ball hit a paddle
     force.mult(this.serve);
     this.ball.apply(force);
-    this.ball.update();
+    this.ball.update(); 
 
     this.paddleMove();
 

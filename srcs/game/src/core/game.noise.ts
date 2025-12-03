@@ -2,6 +2,33 @@ import { createNoise3D } from 'simplex-noise';
 import Alea from 'alea';
 import { Vector2 } from './game.vector.js'
 
+interface Coordinate {
+  x: number,
+  y: number
+}
+function map(
+  value: number,
+  valueMin: number,
+  valueMax: number,
+  mapMin: number,
+  mapMax: number
+): number {
+  return mapMin + ((value - valueMin) / (valueMax - valueMin)) * (mapMax - mapMin);
+}
+
+function angleDifference(a: number, b: number): number {
+  let diff = b - a;
+  
+  // Wrap to [-0.5, 0.5] range (shortest path around the circle)
+  if (diff > 0.5) {
+    diff -= 1;
+  } else if (diff < -0.5) {
+    diff += 1;
+  }
+  
+  return diff;
+}
+
 export class CosmicMicroWaveNoise {
   private noise3D: ReturnType<typeof createNoise3D>;
   forceField: number[][];
@@ -17,10 +44,132 @@ export class CosmicMicroWaveNoise {
     this.size = size;
     this.forceField = this.getField(w, h, size, 0);
   }
+
+  getCoordAt(
+  pixelX: number,
+  pixelY: number,
+): Coordinate | null {
+  // Convert pixel position to grid coordinates
+  const x = Math.floor(pixelX / this.size);
+  const y = Math.floor(pixelY / this.size);
   
+  // Bounds check
+  const gridHeight = this.forceField.length;
+  const gridWidth = this.forceField[0]?.length || 0;
+  
+  if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) {
+    return null; // Out of bounds
+  }
+  
+  return { x, y };
+}
+
   update(time: number) {
     this.forceField = this.getField(this.width, this.height, this.size, time);
   }
+
+  getNoiseAt(x: number, y: number): number | null {
+    const coord = this.getCoordAt(x, y);
+    if (!coord) return null;
+    return this.forceField[coord.y][coord.x];
+  }
+
+  setNoiseAt(x: number, y: number, value: number): boolean {
+    const coord = this.getCoordAt(x, y);
+    if (!coord) return false;
+    this.forceField[coord.y][coord.x] = value;
+    return true;
+  }
+
+  // Or modify in place
+  addNoiseTo(coord: Coordinate, delta: number) {
+    this.forceField[coord.y][coord.x] += delta;
+    if (this.forceField[coord.y][coord.x] > 1) {
+      this.forceField[coord.y][coord.x] -= 1;
+    } else if (this.forceField[coord.y][coord.x] < 0) {
+      this.forceField[coord.y][coord.x] += 1;
+    }
+  }
+
+  distance(a: Coordinate, b: Coordinate): number {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  
+  distanceSquared(a: Coordinate, b: Coordinate): number {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    return dx * dx + dy * dy;
+  }
+reactFrom(pos: Vector2, spread: number, intensity: number): void {
+  const x = pos.x;
+  const y = pos.y;
+  const spreading = spread * this.size; // pixels
+  const coord: Coordinate | null = this.getCoordAt(x, y);
+  if (!coord) return;
+  
+  for (let j = -spreading; j < spreading; j += this.size) {
+    for (let i = -spreading; i < spreading; i += this.size) {
+      const targetX = x + i;
+      const targetY = y + j;
+      const targetCoord: Coordinate | null = this.getCoordAt(targetX, targetY);
+      if (!targetCoord) continue;
+      
+      // ✅ Calculate distance in PIXELS, not grid coordinates
+      const dx = targetX - x;
+      const dy = targetY - y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      // Now dist and spreading are both in pixels
+      const diff = map(dist, 0, spread, intensity, 0);
+      this.addNoiseTo(targetCoord, diff);
+    }
+  }
+}
+  affectedFrom(pos: Vector2, spread: number, intensity: number): void {
+  const x = pos.x;
+  const y = pos.y;
+  const spreadingPixels = spread * this.size;
+  const spreadingSquared = spreadingPixels * spreadingPixels;
+  
+  const coord: Coordinate | null = this.getCoordAt(x, y);
+  if (!coord) return;
+  
+  const spreadingCells = Math.ceil(spreadingPixels / this.size);
+  const gridHeight = this.forceField.length;
+  const gridWidth = this.forceField[0]?.length || 0;
+  
+  for (let gridJ = -spreadingCells; gridJ <= spreadingCells; gridJ++) {
+    for (let gridI = -spreadingCells; gridI <= spreadingCells; gridI++) {
+
+      const targetX = coord.x + gridI;
+      const targetY = coord.y + gridJ;
+      
+      if (targetX < 0 || targetX >= gridWidth || targetY < 0 || targetY >= gridHeight) {
+        continue;
+      }
+      
+      const targetPixelX = targetX * this.size + this.size / 2;
+      const targetPixelY = targetY * this.size + this.size / 2;
+      
+      const dx = targetPixelX - x;
+      const dy = targetPixelY - y;
+      const distSquared = dx * dx + dy * dy;
+      
+      // Skip if outside radius (using squared distance - faster!)
+      if (distSquared > spreadingSquared) continue;
+      
+      // Calculate actual distance only when needed
+      const dist = Math.sqrt(distSquared);
+      const diff = map(dist, 0, spreadingPixels, intensity, 0);
+      
+      this.addNoiseTo({ x: targetX, y: targetY }, diff);
+    }
+  }
+}
+
+
   /**
    * Get a 2D force vector at a position
    * @param x - X position
@@ -140,6 +289,14 @@ export class CosmicMicroWaveNoise {
     return field;
   }
 
+    getNoiseFrom(pos: Vector2) :number | null {
+      const coord = this.getCoordAt(pos.x, pos.y);
+
+      if (!coord) return null;
+
+      return this.forceField[coord.y][coord.x];
+    }
+
     getVectorAt(
     x: number,
     y: number,
@@ -149,13 +306,14 @@ export class CosmicMicroWaveNoise {
     offsetY: number = 0
   ): Vector2 {
     
+    // const value = this.forceField[coord.y][coord.x];
     // Sample the noise
     const value = (this.noise3D(
       (x + offsetX) * scale,
       (y + offsetY) * scale,
       time
     ) + 1) / 2;  // normalize to [0,1]
-
+    //
     // Convert noise value -> angle
     const angle = value * Math.PI * 2; // 0..2π
 

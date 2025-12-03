@@ -741,14 +741,14 @@ private renderNoiseField(
         );
 
         // Draw ball
-        this.ctx.beginPath();
-        this.ctx.arc(
-            this.gameState.ball.x,
-            this.gameState.ball.y,
-            this.gameState.ball.radius,
-            0,
-            Math.PI * 2
-        );
+        // this.ctx.beginPath();
+        // this.ctx.arc(
+        //     this.gameState.ball.x,
+        //     this.gameState.ball.y,
+        //     this.gameState.ball.radius,
+        //     0,
+        //     Math.PI * 2
+        // );
         this.ctx.fill();
     }
 
