@@ -2,7 +2,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import WebSocket from 'ws'
 import { logger, createLogContext } from './logger.js'
 
-//
 // Message types for type safety
 interface ClientMessage {
   type: 'paddle' | 'start' | 'stop' | 'ping'
@@ -17,9 +16,66 @@ interface ServerMessage {
   message?: string
 }
 
+function forwardWsMsgFromTo<
+  DownstreamMsg extends { type: string; message?: string },
+  UpstreamMsg extends { type: string }
+  >(app: FastifyInstance, downstreamWs: WebSocket, upstreamWs: WebSocket) {
+  // Forward messages from Downstream to Upstream
+  downstreamWs.on('message', (data: Buffer) => {
+    if (upstreamWs.readyState === WebSocket.OPEN) {
+      try {
+        const messageStr = data.toString()
+        const parsedMessage: UpstreamMsg = JSON.parse(messageStr)
+
+        // Validate message structure
+        if (!parsedMessage.type) {
+          throw new Error('Missing message type')
+        }
+        upstreamWs.send(JSON.stringify(parsedMessage))
+        app.log.debug({
+          event: 'forward message', type: parsedMessage.type, messageSize: messageStr.length,
+        })
+      } catch (error) {
+        // Properly handle unknown type
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+
+        app.log.error({
+          event: 'invalid_message', error: errorMessage, rawData: data.toString(),
+        })
+        // Send error back
+        const errorResponse: DownstreamMsg = {
+          type: 'error',
+          message: 'Invalid message format',
+        } as DownstreamMsg;
+        downstreamWs.send(JSON.stringify(errorResponse))
+      }
+    }
+  })
+}
+
+function handleErrorAndDisconnection(app: FastifyInstance, downstreamWs: WebSocket, upstreamWs: WebSocket) {
+  // Handle errors
+  downstreamWs.on('error', (error: Error) => {
+    app.log.error({
+      event: 'game_ws_client_error',
+      error: error.message,
+    })
+    upstreamWs.close()
+  })
+  // Handle client disconnect
+  downstreamWs.on('close', (code: number, reason: Buffer) => {
+    app.log.info({
+      event: 'game_ws_client_disconnect',
+      code,
+      reason: reason.toString(),
+    })
+    upstreamWs.close()
+  })
+};
+
 export function webSocketProxyRequest(
   app: FastifyInstance,
-  connection: any,
+  downstreamWs: WebSocket,
   request: FastifyRequest,
   path: string,
 ) {
@@ -33,7 +89,7 @@ export function webSocketProxyRequest(
     userId: userId,
   })
 
-  // Create WebSocket connection to game-service
+  // Create WebSocket downstreamWs to game-service
   const upstreamUrl = `ws://game-service:3003${path}`
   const upstreamWs = new WebSocket(upstreamUrl, {
     headers: {
@@ -52,141 +108,11 @@ export function webSocketProxyRequest(
     })
   })
 
-  // Forward messages from client to game-service
-  connection.on('message', (data: Buffer) => {
-    if (upstreamWs.readyState === WebSocket.OPEN) {
-      try {
-        // Parse and validate client message
-        const messageStr = data.toString()
-        const clientMessage: ClientMessage = JSON.parse(messageStr)
+  forwardWsMsgFromTo<ClientMessage, ServerMessage>(app, downstreamWs, upstreamWs);
+  forwardWsMsgFromTo<ServerMessage, ClientMessage>(app, upstreamWs, downstreamWs);
 
-        // Validate message structure
-        if (!clientMessage.type) {
-          throw new Error('Missing message type')
-        }
-
-        // Send validated JSON to game service
-        upstreamWs.send(JSON.stringify(clientMessage))
-
-        app.log.debug({
-          event: 'game_ws_client_to_upstream',
-          path,
-          user: userName,
-          type: clientMessage.type,
-          messageSize: messageStr.length,
-        })
-      } catch (error) {
-        // Properly handle unknown type
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-
-        app.log.error({
-          event: 'game_ws_invalid_client_message',
-          path,
-          user: userName,
-          error: errorMessage,
-          rawData: data.toString(),
-        })
-
-        // Send error back to client
-        const errorResponse: ServerMessage = {
-          type: 'error',
-          message: 'Invalid message format',
-        }
-        connection.send(JSON.stringify(errorResponse))
-      }
-    }
-  })
-
-  // Forward messages from game-service to client
-  upstreamWs.on('message', (data: Buffer) => {
-    if (connection.readyState === WebSocket.OPEN) {
-      try {
-        // Parse and validate server message
-        const messageStr = data.toString()
-        const serverMessage: ServerMessage = JSON.parse(messageStr)
-
-        // Validate message structure
-        if (!serverMessage.type) {
-          throw new Error('Missing message type')
-        }
-
-        // Send validated JSON to client
-        connection.send(JSON.stringify(serverMessage))
-
-        app.log.debug({
-          event: 'game_ws_upstream_to_client',
-          path,
-          user: userName,
-          type: serverMessage.type,
-          messageSize: messageStr.length,
-        })
-      } catch (error) {
-        // Properly handle unknown type
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-
-        app.log.error({
-          event: 'game_ws_invalid_server_message',
-          path,
-          user: userName,
-          error: errorMessage,
-          rawData: data.toString(),
-        })
-
-        // Send error to client
-        const errorResponse: ServerMessage = {
-          type: 'error',
-          message: 'Server sent invalid message format',
-        }
-        connection.send(JSON.stringify(errorResponse))
-      }
-    }
-  })
-
-  // Handle client disconnect
-  connection.on('close', (code: number, reason: Buffer) => {
-    app.log.info({
-      event: 'game_ws_client_disconnect',
-      path,
-      user: userName,
-      code,
-      reason: reason.toString(),
-    })
-    upstreamWs.close()
-  })
-
-  // Handle upstream disconnect
-  upstreamWs.on('close', (code: number, reason: Buffer) => {
-    app.log.info({
-      event: 'game_ws_upstream_disconnect',
-      path,
-      user: userName,
-      code,
-      reason: reason.toString(),
-    })
-    connection.close()
-  })
-
-  // Handle client errors
-  connection.on('error', (error: Error) => {
-    app.log.error({
-      event: 'game_ws_client_error',
-      path,
-      user: userName,
-      error: error.message,
-    })
-    upstreamWs.close()
-  })
-
-  // Handle upstream errors
-  upstreamWs.on('error', (error: Error) => {
-    app.log.error({
-      event: 'game_ws_upstream_error',
-      path,
-      user: userName,
-      error: error.message,
-    })
-    connection.close()
-  })
+  handleErrorAndDisconnection(app, downstreamWs, upstreamWs);
+  handleErrorAndDisconnection(app, upstreamWs, downstreamWs);
 }
 
 export async function proxyRequest(

@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { gameSessions } from '../core/game.state.js'
 import { ServerMessage, ClientMessage } from '../core/game.types.js'
 
-import { addPlayerConnection } from './game.connections.js'
+import { addPlayerConnection, cleanupConnection } from './game.connections.js'
 // Broadcast state to all clients in a session
 export function broadcastToSession(sessionId: string, message: ServerMessage) {
   const currentSession = gameSessions.get(sessionId)
@@ -103,16 +103,8 @@ export function defineCommunicationInterval(sessionId: string): any {
         type: 'gameOver',
         data: currentSessionData.game.getState(),
       })
-
-      // Cleanup interval
-      if (currentSessionData.interval) {
-        clearInterval(currentSessionData.interval)
-        currentSessionData.interval = null
-      }
-
-      gameSessions.delete(sessionId)
-      // this.log.info(`[${sessionId}] Game finished`);
+      cleanupConnection(null, sessionId)
     }
   }, 16)
-  return interval
+  return (interval)
 }

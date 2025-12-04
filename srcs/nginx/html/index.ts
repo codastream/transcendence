@@ -568,6 +568,10 @@ class TranscendenceApp {
         if (startBtn) {
           ;(startBtn as HTMLButtonElement).disabled = false
         }
+        this.gameState = message.data
+        if (message.data) {
+          this.updateScores(message.data.scores)
+        }
         this.drawWaitingScreen()
         this.sessionId = null
 

@@ -17,7 +17,6 @@ export function getGame(this: FastifyInstance, socket: any | null, sessionId: an
     }
     gameSessions.set(sessionId, sessionData)
     this.log.info(`[${sessionId}] Game session created via WebSocket`)
-    // Create interval and store it
     sessionData.interval = defineCommunicationInterval(sessionId)
     this.log.info(`[${sessionId}] Game created, interval started`)
   }

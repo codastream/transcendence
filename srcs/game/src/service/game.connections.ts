@@ -1,11 +1,16 @@
 import { gameSessions } from '../core/game.state.js'
 import { FastifyInstance } from 'fastify'
 
-export function cleanupConnection(socket: any, sessionId: string) {
+export function cleanupConnection(socket: any | null, sessionId: string) {
   const currentSession = gameSessions.get(sessionId)
   if (!currentSession || !currentSession.players) return
 
-  currentSession.players.delete(socket)
+  if (socket) {
+    currentSession.players.delete(socket)
+  } else {
+    currentSession.players.forEach(socket => socket.close())
+    currentSession.players.clear()
+  }
   if (currentSession.players.size === 0) {
     if (currentSession.interval) {
       clearInterval(currentSession.interval)

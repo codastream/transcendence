@@ -20,10 +20,6 @@ export async function healthCheck() {
     status: 'healthy',
     service: 'websocket-game-service',
     activeSessions: gameSessions.size,
-    // activeConnections: Array.from(playerConnections.values()).reduce(
-    //   (sum, conns) => sum + conns.size,
-    //   0,
-    // ),
     timestamp: new Date().toISOString(),
   }
 }
