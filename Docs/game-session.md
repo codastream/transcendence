@@ -1,6 +1,6 @@
-# game service 
+# game service
 
-## Memory management: 
+## Memory management:
 
     export const gameSessions = new Map<string, {
       id: string;
@@ -12,6 +12,7 @@
 ## Routes:
 
 **-> api/game/health**
+
 ```
     return:
         status: 'healthy',
@@ -21,10 +22,10 @@
           .reduce((sum, conns) => sum + conns.size, 0),
         timestamp: new Date().toISOString()
 ```
+
 **-> api/game/create-session**
-    Creation d'une nouvelle session de jeu:
-    - ID de sessions -> sessionId = randomUUID();
-    - nouvelle instance de jeu;
+Creation d'une nouvelle session de jeu: - ID de sessions -> sessionId = randomUUID(); - nouvelle instance de jeu;
+
 ```
     return:
         status: 'success',
@@ -33,20 +34,20 @@
         wsUrl: `/game/${sessionId}`
 
 ```
+
 **-> api/game/:sessionId**
-    Websocket endpoint
-    1) Get into the given game session. Add client's websocket to the session.
-    2) send confirmation message type: connected;
-    3) Start broadcasting game state at 60fps.
+Websocket endpoint 1) Get into the given game session. Add client's websocket to the session. 2) send confirmation message type: connected; 3) Start broadcasting game state at 60fps.
 
 -> api/game/sessions
-    List alls game sessions (debug purpose).
-    
-## Communication par WebSocket 
+List alls game sessions (debug purpose).
+
+## Communication par WebSocket
+
 _Client_ <-- WebSocket 1 --> _API_ <-- WebSocket 2 --> _Game-service_
 Une seule connection par client, echange de messages en continue.
 Message du server delivre a 60FPS a tous les clients de la session de jeu.
 Expected message by the server:
+
 ```
     interface ClientMessage {
       type: 'paddle' | 'start' | 'stop' | 'ping';
@@ -54,7 +55,9 @@ Expected message by the server:
       direction?: 'up' | 'down' | 'stop';
     }
 ```
+
 Expected message by the client:
+
 ```
     interface ServerMessage {
       type: 'connected' | 'state' | 'gameOver' | 'error' | 'pong';
@@ -66,7 +69,7 @@ Expected message by the client:
 
     Use of a switch to set actions on client message:
 
-    Message's types: 
+    Message's types:
     - paddle (move paddles)
     - ping (answer pong)
     - stop (stop the current game session)
@@ -75,6 +78,7 @@ Expected message by the client:
     serverMessage.data = game.getState()
 
 ## Game Logic
+
     Server broadcast game state as ServerMessage:
     ```
      interface GameState {
@@ -104,5 +108,3 @@ the Ball is influenced by the cosmic background forcefield, animated by time.
 ### The Cosmic MicroWave BackGround && Perlin Noise
 
 ...
-
-

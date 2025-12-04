@@ -27,12 +27,34 @@ endif
 
 all : volumes build
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d
-
+# Detect if volumes exist and Colima needs restart
 volumes:
-	@echo "Create volumes folder at $(VOLUMES_PATH)"
-	@mkdir -p $(VOLUMES_PATH)/
+	@echo "Configuring volumes at $(VOLUMES_PATH)"
+ifeq ($(OS), Darwin)
+	@if [ ! -d "$(VOLUMES_PATH)" ]; then \
+		echo "Creating new volume path, Colima restart required"; \
+		mkdir -p $(VOLUMES_PATH); \
+		chmod -R 777 $(VOLUMES_PATH); \
+		if colima list 2>/dev/null | grep -q "Running"; then \
+			echo "Stopping Colima to mount new path..."; \
+			colima stop; \
+		fi; \
+		$(MAKE) colima; \
+	else \
+		echo "Volume path exists: $(VOLUMES_PATH)"; \
+		mkdir -p $(VOLUMES_PATH); \
+		chmod -R 777 $(VOLUMES_PATH); \
+	fi
+else
+	@mkdir -p $(VOLUMES_PATH)
 	@chmod -R 777 $(VOLUMES_PATH)
-	@echo "Volume path configured: $(VOLUMES_PATH)"
+endif
+
+# volumes:
+# 	@echo "Create volumes folder at $(VOLUMES_PATH)"
+# 	@mkdir -p $(VOLUMES_PATH)/
+# 	@chmod -R 777 $(VOLUMES_PATH)
+# 	@echo "Volume path configured: $(VOLUMES_PATH)"
 
 colima:
 	@echo "system is : $(OS)"
@@ -110,20 +132,44 @@ clean:
 	@echo "Pruning unused resources (SAFE)…"
 	$(CONTAINER_CMD) system prune -f
 
-# Full clean WITH volumes, but NOT images
+# Clean contents but preserve structure
 fclean: clean
 	@echo "Removing volumes and networks…"
 	-$(CONTAINER_CMD) volume prune -f
 	-$(CONTAINER_CMD) network prune -f
-	rm -rf $(VOLUMES_PATH)
+	@echo "Cleaning volume contents…"
+	@if [ -d "$(VOLUMES_PATH)" ]; then \
+		find $(VOLUMES_PATH) -mindepth 1 -delete || true; \
+	fi
+	@echo "Volume folder cleaned (structure preserved)"
+# Full clean WITH volumes, but NOT images
+# fclean: clean
+# 	@echo "Removing volumes and networks…"
+# 	-$(CONTAINER_CMD) volume prune -f
+# 	-$(CONTAINER_CMD) network prune -f
+# 	rm -rf $(VOLUMES_PATH)
 
 # Dangerous full reset
-reset-hard:
-	@echo "WARNING: This will delete ALL images, ALL volumes and ALL networks"
-	sleep 3
-	$(CONTAINER_CMD) system prune -a --volumes --force
+# reset-hard:
+# 	@echo "WARNING: This will delete ALL images, ALL volumes and ALL networks"
+# 	sleep 3
+# 	$(CONTAINER_CMD) system prune -a --volumes --force
+# 	rm -rf $(VOLUMES_PATH)
+# Hard reset - deletes everything including folder
+reset-hard: clean
+	@echo "WARNING: Full reset including Colima restart"
+	-$(CONTAINER_CMD) volume prune -f
+	-$(CONTAINER_CMD) network prune -f
+	-$(CONTAINER_CMD) system prune -a --volumes --force
+ifeq ($(OS), Darwin)
+	@echo "Stopping Colima…"
+	-colima stop
 	rm -rf $(VOLUMES_PATH)
-
+	@echo "Restarting Colima with fresh mount…"
+	$(MAKE) colima
+else
+	rm -rf $(VOLUMES_PATH)
+endif
 # ifeq ($(OS), Darwin)
 # 	colima stop && colima delete
 # endif
