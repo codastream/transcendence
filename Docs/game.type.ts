@@ -1,13 +1,4 @@
-import { Vector2 } from './game.vector.js'
 // Message types
-export interface GameSettings {
-  ballRadius: number
-  ballSpeed: number;
-  ballMass: number;
-  paddleSpeed: number;
-  microWaveSize: number;
-}
-
 export interface ClientMessage {
   type: 'paddle' | 'start' | 'stop' | 'ping'
   paddle?: 'left' | 'right'
@@ -17,7 +8,7 @@ export interface ClientMessage {
 export interface ServerMessage {
   type: 'connected' | 'state' | 'gameOver' | 'error' | 'pong'
   sessionId?: string
-  data?: GameState
+  data?: any
   message?: string
 }
 
@@ -59,5 +50,5 @@ export interface GameState {
   }
   scores: Scores
   status: GameStatus
-  cosmicBackground: number[][] | null
+  cosmicBackground: number[][]
 }
