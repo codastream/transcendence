@@ -2,10 +2,10 @@
   "name": "game",
   "version": "1.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "tsc -p tsconfig.json -w",
+    "scripts": {
+    "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "tsc -p tsconfig.json && node dist/server.js"
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "@fastify/websocket": "^10.0.1",

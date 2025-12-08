@@ -1,17 +1,18 @@
 version: '3.8'
 
 services:
-  # Nginx reverse proxy
+  # Development nginx with hot reload
   nginx-proxy:
     build:
       context: ./nginx
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: nginx-proxy-dev
     ports:
       - '8080:80'
       - '4430:443'
     volumes:
-      - ./nginx:/etc/nginx:ro  # Mount nginx config for live changes
+      - ./nginx/src:/usr/share/nginx/src
+      # - ./nginx/conf.d:/etc/nginx/conf.d:ro
     networks:
       - app-network
     restart: unless-stopped
@@ -25,50 +26,42 @@ services:
       retries: 3
       start_period: 5s
 
-  # Main Fastify API
+  # All other services use production setup
   api-gateway:
     build:
       context: ./gateway
       dockerfile: Dockerfile
-    container_name: api-gateway-dev
+    container_name: api-gateway
     expose:
       - '3000'
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - JWT_SECRET=${JWT_SECRET:-supersecretkey}
-      - LOG_LEVEL=${LOG_LEVEL:-debug}
-    volumes:
-      - ./gateway:/app
-      - /app/node_modules  # Prevent overwriting node_modules
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     networks:
       - app-network
     restart: unless-stopped
-    command: npm run dev  # Use dev command with hot reload
     depends_on:
       auth-service:
         condition: service_healthy
 
-  # Auth service
   auth-service:
     build:
       context: ./auth
       dockerfile: Dockerfile
-    container_name: auth-service-dev
+    container_name: auth-service
     expose:
       - '3001'
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - AUTH_DB_PATH=/data/auth.db
       - JWT_SECRET=${JWT_SECRET:-supersecretkey}
-      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
-      - ./auth:/app
-      - /app/node_modules
       - data:/data
     networks:
       - app-network
     restart: unless-stopped
-    command: npm run dev
     healthcheck:
       test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3001/health']
       interval: 10s
@@ -76,27 +69,23 @@ services:
       retries: 3
       start_period: 10s
 
-  # Blockchain service
   blockchain-service:
     build:
       context: ./blockchain
       dockerfile: Dockerfile
-    container_name: blockchain-service-dev
+    container_name: blockchain-service
     expose:
       - '3005'
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - BLOCK_DB_PATH=/data/blockchain.db
       - REDIS_URL=redis://redis-broker:6379
-      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
-      - ./blockchain:/app
-      - /app/node_modules
       - data:/data
     networks:
       - app-network
     restart: unless-stopped
-    command: npm run dev
     healthcheck:
       test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3005/health']
       interval: 10s
@@ -104,24 +93,19 @@ services:
       retries: 3
       start_period: 10s
 
-  # Game service
   game-service:
     build:
       context: ./game
       dockerfile: Dockerfile
-    container_name: game-service-dev
+    container_name: game-service
     expose:
       - '3003'
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
       - REDIS_URL=redis://redis-broker:6379
-    volumes:
-      - ./game:/app
-      - /app/node_modules
     networks:
       - app-network
     restart: unless-stopped
-    command: npm run dev
     healthcheck:
       test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3003/health']
       interval: 10s
@@ -129,24 +113,10 @@ services:
       retries: 3
       start_period: 10s
 
-  # Redis message broker (uncommented for dev)
-  redis-broker:
-    image: redis:7-alpine
-    container_name: redis-broker-dev
-    ports:
-      - '6379:6379'  # Expose for local debugging
-    networks:
-      - app-network
-    restart: unless-stopped
-
 networks:
   app-network:
     driver: bridge
 
 volumes:
   data:
-    driver: local
-    driver_opts:
-      device: ${HOST_VOLUME_PATH:-./dev-data}
-      o: bind
-      type: none
+

@@ -3,12 +3,14 @@ OS := $(shell uname)
 # Try to load .env file if it exists
 -include srcs/.env
 export
-
 ifeq ($(OS), Linux)
 	VOLUMES_PATH := $(shell pwd)/data
+	PROJECT_PATH := $(shell pwd)
 else
 	VOLUMES_PATH := $(shell pwd)/volumes
+	PROJECT_PATH := $(shell pwd)
 endif
+
 
 # Override VOLUMES_PATH if HOST_VOLUME_PATH is set in .env
 ifdef HOST_VOLUME_PATH
@@ -50,11 +52,18 @@ else
 	@chmod -R 777 $(VOLUMES_PATH)
 endif
 
+dev:
+	colima stop
+	colima start --mount $(PROJECT_PATH):w --vm-type vz
+	docker-compose -f srcs/dev-docker-compose.yml up --build -d
 # volumes:
 # 	@echo "Create volumes folder at $(VOLUMES_PATH)"
 # 	@mkdir -p $(VOLUMES_PATH)/
 # 	@chmod -R 777 $(VOLUMES_PATH)
 # 	@echo "Volume path configured: $(VOLUMES_PATH)"
+
+colima-dev:
+	colima start --mount $(PROJECT_PATH):w --vm-type vz
 
 colima:
 	@echo "system is : $(OS)"
