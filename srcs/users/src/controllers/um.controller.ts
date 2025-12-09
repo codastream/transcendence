@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import * as umService from '../services/um.service.js'
-import { ValidationSchemas } from '../validation/validation.js'
+import { ValidationSchemas } from '../schemas/schemas.js'
 import z from 'zod'
 import { API_ERRORS, LOG_EVENTS } from '../utils/messages.js'
 

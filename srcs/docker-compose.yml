@@ -6,7 +6,7 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile
-    container_name: nginx-proxy
+    container_name: ${PROXY_SERVICE_NAME}
     ports:
       - "8080:80"
       - "4430:443"
@@ -30,9 +30,9 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     expose:
-      - "3000"
+      - "${API_GATEWAY_PORT}"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=${NODE_ENV}
       - JWT_SECRET=${JWT_SECRET:-supersecretkey}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     networks:

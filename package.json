@@ -29,5 +29,8 @@
     "**/*.{ts,js,json,md}": [
       "prettier --write"
     ]
+  },
+  "dependencies": {
+    "ioredis": "^5.8.2"
   }
 }
