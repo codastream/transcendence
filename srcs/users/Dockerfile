@@ -33,8 +33,6 @@ RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 
-EXPOSE 3003
-
 USER appuser
 
 CMD ["node", "dist/index.js"]

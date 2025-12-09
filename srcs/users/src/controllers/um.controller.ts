@@ -3,6 +3,7 @@ import * as umService from '../services/um.service.js'
 import { ValidationSchemas } from '../schemas/schemas.js'
 import z from 'zod'
 import { API_ERRORS, LOG_EVENTS } from '../utils/messages.js'
+import { mapProfileToDTO } from '../utils/mappers.js'
 
 function handleInvalidRequest<T>(
   request: FastifyRequest,
@@ -32,8 +33,8 @@ export async function getProfileByUsername(
   if (!profile) {
     return reply.status(404).send({ message: API_ERRORS.USER.NOT_FOUND })
   }
-
-  return reply.status(200).send({profile: profile});
+  const profileDTO = mapProfileToDTO(profile);
+  return reply.status(200).send({profile: profileDTO});
 }
 
 export async function createProfile(
