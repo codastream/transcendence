@@ -19,4 +19,4 @@ RUN ls -la /app && ls -la /app/src
 EXPOSE 3003
 
 # Run with tsx watch
-CMD ["npx", "tsx", "watch", "src/server.ts"]
+CMD ["npx", "tsx", "watch", "--poll", "src/server.ts"]

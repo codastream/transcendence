@@ -53,8 +53,6 @@ else
 endif
 
 dev:
-	colima stop
-	colima start --mount $(PROJECT_PATH):w --vm-type vz
 	docker-compose -f srcs/dev-docker-compose.yml up --build -d
 # volumes:
 # 	@echo "Create volumes folder at $(VOLUMES_PATH)"

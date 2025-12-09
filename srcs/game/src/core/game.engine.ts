@@ -61,11 +61,11 @@ export class PongGame {
     this.height = 600
     this.time = 0
     this.serve = 1
-    // this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, 10)
-    this.cosmicBackground = null;
+    this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, 10)
+    // this.cosmicBackground = null;
     this.ball = new Ball(
       new Vector2(this.width / 2, this.height / 2), // position
-      new Vector2(0, 0), // velocity (direction + vitesse)
+      new Vector2(5, 0), // velocity (direction + vitesse)
       this.settings.ballRadius, // size of the ball
       this.settings.ballSpeed, // speed limit
       this.settings.ballMass, // mass -> more the mass is, less it is affected by other forces
@@ -195,26 +195,22 @@ export class PongGame {
         this.ball.pos.y <= this.paddles.left.y + this.paddles.left.height
       ) {
         this.ball.vel.x = -this.ball.vel.x
-        this.ball.acc.add(new Vector2(15, 0))
+        this.ball.acc.add(new Vector2(5, 0))
         this.serve *= -1
       }
-    }
-
-    // Ball collision with right paddle
-    if (this.ball.pos.x + this.ball.radius >= this.width - 20 - this.paddles.right.width) {
+    } else if (this.ball.pos.x + this.ball.radius >= this.width - 20 - this.paddles.right.width) {
       if (
         this.ball.pos.y >= this.paddles.right.y &&
         this.ball.pos.y <= this.paddles.right.y + this.paddles.right.height
       ) {
         this.ball.vel.x = -this.ball.vel.x
-        this.ball.acc.add(new Vector2(-15, 0))
+        this.ball.acc.add(new Vector2(-5, 0))
         this.serve *= -1
       }
     }
   }
 
   collision() {
-    var bounce = false
     // Ball collision with top/bottom walls
     if (this.ball.pos.y - this.ball.radius <= 0) {
       this.ball.pos.y = 0 + this.ball.radius
@@ -226,15 +222,29 @@ export class PongGame {
     this.racketShot()
   }
 
+  teleport() {
+    const epsilon = 2 // 1 pixel tolerance
+    if (Math.abs(this.ball.pos.x - this.width / 2) < epsilon) {
+      this.ball.pos.y = Math.random() * this.height
+    }
+  }
+
+  scoring() {
+    // Ball out of bounds - scoring
+    if (this.ball.pos.x - this.ball.radius <= 20) {
+      // Right player scores
+      this.scores.right++
+      this.resetBall()
+      console.log(`[${this.sessionId}] Score: ${this.scores.left} - ${this.scores.right}`)
+    } else if (this.ball.pos.x + this.ball.radius >= this.width - 20) {
+      // Left player scores
+      this.scores.left++
+      this.resetBall()
+      console.log(`[${this.sessionId}] Score: ${this.scores.left} - ${this.scores.right}`)
+    }
+  }
+
   update(): void {
-    // Get force from noise field
-    // const force = this.cosmicBackground.getForceAt2D(
-    //   this.ball.pos.x,
-    //   this.ball.pos.y,
-    //   0.01,  // Small scale = smooth forces
-    //   0.5,   // Moderate strength
-    //   this.time
-    // );
 
     if (this.cosmicBackground) {
       this.cosmicBackground.update(this.time)
@@ -242,45 +252,29 @@ export class PongGame {
       const force = this.cosmicBackground.getVectorAt(this.ball.pos.x, this.ball.pos.y, this.time)
       force.mult(this.serve)
       this.ball.apply(force)
-    } else {
-      this.ball.apply(new Vector2(Math.random() * 5, Math.random() * 5));
     }
 
     this.ball.update()
     this.paddleMove()
     this.collision()
+    this.teleport()
 
-    const epsilon = 2 // 1 pixel tolerance
+    this.scoring()
+    this.winConditions()
 
-    if (Math.abs(this.ball.pos.x - this.width / 2) < epsilon) {
-      this.ball.pos.y = Math.random() * this.height
-    }
-    // Ball out of bounds - scoring
-    if (this.ball.pos.x - this.ball.radius <= 0) {
-      // Right player scores
-      this.scores.right++
-      this.resetBall()
-      console.log(`[${this.sessionId}] Score: ${this.scores.left} - ${this.scores.right}`)
-    } else if (this.ball.pos.x + this.ball.radius >= this.width) {
-      // Left player scores
-      this.scores.left++
-      this.resetBall()
-      console.log(`[${this.sessionId}] Score: ${this.scores.left} - ${this.scores.right}`)
-    }
+    // update time to animate forcefield
+    this.time += 0.01
+  }
 
+  winConditions() {
     // Check win condition
     if (this.scores.left >= 5 || this.scores.right >= 5) {
-      this.status = 'finished'
       this.stop()
       console.log(
         `[${this.sessionId}] Game finished! Final score: ${this.scores.left} - ${this.scores.right}`,
       )
       // send to blockchain
-      // -->
     }
-
-    // update time to animate forcefield
-    this.time += 0.01
   }
 
   resetBall(): void {

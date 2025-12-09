@@ -90,7 +90,7 @@ export class GameDisplay {
       <form id="settings-form" class="space-y-4">
         <div>
           <label class="flex justify-between items-center">Ball Max Speed<span id="val-ballSpeed">10</span></label>
-          <input type="range" name="ballSpeed" value="10" min="1" max="50" step="1" class="w-full" />
+          <input type="range" name="ballSpeed" value="5" min="1" max="50" step="1" class="w-full" />
         </div>
         <div>
           <label class="flex justify-between items-center">Ball Radius<span id="val-ballRadius">5</span></label>
@@ -108,10 +108,11 @@ export class GameDisplay {
           <label class="flex justify-between items-center">Paddle Speed <span id="val-paddleSpeed">100</span></label>
           <input type="range" name="paddleSpeed" value="8" min="4" max="30" step="1" class="w-full" />
         </div>
-        <button id="start-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
+
+      </form>
+      <button id="start-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
              Create simple game
-         </button>
-      </form>`
+      </button>`
   }
 
   makeGameArena() {
@@ -411,19 +412,13 @@ export class GameDisplay {
   }
 
   private async startGameSession(): Promise<void> {
-    const startBtn = document.getElementById('start-btn')
-    if (startBtn) {
-        startBtn.textContent = 'Starting...'
-        ;(startBtn as HTMLButtonElement).disabled = true
-    }
+
     try {
       // Send start command via WebSocket
+      this.settings.classList.add('hidden')
       this.gameArena.classList.remove('hidden')
       this.sendWebSocketMessage({ type: 'start' })
       this.addGameLog('Game started!', 'success')
-      if (startBtn) {
-        startBtn.textContent = 'Running'
-      }
     } catch (error) {
       console.error('Failed to start game:', error)
       this.addGameLog(`Error: ${error}`, 'error')
