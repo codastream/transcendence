@@ -6,11 +6,14 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
 RUN npm install
 
 COPY tsconfig.json ./
+COPY vite.config.* ./
+COPY prisma ./prisma
+COPY prisma.config.* ./
 COPY src ./src
 
 RUN npm run build
@@ -28,9 +31,8 @@ RUN apk add --no-cache wget \
     && adduser -S appuser -G appgroup
 
 COPY package.json package-lock.json ./
-
 RUN npm install --omit=dev
-
+# COPY --from=builder /app/node_modules_prod/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
 USER appuser

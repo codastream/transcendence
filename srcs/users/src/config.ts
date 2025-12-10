@@ -2,6 +2,7 @@ import { config } from 'dotenv'
 import { bool, cleanEnv, num, str } from 'envalid'
 
 config({ path: '../.env' })
+config({ path: '.env.um' })
 
 // console.log(process.env)
 export const appenv = cleanEnv(process.env, {

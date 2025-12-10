@@ -12,6 +12,17 @@ const __dirname = path.dirname(__filename);
 export default { 
   build: {
     outDir: 'dist',
+    lib: {
+        entry: path.resolve(__dirname, 'src/index.ts'),
+        name: 'UserManagementService',
+        format: ['esm'],
+        fileName: 'index'
+    },
+    rollupOptions: {
+        external: [
+            /^node:/,
+        ]
+    }
   },
 
   test: {
