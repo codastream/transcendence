@@ -1,4 +1,4 @@
-import { getProfileByUsername } from '../controllers/um.controller.js'
+import { createProfile, getProfileByUsername } from '../controllers/um.controller.js'
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
 
 export async function umRoutes(app: FastifyInstance) {
@@ -10,5 +10,7 @@ export async function umRoutes(app: FastifyInstance) {
     return reply.code(200).send({ status: "healthy" })
   })
 
-  app.get('/users/:username', getProfileByUsername)
+  app.get('/users/:username', getProfileByUsername);
+
+  app.post('/users', createProfile);
 }

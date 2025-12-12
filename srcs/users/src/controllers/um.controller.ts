@@ -6,11 +6,11 @@ import { API_ERRORS, LOG_EVENTS } from '../utils/messages.js'
 import { mapProfileToDTO } from '../utils/mappers.js'
 
 function handleInvalidRequest<T>(
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
   validation: z.ZodSafeParseError<T>
 ) {
-  request.log.warn({ event: LOG_EVENTS.INVALID_REQUEST, request: request })
+  req.log.warn({ event: LOG_EVENTS.INVALID_REQUEST, request: req })
   return reply.status(400).send({
     error: API_ERRORS.USER.INVALID_FORMAT,
     details: z.treeifyError(validation.error),
@@ -18,15 +18,15 @@ function handleInvalidRequest<T>(
 }
 
 export async function getProfileByUsername(
-  request: FastifyRequest<{ Params: { username: string } }>,
+  req: FastifyRequest<{ Params: { username: string } }>,
   reply: FastifyReply
 ) {
-  const { username } = request.params
-  request.log.info({ event: LOG_EVENTS.GET_PROFILE_BY_USERNAME, username })
+  const { username } = req.params
+  req.log.info({ event: LOG_EVENTS.GET_PROFILE_BY_USERNAME, username })
 
   const validation = ValidationSchemas['Username'].safeParse({ username })
   if (!validation.success) {
-    return handleInvalidRequest(request, reply, validation)
+    return handleInvalidRequest(req, reply, validation)
   }
 
   const profile = await umService.findByUsername(username)
@@ -38,13 +38,13 @@ export async function getProfileByUsername(
 }
 
 export async function createProfile(
-  request: FastifyRequest<{
+  req: FastifyRequest<{
     Body: { authId: number; email: string; username: string }
   }>,
   reply: FastifyReply
 ) {
-  const { authId, email, username } = request.body
-  request.log.info({ event: LOG_EVENTS.CREATE_PROFILE, request })
+  const { authId, email, username } = req.body
+  req.log.info({ event: LOG_EVENTS.CREATE_PROFILE, request: req })
 
   const validation = ValidationSchemas['UserCreate'].safeParse({
     authId,
@@ -52,14 +52,14 @@ export async function createProfile(
     username,
   })
   if (!validation.success) {
-    return handleInvalidRequest(request, reply, validation)
+    return handleInvalidRequest(req, reply, validation)
   }
 
   try {
     const profile = await umService.createProfile(authId, email, username)
     return reply.status(201).send(profile)
   } catch (error) {
-    request.log.error(error)
+    req.log.error(error)
     return reply
       .status(409)
       .send({

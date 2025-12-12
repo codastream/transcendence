@@ -1,15 +1,14 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import * as authService from '../services/auth.service.js'
-import { logger } from '../utils/logger.js'
 import { ValidationSchemas } from '../utils/validation.js'
 
 export async function registerHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
   // Validation Zod
-  const validation = ValidationSchemas.register.safeParse(request.body)
+  const validation = ValidationSchemas.register.safeParse(req.body)
   if (!validation.success) {
     this.log.warn({ event: 'register_validation_failed', errors: validation.error.issues })
     return reply.code(400).send({
@@ -22,23 +21,23 @@ export async function registerHandler(
   }
 
   const { username, email, password } = validation.data
-  logger.info({ event: 'register_attempt', username, email })
+  req.log.info({ event: 'register_attempt', username, email })
 
   try {
     if (authService.findByUsername(username)) {
-      logger.warn({ event: 'register_failed', username, reason: 'user_exists' })
+      req.log.warn({ event: 'register_failed', username, reason: 'user_exists' })
       return reply
         .code(400)
         .send({ error: { message: 'User already exists', code: 'USER_EXISTS' } })
     }
     if (authService.findByEmail(email)) {
-      logger.warn({ event: 'register_failed', email, reason: 'email_exists' })
+      req.log.warn({ event: 'register_failed', email, reason: 'email_exists' })
       return reply
         .code(400)
         .send({ error: { message: 'Email already in use', code: 'EMAIL_EXISTS' } })
     }
   } catch (err: any) {
-    logger.error({ event: 'register_validation_error', username, email, err: err?.message || err })
+    req.log.error({ event: 'register_validation_error', username, email, err: err?.message || err })
     if (err && err.code === 'DB_FIND_USER_BY_USERNAME_ERROR') {
       return reply.code(500).send({
         error: {
@@ -62,10 +61,10 @@ export async function registerHandler(
 
   try {
     const id = authService.createUser({ username, email, password })
-    logger.info({ event: 'register_success', username, email, id })
+    req.log.info({ event: 'register_success', username, email, id })
     return reply.code(201).send({ result: { message: 'User registered successfully', id } })
   } catch (err: any) {
-    logger.error({ event: 'register_error', username, email, err: err?.message || err })
+    req.log.error({ event: 'register_error', username, email, err: err?.message || err })
     // Add errors handling
     if (err && err.code === 'USER_EXISTS') {
       return reply
@@ -100,13 +99,13 @@ export async function registerHandler(
 
 export async function loginHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
   // Validation Zod
-  const validation = ValidationSchemas.login.safeParse(request.body)
+  const validation = ValidationSchemas.login.safeParse(req.body)
   if (!validation.success) {
-    this.log.warn({ event: 'login_validation_failed', errors: validation.error.issues })
+    req.log.warn({ event: 'login_validation_failed', errors: validation.error.issues })
     return reply.code(400).send({
       error: {
         message: 'Invalid login data',
@@ -121,19 +120,19 @@ export async function loginHandler(
 
   // TypeScript safety check
   if (!identifier) {
-    logger.warn({ event: 'login_failed', reason: 'missing_identifier' })
+    req.log.warn({ event: 'login_failed', reason: 'missing_identifier' })
     return reply
       .code(400)
       .send({ error: { message: 'Username or email required', code: 'MISSING_IDENTIFIER' } })
   }
 
-  logger.info({ event: 'login_attempt', identifier })
+  req.log.info({ event: 'login_attempt', identifier })
 
   try {
     const user = authService.findUser(identifier)
     const valid = user && authService.validateUser(identifier, password)
     if (!valid) {
-      logger.warn({ event: 'login_failed', identifier, reason: 'invalid_credentials' })
+      req.log.warn({ event: 'login_failed', identifier, reason: 'invalid_credentials' })
       return reply
         .code(401)
         .send({ error: { message: 'Invalid credentials', code: 'INVALID_CREDENTIALS' } })
@@ -145,7 +144,7 @@ export async function loginHandler(
     }
 
     const token = this.jwt.sign(payload, { expiresIn: '1h' })
-    logger.info({ event: 'login_success', identifier })
+    req.log.info({ event: 'login_success', identifier })
     reply
       .setCookie('token', token, {
         httpOnly: true,
@@ -157,7 +156,7 @@ export async function loginHandler(
       .code(200)
       .send({ result: { message: 'Login successful' } })
   } catch (err: any) {
-    logger.error({ event: 'login_error', identifier, err: err?.message || err })
+    req.log.error({ event: 'login_error', identifier, err: err?.message || err })
     if (err && err.code === 'DB_FIND_USER_BY_IDENTIFIER_ERROR') {
       return reply.code(500).send({
         error: {
@@ -174,42 +173,42 @@ export async function loginHandler(
 
 export async function logoutHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const username = (request.headers as any)['x-user-name'] || null
-  logger.info({ event: 'logout', user: username })
+  const username = (req.headers as any)['x-user-name'] || null
+  req.log.info({ event: 'logout', user: username })
   return reply.clearCookie('token').send({ result: { message: 'Logged out successfully' } })
 }
 
 // DEV ONLY - À supprimer
 export async function meHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const username = (request.headers as any)['x-user-name'] || null
-  const idHeader = (request.headers as any)['x-user-id'] || null
+  const username = (req.headers as any)['x-user-name'] || null
+  const idHeader = (req.headers as any)['x-user-id'] || null
   const id = idHeader ? Number(idHeader) : null
-  logger.info({ event: 'me_request_dev_only', user: username, id })
+  req.log.info({ event: 'me_request_dev_only', user: username, id })
   return reply.code(200).send({ data: { user: username ? { id, username } : null } })
 }
 
 export async function listAllUsers(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const username = (request.headers as any)['x-user-name'] || null
-  logger.info({ event: 'list_users_attempt', user: username })
+  const username = (req.headers as any)['x-user-name'] || null
+  req.log.info({ event: 'list_users_attempt', user: username })
   if (username !== 'admin')
     return reply.code(403).send({ error: { message: 'Forbidden', code: 'FORBIDDEN' } })
   try {
     const users = authService.listUsers()
-    logger.info({ event: 'list_users_success', user: username, count: users.length })
+    req.log.info({ event: 'list_users_success', user: username, count: users.length })
     return reply.code(200).send({ result: { users } })
   } catch (err: any) {
-    logger.error({ event: 'list_users_error', user: username, err: err?.message || err })
+    req.log.error({ event: 'list_users_error', user: username, err: err?.message || err })
     return reply
       .code(500)
       .send({ error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' } })

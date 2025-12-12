@@ -1,7 +1,6 @@
-import { logger } from "src";
 import { appenv } from "src/config";
 import { RedisManager } from "src/data/um.redis.client";
-import { API_ERRORS, REDIS } from "src/utils/messages";
+import { REDIS } from "src/utils/messages";
 
 export async function initUserSubscribers(){
     const redis = RedisManager.getInstance();
@@ -12,14 +11,10 @@ export async function initUserSubscribers(){
             return;
         const msg = JSON.parse(message);
 
-        try {
-            switch (msg.action) {
-                case REDIS.MATCH_FINISHED:
-                    // TODO update history, ranking
-                    break;
-            }
-        } catch (error) {
-            logger.error({event: API_ERRORS.REDIS.PROCESS, error});
+        switch (msg.action) {
+            case REDIS.MATCH_FINISHED:
+                // TODO update history, ranking
+                break;
         }
-    })
+    });
 }

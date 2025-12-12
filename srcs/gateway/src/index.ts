@@ -29,35 +29,35 @@ app.register(fastifyJwt, {
 
 app.register(websocketPlugin)
 // Hook verify JWT routes `/api` sauf les routes PUBLIC_ROUTES
-app.addHook('onRequest', async (request: any, reply: any) => {
-  const url = request.url || request.raw?.url || ''
+app.addHook('onRequest', async (req: any, reply: any) => {
+  const url = req.url || req.raw?.url || ''
 
   // Routes public non `/api` : on ne fait rien
   if (!url.startsWith('/api')) return
 
   // Routes publiques juste `/api/auth/login` et `/api/auth/register` (pas de cookie nécessaire)
   if (PUBLIC_ROUTES.includes(url)) {
-    logger.logAuth({ url, user: request.user?.username }, true)
+    req.log.logAuth({ url, user: req.user?.username }, true)
     return
   }
 
-  const token = request.cookies && (request.cookies.token as string | undefined)
+  const token = req.cookies && (req.cookies.token as string | undefined)
 
   // No token present
   if (!token) {
-    logger.logAuth({ url: request.url, token: false }, false)
+    req.log.logAuth({ url: req.url, token: false }, false)
     return reply.code(401).send({ error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } })
   }
 
   // Verify JWT token
   try {
     const decoded = app.jwt.verify(token)
-    request.user = decoded // injecte user dans la requête (username, id, etc.)
-    logger.logAuth({ url: request.url, user: request.user.username }, true)
+    req.user = decoded // injecte user dans la requête (username, id, etc.)
+    req.log.logAuth({ url: req.url, user: req.user.username }, true)
   } catch (err: any) {
-    logger.logAuth(
+    req.log.logAuth(
       {
-        url: request.url,
+        url: req.url,
         token: true,
         jwtError: err?.message,
       },
@@ -96,12 +96,12 @@ app.addHook('onResponse', async (request: any, reply: any) => {
 })
 
 // Central error handler: structured errors
-app.setErrorHandler((error: any, request: any, reply: any) => {
-  logger.error({
+app.setErrorHandler((error: any, req: any, reply: any) => {
+  req.log.error({
     event: 'unhandled_error',
-    method: request?.method,
-    url: request?.url,
-    user: request?.user?.username || null,
+    method: req?.method,
+    url: req?.url,
+    user: req?.user?.username || null,
     err: error?.message,
     stack: error?.stack,
   })
@@ -128,7 +128,7 @@ app.register(publicRoutes)
 // Start the server
 app.listen({ host: '0.0.0.0', port: 3000 }, (err: Error | null, address: string) => {
   if (err) {
-    logger.error({
+    app.log.error({
       event: 'server_startup_failed',
       err: err.message,
       stack: err.stack,
@@ -136,7 +136,7 @@ app.listen({ host: '0.0.0.0', port: 3000 }, (err: Error | null, address: string)
     ;(globalThis as any).process?.exit?.(1)
   }
 
-  logger.info({
+  app.log.info({
     event: 'server_started',
     address,
     port: 3000,

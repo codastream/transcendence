@@ -1,5 +1,5 @@
-import { logger } from './logger.js'
 import * as authService from '../services/auth.service.js'
+import { logger } from './logger.js'
 
 /**
  * Initialise l'utilisateur admin au démarrage du service

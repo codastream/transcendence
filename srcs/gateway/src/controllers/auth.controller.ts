@@ -23,26 +23,26 @@ export async function authHealthHandler(
 
 export async function loginHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
   const startTime = Date.now()
-  const username = (request.body as any)?.username || (request.body as any)?.email || 'unknown'
-  const sanitizedBody = logUtils.sanitizeForLog(request.body)
+  const username = (req.body as any)?.username || (req.body as any)?.email || 'unknown'
+  const sanitizedBody = logUtils.sanitizeForLog(req.body)
 
-  logger.info({
+  req.log.info({
     event: 'auth_login_attempt',
     username,
     body: sanitizedBody,
   })
 
-  const res = await proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/login`, {
+  const res = await proxyRequest(this, req, reply, `${AUTH_SERVICE_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request.body),
+    body: JSON.stringify(req.body),
   })
 
-  logger.info({
+  req.log.info({
     event: 'auth_login_result',
     status: reply.statusCode,
     username,
@@ -55,27 +55,27 @@ export async function loginHandler(
 
 export async function registerHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
   const startTime = Date.now()
-  const { username = 'unknown', email = 'unknown' } = request.body as any
-  const sanitizedBody = logUtils.sanitizeForLog(request.body)
+  const { username = 'unknown', email = 'unknown' } = req.body as any
+  const sanitizedBody = logUtils.sanitizeForLog(req.body)
 
-  logger.info({
+  req.log.info({
     event: 'auth_register_attempt',
     username,
     email,
     body: sanitizedBody,
   })
 
-  const res = await proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/register`, {
+  const res = await proxyRequest(this, req, reply, `${AUTH_SERVICE_URL}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(request.body),
+    body: JSON.stringify(req.body),
   })
 
-  logger.info({
+  req.log.info({
     event: 'auth_register_result',
     status: reply.statusCode,
     username,
@@ -89,21 +89,21 @@ export async function registerHandler(
 
 export async function logoutHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const user = (request.headers as any)['x-user-name'] || null
+  const user = (req.headers as any)['x-user-name'] || null
 
-  logger.info({
+  req.log.info({
     event: 'auth_logout',
     user,
   })
 
-  const res = await proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/logout`, {
+  const res = await proxyRequest(this, req, reply, `${AUTH_SERVICE_URL}/logout`, {
     method: 'POST',
   })
 
-  logger.info({
+  req.log.info({
     event: 'auth_logout_result',
     status: reply.statusCode,
     user,
@@ -116,37 +116,37 @@ export async function logoutHandler(
 // DEV ONLY - À supprimer en production
 export async function meHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
   // Route DEV ONLY - À supprimer en production
-  logger.warn({
+  req.log.warn({
     event: 'dev_route_accessed',
     route: '/api/auth/me',
-    user: (request.headers as any)['x-user-name'] || null,
+    user: (req.headers as any)['x-user-name'] || null,
     warning: 'This route exposes internal headers and should be removed in production',
   })
 
-  return proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/me`)
+  return proxyRequest(this, req, reply, `${AUTH_SERVICE_URL}/me`)
 }
 
 export async function listHandler(
   this: FastifyInstance,
-  request: FastifyRequest,
+  req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const user = (request.headers as any)['x-user-name'] || null
+  const user = (req.headers as any)['x-user-name'] || null
 
-  logger.info({
+  req.log.info({
     event: 'auth_list_users_attempt',
     user,
   })
 
-  const res = await proxyRequest(this, request, reply, `${AUTH_SERVICE_URL}/list`, {
+  const res = await proxyRequest(this, req, reply, `${AUTH_SERVICE_URL}/list`, {
     method: 'GET',
   })
 
-  logger.info({
+  req.log.info({
     event: 'auth_list_users_result',
     status: reply.statusCode,
     user,
