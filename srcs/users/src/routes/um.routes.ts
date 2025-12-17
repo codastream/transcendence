@@ -7,7 +7,7 @@ export async function umRoutes(app: FastifyInstance) {
   })
 
   app.get('/health', async function (this: FastifyInstance, _request: FastifyRequest, reply: FastifyReply) {
-    return reply.code(200).send({ status: "healthy" })
+    return reply.code(200).send({ status: "healthy new" })
   })
 
   app.get('/users/:username', getProfileByUsername);

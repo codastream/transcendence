@@ -3,7 +3,7 @@ export const API_ERRORS = {
         NOT_FOUND: "User not found",
         INVALID_FORMAT: "Invalid format",
         ADMIN_FORBIDDEN: "Admin username is restricted",
-        CREATE_FAILED: "Profile might already exist. Or an eror occurred during creation",
+        CREATE_FAILED: "Profile might already exist. Or an error occurred during creation",
     },
     DB: {
         CONNECTION_ERROR: "Database connection failed"

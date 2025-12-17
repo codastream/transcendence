@@ -198,7 +198,7 @@ export function createUser(user: { username: string; email?: string | null; pass
       throw new DataError(DATA_ERROR.INTERNAL_ERROR, 'No rows changed');
     }
     if (!info.lastInsertRowid) {
-      throw new DataError(DATA_ERROR.INTERNAL_ERROR, 'No ID rerurned');
+      throw new DataError(DATA_ERROR.INTERNAL_ERROR, 'No ID returned');
     }
     return Number(info.lastInsertRowid);
   } catch (err: any) {
@@ -206,7 +206,7 @@ export function createUser(user: { username: string; email?: string | null; pass
       const msg = (err.message || '').toLowerCase()
       if (msg.includes('username')) {
         throw new DataError(DATA_ERROR.DUPLICATE, 'Username taken', err, { field: 'username', value: user.username });
-    } else if (msg.includes('email')) {
+      } else if (msg.includes('email')) {
         throw new DataError(DATA_ERROR.DUPLICATE, 'Email taken', err, { field: 'email', value: user.email });
       } else {
         throw new DataError(DATA_ERROR.DUPLICATE, 'Unique constraint violated', err);

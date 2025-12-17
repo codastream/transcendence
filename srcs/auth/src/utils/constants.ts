@@ -10,8 +10,6 @@ export const UM_SERVICE_URL = `http://${UM_SERVICE_NAME}:${UM_SERVICE_PORT}`
 export const AUTH_CONFIG = {
   // JWT Configuration
   JWT_EXPIRATION: '1h',
-  JWT_ALGORITHM: 'HS256' as const,
-
   // Login Token Configuration (2FA)
   LOGIN_TOKEN_EXPIRATION_SECONDS: 120, // 2 minutes
   MAX_LOGIN_TOKEN_ATTEMPTS: 3,
@@ -233,7 +231,7 @@ export const DATA_ERROR = {
     CONNECTION_FAIL: 'connection_fail',
     CONSTRAINT_VIOLATION: 'constraint_violation',
     INTERNAL_ERROR: 'internal_error'
-}
+} as const
 
 /**
  * Standard error messages

@@ -1,4 +1,4 @@
-import { ErrorCode, ErrorDefinition, EventValue, ReasonValue } from "../types/errors.js";
+import { ErrorCode, ErrorDefinition, ReasonValue } from "../types/errors.js";
 import { ERROR_CODES, EVENTS, REASONS } from "./constants.js";
 
 // Factory pattern to centralize error generation
