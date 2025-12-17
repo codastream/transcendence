@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { blockIdSchema, blockSchema } from './block.schema.js'
-import { addRow, addRowJSON, listRows, listRowsJSON, showRow } from './block.controller.js'
+import { addRow, addRowJSON, listRows, listRowsJSON, showRow, addBlock } from './block.controller.js'
 
 export async function registerRoutes(app: FastifyInstance) {
   app.register(healthRoutes, { prefix: '/health' })
