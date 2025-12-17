@@ -7,7 +7,7 @@
 FROM nginx:alpine
 
 # Install Node.js for esbuild hot reload
-RUN apk add --no-cache nodejs npm
+RUN apk add --no-cache nodejs npm openssl
 
 WORKDIR /app
 
