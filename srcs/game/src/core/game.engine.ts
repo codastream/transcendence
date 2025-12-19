@@ -144,13 +144,12 @@ export class PongGame {
   preview(): void {
     if (this.status !== 'waiting') return
 
-      if (this.gameLoopInterval) {
-        clearInterval(this.gameLoopInterval)
-      }
-      this.gameLoopInterval = setInterval(() => {
-        this.updateBackground()
-      }, 1000 / 60)
-
+    if (this.gameLoopInterval) {
+      clearInterval(this.gameLoopInterval)
+    }
+    this.gameLoopInterval = setInterval(() => {
+      this.updateBackground()
+    }, 1000 / 60)
   }
 
   start(): void {

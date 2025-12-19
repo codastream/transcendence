@@ -45,7 +45,7 @@ export class GameDisplay {
     // this.resultDialog.id = 'game-over-dialog'
 
     this.gameLogs.className = 'hidden'
-    this.settings.className = 'hidden'// 'hidden fixed inset-0 bg-black bg-opacity-75 flex flex-col items-center gap-4 p-4 justify-center z-50'
+    this.settings.className = 'hidden' // 'hidden fixed inset-0 bg-black bg-opacity-75 flex flex-col items-center gap-4 p-4 justify-center z-50'
     this.screen.className = 'hidden fixed inset-0 z-50 bg-black overflow-y-auto'
     this.main.className = 'w-full h-full flex flex-row' // ← HORIZONTAL layout!
     this.panel.className = 'w-1/3 bg-gray-800'
@@ -57,20 +57,19 @@ export class GameDisplay {
   }
 
   showPanel(panel: 'settings' | 'game-logs' | 'game-sessions') {
-    ['settings', 'game-logs', 'game-sessions'].forEach(id => {
-      const el = document.getElementById(id);
+    ;['settings', 'game-logs', 'game-sessions'].forEach((id) => {
+      const el = document.getElementById(id)
       if (el) {
-        el.classList.toggle('hidden', id !== panel);
+        el.classList.toggle('hidden', id !== panel)
       }
-
     })
-      if (panel === 'game-sessions') {
-        // this.loadSessions()
-        this.sessionsInterval = window.setInterval(() => this.loadSessions(), 2000 )
-      } else if (this.sessionsInterval) {
-          clearInterval(this.sessionsInterval)
-          this.sessionsInterval = null
-      };
+    if (panel === 'game-sessions') {
+      // this.loadSessions()
+      this.sessionsInterval = window.setInterval(() => this.loadSessions(), 2000)
+    } else if (this.sessionsInterval) {
+      clearInterval(this.sessionsInterval)
+      this.sessionsInterval = null
+    }
   }
 
   makeResultDialog() {
@@ -94,7 +93,7 @@ export class GameDisplay {
   }
 
   makePanel() {
-    this.panel .id = 'panel'
+    this.panel.id = 'panel'
     this.panel.innerHTML = `
       <!-- Buttons -->
       <div class="flex gap-4">
@@ -249,7 +248,7 @@ export class GameDisplay {
         console.log('Created game session:', this.sessionId)
         console.log('game session result:', data)
         await this.openWebSocket(this.sessionId)
-        this.showPanel('settings');
+        this.showPanel('settings')
         // this.settings.classList.remove('hidden')
         // this.sessions.classList.add('hidden')
       } else {
@@ -343,22 +342,22 @@ export class GameDisplay {
 
     // Get all range inputs
     const inputs = form.querySelectorAll('input[type="range"]')
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       const rangeInput = input as HTMLInputElement
       const name = rangeInput.name
       const valueSpan = document.getElementById(`val-${name}`)
-      
+
       // Update display value and submit on input
       rangeInput.addEventListener('input', async () => {
         // Update the displayed value
         if (valueSpan) {
           valueSpan.textContent = rangeInput.value
         }
-        
+
         // Submit settings
         await this.submitSettings()
       })
-      
+
       // Initialize displayed value on load
       if (valueSpan) {
         valueSpan.textContent = rangeInput.value
@@ -377,11 +376,11 @@ export class GameDisplay {
     // Click events
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement
-      if (target.id === 'create-game-btn')              this.askForGameSession()
-      if (target.id === 'exit-btn')                     this.exitGame()
-      if (target.id === 'stop-btn')                     this.stopGame()
-      if (target.id === 'sessions-btn')                 this.stopGame()
-      if (target.id === 'start-btn' && this.sessionId)  this.startGame()
+      if (target.id === 'create-game-btn') this.askForGameSession()
+      if (target.id === 'exit-btn') this.exitGame()
+      if (target.id === 'stop-btn') this.stopGame()
+      if (target.id === 'sessions-btn') this.stopGame()
+      if (target.id === 'start-btn' && this.sessionId) this.startGame()
     })
 
     // Keyboard controls
@@ -418,13 +417,12 @@ export class GameDisplay {
     console.log('Exited game')
   }
 
-
   private async submitSettings() {
     // Clear previous timeout
     if (this.settingsTimeout) {
       clearTimeout(this.settingsTimeout)
     }
-    
+
     // Wait 300ms after last change before submitting
     this.settingsTimeout = window.setTimeout(async () => {
       const form = document.getElementById('settings-form') as HTMLFormElement
@@ -438,7 +436,7 @@ export class GameDisplay {
             paddleSpeed: Number(formData.get('paddleSpeed')),
             microWaveSize: Number(formData.get('microWaveSize')),
           }
-          
+
           await fetch('/api/game/settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -543,10 +541,10 @@ export class GameDisplay {
         if (message.data) {
           this.gameState = message.data
           if (this.gameState.status === 'waiting') {
-            this.updateScores({left: 0, right:0})
+            this.updateScores({ left: 0, right: 0 })
             this.drawPreview()
             break
-          } 
+          }
           this.updateScores(message.data.scores)
           this.renderGame()
 
@@ -723,12 +721,20 @@ export class GameDisplay {
 
       this.websocket.onclose = (event) => {
         clearTimeout(connectionTimeout)
-        if (event.code !== 1000) { // 1000 = normal closure
-          this.addGameLog(`Connection closed: ${event.code} - ${event.reason || 'Unknown reason'}`, 'error')
-          
+        if (event.code !== 1000) {
+          // 1000 = normal closure
+          this.addGameLog(
+            `Connection closed: ${event.code} - ${event.reason || 'Unknown reason'}`,
+            'error',
+          )
+
           // Reject if we haven't resolved yet
           if (this.websocket?.readyState !== WebSocket.OPEN) {
-            reject(new Error(`WebSocket closed with code ${event.code}: ${event.reason || 'Connection rejected'}`))
+            reject(
+              new Error(
+                `WebSocket closed with code ${event.code}: ${event.reason || 'Connection rejected'}`,
+              ),
+            )
           }
         } else {
           this.addGameLog('Connection closed normally', 'info')
@@ -747,7 +753,6 @@ export class GameDisplay {
         //   }, 2000)
         // }
       }
-
     })
   }
 
