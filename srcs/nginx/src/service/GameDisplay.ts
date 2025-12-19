@@ -15,7 +15,7 @@ export class GameDisplay {
   resultDialog: HTMLElement
   panel: HTMLElement
   gameSessions: HTMLElement
-  sessionsInterval: Node.timeout | null
+  sessionsInterval: Node.timeout | null = null
   settings: HTMLElement
   gameArena: HTMLElement
   gameLogs: HTMLElement
@@ -128,7 +128,7 @@ export class GameDisplay {
         </div>
         <div>
           <label class="flex justify-between items-center">MicroWave Size<span id="val-microWaveSize">100</span></label>
-          <input type="range" name="microWaveSize" value="10" min="4" max="50" step="1" class="w-full" />
+          <input type="range" name="microWaveSize" value="16" min="8" max="50" step="1" class="w-full" />
         </div>
         <div>
           <label class="flex justify-between items-center">Paddle Speed <span id="val-paddleSpeed">100</span></label>
@@ -210,7 +210,7 @@ export class GameDisplay {
               <div id="game-log" class="h-24 overflow-y-auto space-y-1 text-left text-sm font-mono text-gray-300"></div>
             </div>
           </div>
-        <button id="sessions-btn" class="flex-1 striped-disabled bg-orange-600 hover:bg-green-700 text-white font-bold rounded transition">
+        <button id="stop2-btn" class="flex-1 striped-disabled bg-orange-600 hover:bg-green-700 text-white font-bold rounded transition">
             STOP
         </button>
     `
@@ -231,7 +231,7 @@ export class GameDisplay {
     this.screen.appendChild(this.main)
     document.body.appendChild(this.screen)
     this.setupEventListeners()
-    this.loadSessions()
+    // this.loadSessions()
   }
 
   async askForGameSession(): Promise<void> {
@@ -307,10 +307,6 @@ export class GameDisplay {
         div.onclick = () => this.joinSession(session.sessionId)
         this.gameSessions.appendChild(div)
       })
-      // if (this.sessionsInterval) {
-      //   clearInterval(this.sessionsInterval)
-      // }
-      // this.sessionsInterval = setInterval(() => this.loadSessions(), 2000)
     } catch (err) {
       console.error('Failed to load sessions:', err)
       this.gameSessions.innerHTML = `<div class="text-red-500 p-2">Error loading gameSessions.</div>`
@@ -365,21 +361,20 @@ export class GameDisplay {
     })
 
     // Game button
-    const gameBtn = document.getElementById('create-session-btn')
-    if (gameBtn) {
-      gameBtn.addEventListener('click', () => this.askForGameSession())
+    const newSessionBtn = document.getElementById('create-session-btn')
+    if (newSessionBtn) {
+      newSessionBtn.addEventListener('click', () => this.askForGameSession())
     }
-    // const sessionsListBtn = document.getElementById('sessionsListBtn');
-    // if (sessionsListBtn) {
-    //   sessionsListBtn.addEventListener('click', () => this.displaySessionsList());
-    // }
+
     // Click events
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement
       if (target.id === 'create-game-btn') this.askForGameSession()
       if (target.id === 'exit-btn') this.exitGame()
-      if (target.id === 'stop-btn') this.stopGame()
-      if (target.id === 'sessions-btn') this.stopGame()
+      if (target.id === 'stop-btn' || target.id === 'stop2-btn') {
+        this.stopGame()
+        this.showPanel('game-sessions')
+      }
       if (target.id === 'start-btn' && this.sessionId) this.startGame()
     })
 
@@ -404,7 +399,6 @@ export class GameDisplay {
     this.gameState = null
     this.drawWaitingScreen()
     console.log('Game stoped')
-    this.showPanel('game-sessions')
     // this.showSessions()
   }
 
@@ -415,6 +409,11 @@ export class GameDisplay {
     this.screen.classList.add('hidden')
     this.addGameLog('Disconnected from game', 'warning')
     console.log('Exited game')
+    if (this.sessionsInterval) {
+      console.log("clear interval")
+      clearInterval(this.sessionsInterval)
+      this.sessionsInterval = null;
+    }
   }
 
   private async submitSettings() {
@@ -455,22 +454,13 @@ export class GameDisplay {
   }
 
   private async startGame(): Promise<void> {
+    this.showPanel('game-logs')
     try {
-      // Send start command via WebSocket
-      // this.settings.classList.add('hidden')
-      // this.gameLogs.classList.remove('hidden')
-      this.showPanel('game-logs')
       this.sendWebSocketMessage({ type: 'start' })
       this.addGameLog('Game started!', 'success')
     } catch (error) {
       console.error('Failed to start game:', error)
       this.addGameLog(`Error: ${error}`, 'error')
-
-      // const startBtn = document.getElementById('start-game-btn')
-      // if (startBtn) {
-      //   startBtn.textContent = 'START GAME'
-      //   ;(startBtn as HTMLButtonElement).disabled = false
-      // }
     }
   }
 
