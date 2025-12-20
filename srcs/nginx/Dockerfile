@@ -23,6 +23,9 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY ./src      /usr/share/nginx/src
 
+# Create directory for uploads
+RUN mkdir -p /usr/share/nginx/html/uploads
+
 # RUN DNS=$(grep nameserver /etc/resolv.conf | head -n1 | awk '{print $2}') \
 #     && sed -i "s|__DNS__|$DNS|g" /etc/nginx/nginx.conf
 
