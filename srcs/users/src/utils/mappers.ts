@@ -1,5 +1,5 @@
-import { UserProfile } from "src/data/generated/prisma/client";
-import { UserProfileDTO } from "src/types/user-profile";
+import type { UserProfile } from "@prisma/client";
+import type { UserProfileDTO } from "../types/user-profile.js";
 
 export function mapProfileToDTO(profile: UserProfile): UserProfileDTO {
     return {

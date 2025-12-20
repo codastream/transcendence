@@ -1,7 +1,7 @@
-import Redis from "ioredis";
-import { logger } from "src";
-import { appenv } from "src/config/env";
-import { API_ERRORS, LOG_EVENTS } from "src/utils/messages";
+import { logger } from "../index.js";
+import { appenv } from "../config/env.js";
+import { API_ERRORS, LOG_EVENTS } from "../utils/messages.js";
+import { Redis } from "ioredis";
 
 const REDIS_HOST = appenv.REDIS_SERVICE_NAME;
 
@@ -44,6 +44,6 @@ export class RedisManager {
     }
 
     private setupErrorHandling(client: Redis, name: string) {
-        client.on('error', (err) => logger.error({event: API_ERRORS.REDIS.BASE.concat(` ${name}`), err}));
+        client.on('error', (err: Error) => logger.error({event: API_ERRORS.REDIS.BASE.concat(` ${name}`), err}));
     }
 }

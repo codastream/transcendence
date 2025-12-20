@@ -1,8 +1,8 @@
 import { FastifyRequest, FastifyError } from 'fastify';
 import { IncomingMessage } from 'node:http';
 import { hostname } from 'os';
-import { appenv } from './env';
-import { PinoLoggerOptions } from 'fastify/types/logger';
+import { appenv } from './env.js';
+import { PinoLoggerOptions } from 'fastify/types/logger.js';
 import serializer from 'pino-std-serializers/index.js';
 
 
