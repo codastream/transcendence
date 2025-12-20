@@ -110,7 +110,7 @@ logs-auth:
 	$(CONTAINER_CMD) logs -f $(AUTH_SERVICE_NAME)
 logs-game:
 	$(CONTAINER_CMD) logs -f $(GAME_SERVICE_NAME)
-logs-um:
+logs-user:
 	$(CONTAINER_CMD) logs -f $(UM_SERVICE_NAME)
 logs-bk:
 	$(CONTAINER_CMD) logs -f $(BK_SERVICE_NAME)

@@ -24,7 +24,8 @@ export default {
         external: [
             ...builtinModules,
             ...builtinModules.map((m) => `node:${m}`),
-            /node_modules/,
+            '@prisma/client',
+            '@prisma/adapter-better-sqlite3',
         ]
     }
   },
