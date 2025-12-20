@@ -1,17 +1,22 @@
 {
   "scripts": {
-    "dev": "concurrently \"tsc -w\" \"nodemon --watch dist dist/index.js\"",
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "build:browser": "npx esbuild src/index.ts --bundle --outfile=src/html/app.js --format=iife --target=es2017",
-    "watch:browser": "npx esbuild src/index.ts --bundle --outfile=src/html/app.js --format=iife --target=es2017 --watch"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node dist/index.js"
   },
   "devDependencies": {
-    "tailwindcss": "^4.1.17",
-    "webpack": "^5.103.0",
-    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@vitejs/plugin-react": "^5.1.2",
     "concurrently": "^8.0.0",
     "nodemon": "^3.0.0",
-    "@types/node": "^20.0.0"
+    "tailwindcss": "^4.1.17",
+    "typescript": "^5.0.0",
+    "vite": "^7.3.0",
+    "webpack": "^5.103.0"
+  },
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
   }
 }
