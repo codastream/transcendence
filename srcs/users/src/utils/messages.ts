@@ -4,6 +4,13 @@ export const API_ERRORS = {
         INVALID_FORMAT: "Invalid format",
         ADMIN_FORBIDDEN: "Admin username is restricted",
         CREATE_FAILED: "Profile might already exist. Or an error occurred during creation",
+        FRIEND: {
+            ALREADY_FRIENDS: "The users are already friends",
+            ADD_FAILED: "Failed to add friend",
+            DELETE_FAILED: "Failed to remove friend",
+            NOT_FRIENDS: "The users are not friends",
+        }
+
     },
     DB: {
         CONNECTION_ERROR: "Database connection failed"
@@ -22,6 +29,9 @@ export const LOG_EVENTS = {
     GET_PROFILE_BY_USERNAME: "get_profile_by_username",
     CREATE_PROFILE: "create_profile",
     REDIS_CONNECT: "Redis connected",
+    GET_FRIENDS: "get_friends_by_user_id",
+    ADD_FRIEND: "add_friend",
+    REMOVE_FRIEND: "remove_friend",
 }
 
 export const REDIS = {

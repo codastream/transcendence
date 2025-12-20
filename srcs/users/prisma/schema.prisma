@@ -14,4 +14,20 @@ model UserProfile {
   email     String   @unique
   username  String   @unique
   avatarUrl String
+
+  friendsOf Friendship[] @relation("user")
+  friends   Friendship[] @relation("friend")
+}
+
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  
+  userId    Int
+  user      UserProfile @relation("user", fields: [userId], references: [id], onDelete: Cascade)
+  
+  friendId  Int
+  friend    UserProfile @relation("friend", fields: [friendId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, friendId])
 }

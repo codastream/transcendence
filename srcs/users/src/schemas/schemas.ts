@@ -29,4 +29,15 @@ export const ValidationSchemas: SchemaCollectionType = {
     email: z.email(),
     username: usernameSchema,
   }),
+  FriendAdd: z.object({
+    idFriend1: idSchema,
+    idFriend2: idSchema,
+  }),
+  FriendDelete: z.object({
+    idRelation: idSchema,
+  }),
+  FriendGet: z.object({
+    idUser: idSchema,
+  }),
 }
+
