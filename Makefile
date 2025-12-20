@@ -76,19 +76,19 @@ format:
 	npx prettier . --write
 	
 nginx:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build nginx-proxy
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(PROXY_SERVICE_NAME)
 redis:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build redis-broker
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(REDIS_SERVICE_NAME)
 api:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build api-gateway
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(API_GATEWAY_NAME)
 auth:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build auth-service
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(AUTH_SERVICE_NAME)
 user:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build users-management
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(UM_SERVICE_NAME)
 game:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build game-service
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(GAME_SERVICE_NAME)
 block:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build blockchain-service
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(BK_SERVICE_NAME)
 build:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build
 
@@ -103,14 +103,19 @@ logs:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml logs -f
 
 logs-nginx:
-	$(CONTAINER_CMD) logs -f nginx-proxy
+	$(CONTAINER_CMD) logs -f $(PROXY_SERVICE_NAME)
 logs-api:
-	$(CONTAINER_CMD) logs -f api-gateway
+	$(CONTAINER_CMD) logs -f $(API_GATEWAY_NAME)
 logs-auth:
-	$(CONTAINER_CMD) logs -f auth-service
+	$(CONTAINER_CMD) logs -f $(AUTH_SERVICE_NAME)
 logs-game:
-	$(CONTAINER_CMD) logs -f game-service
-
+	$(CONTAINER_CMD) logs -f $(GAME_SERVICE_NAME)
+logs-user:
+	$(CONTAINER_CMD) logs -f $(UM_SERVICE_NAME)
+logs-bk:
+	$(CONTAINER_CMD) logs -f $(BK_SERVICE_NAME)
+logs-redis:
+	$(CONTAINER_CMD) logs -f $(REDIS_SERVICE_NAME)
 re : fclean all
 
 show:
@@ -118,18 +123,6 @@ show:
 	$(CONTAINER_CMD) volume ls
 	$(CONTAINER_CMD) ps
 	$(CONTAINER_CMD) network ls
-
-# clean : stop
-# 	$(CONTAINER_CMD) system prune -f
-# 	@if [ -n "$$($(CONTAINER_CMD) ps -q)" ]; then $(CONTAINER_CMD) stop $$($(CONTAINER_CMD) ps -q); else echo "No running containers to stop."; fi
-# 	@if [ -n "$$($(CONTAINER_CMD) ps -aq)" ]; then $(CONTAINER_CMD) rm -f $$($(CONTAINER_CMD) ps -aq); else echo "No running containers to remove."; fi
-# 	@if [ -n "$$($(CONTAINER_CMD) -q)" ]; then $(CONTAINER_CMD) rmi -f $$($(CONTAINER_CMD) images -q); else echo "No images to remove."; fi
-# 	@if [ -n "$$($(CONTAINER_CMD) volume ls -q)" ]; then $(CONTAINER_CMD) volume rm $$($(CONTAINER_CMD) volume ls -q); else echo "No volumes to remove."; fi
-#
-# fclean: clean
-# 	$(CONTAINER_CMD) system prune -a --volumes --force
-# 	$(CONTAINER_CMD) network prune
-# 	rm -fr $(VOLUMES_PATH)
 
 # Clean WITHOUT deleting images → SAFE
 clean:
@@ -149,19 +142,7 @@ fclean: clean
 		find $(VOLUMES_PATH) -mindepth 1 -delete || true; \
 	fi
 	@echo "Volume folder cleaned (structure preserved)"
-# Full clean WITH volumes, but NOT images
-# fclean: clean
-# 	@echo "Removing volumes and networks…"
-# 	-$(CONTAINER_CMD) volume prune -f
-# 	-$(CONTAINER_CMD) network prune -f
-# 	rm -rf $(VOLUMES_PATH)
 
-# Dangerous full reset
-# reset-hard:
-# 	@echo "WARNING: This will delete ALL images, ALL volumes and ALL networks"
-# 	sleep 3
-# 	$(CONTAINER_CMD) system prune -a --volumes --force
-# 	rm -rf $(VOLUMES_PATH)
 # Hard reset - deletes everything including folder
 reset-hard: clean
 	@echo "WARNING: Full reset including Colima restart"

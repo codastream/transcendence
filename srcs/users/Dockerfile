@@ -7,14 +7,14 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+RUN npm ci
 
-RUN npm install
+COPY tsconfig.json tsconfig.build.json ./
+COPY src ./src
 
-COPY tsconfig.json ./
-COPY vite.config.* ./
 COPY prisma ./prisma
 COPY prisma.config.* ./
-COPY src ./src
+RUN npx prisma generate
 
 RUN npm run build
 
@@ -33,12 +33,14 @@ RUN apk add --no-cache wget \
 RUN mkdir -p ./data && chown -R appuser:appgroup /app
 
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/src/config/env.ts ./src/config/env.ts
+COPY --from=builder /app/dist ./dist
 
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder /app/src/config/env.ts ./src/config/env.ts
-COPY --from=builder /app/dist ./dist
+RUN npx prisma generate
 
 COPY ./entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh

@@ -18,11 +18,91 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
+    env:
+      HOST_VOLUME_PATH: "data"
+      NODE_ENV: "development"
+      PROXY_SERVICE_NAME: "nginx-proxy"
+      API_GATEWAY_NAME: "api-gateway"
+      API_GATEWAY_PORT: "3000"
+      AUTH_SERVICE_NAME: "auth-service"
+      AUTH_SERVICE_PORT: "3001"
+      UM_SERVICE_PORT: "3002"
+      UM_SERVICE_NAME: "user-service"
+      UM_REDIS_CHANNEL: "user_management"
+      UM_SERVICE_DIR: "users"
+      GAME_SERVICE_PORT: "3003"
+      GAME_SERVICE_NAME: "game-service"
+      BK_SERVICE_PORT: "3005"
+      BK_SERVICE_NAME: "blockchain-service"
+      REDIS_SERVICE_PORT: "6379"
+      REDIS_SERVICE_NAME: "redis-broker"
+      REDIS_URL: "redis://redis-broker:6379"
+      AUTH_DB_PATH: "/data/auth.db"
+      ADMIN_USERNAME: "admin"
+      ADMIN_EMAIL: "admin@transcendence.local"
+      ADMIN_PASSWORD: "Admin123!"
+      INVITE_USERNAME: "invite"
+      INVITE_EMAIL: "invite@transcendence.local"
+      INVITE_PASSWORD: "Invite123!"
+      BLOCK_DB_PATH: "/data/blockchain.db"
+      UM_DB_PATH: "./data/um.db"
+      UM_DB_URL: "file:./data/um.db"
+    
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v4
+      - name: Create .env for docker compose
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          mkdir -p srcs
+          cat << EOF > srcs/.env
+          HOST_VOLUME_PATH=${HOST_VOLUME_PATH}
+          NODE_ENV=${NODE_ENV}
+          PROXY_SERVICE_NAME=${PROXY_SERVICE_NAME}
+          API_GATEWAY_NAME=${API_GATEWAY_NAME}
+          API_GATEWAY_PORT=${API_GATEWAY_PORT}
+          AUTH_SERVICE_NAME=${AUTH_SERVICE_NAME}
+          AUTH_SERVICE_PORT=${AUTH_SERVICE_PORT}
+          UM_SERVICE_NAME=${UM_SERVICE_NAME}
+          UM_SERVICE_PORT=${UM_SERVICE_PORT}
+          UM_REDIS_CHANNEL=${UM_REDIS_CHANNEL}
+          GAME_SERVICE_NAME=${GAME_SERVICE_NAME}
+          GAME_SERVICE_PORT=${GAME_SERVICE_PORT}
+          BK_SERVICE_NAME=${BK_SERVICE_NAME}
+          BK_SERVICE_PORT=${BK_SERVICE_PORT}
+          REDIS_SERVICE_NAME=${REDIS_SERVICE_NAME}
+          REDIS_SERVICE_PORT=${REDIS_SERVICE_PORT}
+          REDIS_URL=${REDIS_URL}
+          EOF
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: echo "build to do"
+          cat << EOF > srcs/.env.auth
+          JWT_SECRET=${JWT_SECRET}
+          AUTH_DB_PATH=${AUTH_DB_PATH}
+          ADMIN_USERNAME=${ADMIN_USERNAME}
+          ADMIN_EMAIL=${ADMIN_EMAIL}
+          ADMIN_PASSWORD=${ADMIN_PASSWORD}
+          INVITE_USERNAME=${INVITE_USERNAME}
+          INVITE_EMAIL=${INVITE_EMAIL}
+          INVITE_PASSWORD=${INVITE_PASSWORD}
+          EOF
+
+          cat << EOF > srcs/.env.blockchain
+          BLOCK_DB_PATH=${BLOCK_DB_PATH}
+          EOF
+
+          cat << EOF > srcs/.env.game
+          EOF
+
+          cat << EOF > srcs/.env.gateway
+          JWT_SECRET=${JWT_SECRET}
+          EOF
+
+          cat << EOF > srcs/.env.um
+          UM_DB_URL=${UM_DB_URL}
+          UM_DB_PATH=${UM_DB_PATH}
+          EOF
+
+      - name: Build
+        run: make all
+
