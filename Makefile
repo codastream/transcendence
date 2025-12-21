@@ -28,7 +28,7 @@ else
 endif
 
 all : volumes build
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d || $(MAKE) logs
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d
 # Detect if volumes exist and Colima needs restart
 volumes:
 	@echo "Configuring volumes at $(VOLUMES_PATH)"
@@ -90,7 +90,7 @@ game:
 block:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(BK_SERVICE_NAME)
 build:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build || $(MAKE) logs
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build
 
 start :
 	$(COMPOSE_CMD) -f srcs/docker-compose.yml start 
