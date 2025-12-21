@@ -52,18 +52,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Debug JWT_SECRET presence
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: |
-          if [ -z "$JWT_SECRET" ]; then
-            echo "No JWT_SECRET from GitHub Secrets (likely a fork PR). Using dummy secret for CI."
-            JWT_SECRET="dummysupersecretkey"
-          fi
-
       - name: Create .env for docker compose
+        env:
+          GH_JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           mkdir -p srcs
+          if [ -z "$GH_JWT_SECRET" ]; then
+            echo "Using dummy JWT secret for CI"
+            JWT_SECRET="dummysupersecretkey"
+          else
+            JWT_SECRET="$GH_JWT_SECRET"
+          fi
           cat << EOF > srcs/.env
           HOST_VOLUME_PATH=${HOST_VOLUME_PATH}
           NODE_ENV=${NODE_ENV}
