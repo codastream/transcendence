@@ -8,9 +8,10 @@ import {
   vi,
 } from "vitest";
 import fastify from "fastify";
+vi.mock("../src/services/friends.service.js");
+
 import { umRoutes } from "../src/routes/um.routes.js";
 import * as friendsService from "../src/services/friends.service.js";
-import { API_ERRORS } from "../src/utils/messages.js";
 
 describe("Friends API", () => {
   const app = fastify();
@@ -18,6 +19,17 @@ describe("Friends API", () => {
   beforeAll(async () => {
     app.register(umRoutes);
     await app.ready();
+  });
+
+  app.addHook("preHandler", async (req) => {
+    const userId = req.headers["x-user-id"];
+    const role = req.headers["x-user-role"];
+    if (userId) {
+      (req as any).user = {
+        id: parseInt(userId as string, 10),
+        role: role || "user",
+      };
+    }
   });
 
   afterAll(async () => {
@@ -32,8 +44,8 @@ describe("Friends API", () => {
     id: 1,
     user1Id: 1,
     user2Id: 2,
-    nickname: null,
-    createdAt: new Date(),
+    nickname: "null",
+    //  createdAt: new Date(),
   };
 
   describe("POST /users/friends", () => {
