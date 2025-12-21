@@ -1,5 +1,5 @@
 import { config } from 'dotenv'
-import { bool, cleanEnv, num, str } from 'envalid'
+import { bool, cleanEnv, port, str } from 'envalid'
 
 config({ path: '../.env' })
 config({ path: '../.env.um' })
@@ -15,7 +15,8 @@ export const appenv = cleanEnv(process.env, {
     choices: ['debug', 'info', 'warn', 'error'],
     default: 'info',
   }),
-  UM_SERVICE_PORT: num({ default: 3002 }),
+  API_GATEWAY_PORT: port({ default: 3000 }),
+  UM_SERVICE_PORT: port({ default: 3002 }),
   UM_SERVICE_NAME: str({ default: 'user-service' }),
   UM_DB_PATH: str({ default: './data/um.db' }),
   UM_DB_NAME: str({ default: 'um.db' }),

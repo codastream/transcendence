@@ -8,11 +8,32 @@ import { apiRoutes, publicRoutes } from "./routes/gateway.routes.js";
 import { logger, optimizeErrorHandler } from "./utils/logger.js";
 import { verifyRequestJWT } from "./utils/jwt.service.js";
 import { GATEWAY_CONFIG, ERROR_CODES } from "./utils/constants.js";
+import { jsonSchemaTransform, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
+import fastifySwagger from "@fastify/swagger";
+import fastifySwaggerUi from "@fastify/swagger-ui";
 
 const app = fastify({
   logger: false, // Utiliser notre logger
   disableRequestLogging: true // Désactiver les logs automatiques
 });
+
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
+app.register(fastifySwagger, {
+  openapi: {
+    info: {
+      title: "API documentation",
+      description: "Transcendence internal API",
+      version: "0.0.1",
+    },
+    servers: [{url: `http://localhost:${process.env.API_GATEWAY_PORT || 3000}`}],
+  },
+  transform: jsonSchemaTransform,
+});
+
+app.register(fastifySwaggerUi, {
+  routePrefix: '/doc',
+})
 
 // Register fastify-cookie
 app.register(fastifyCookie);
