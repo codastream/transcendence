@@ -90,7 +90,7 @@ game:
 block:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(BK_SERVICE_NAME)
 build:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build || $(MAKE) logs
 
 start :
 	$(COMPOSE_CMD) -f srcs/docker-compose.yml start 
