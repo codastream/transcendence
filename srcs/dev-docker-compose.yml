@@ -74,6 +74,8 @@ services:
       context: ./blockchain
       dockerfile: Dockerfile.dev
     container_name: blockchain-service
+    ports:
+      - '3005:3005'
     expose:
       - '3005'
     environment:

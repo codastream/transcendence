@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS snapshot(
 }
 
 const insertSnapMatchStmt = db.prepare(`INSERT INTO snapshot(tx_id,tour_id,player1_id,player2_id,player3_id,player4_id) VALUES (?,?,?,?,?,?)`);
-
+const listSnapStmt = db.prepare(`SELECT * FROM snapshot`);
+const getSnapMatchStmt = db.prepare(`SELECT * FROM snapshot WHERE tx_id = ?`);
 
 export function insertSnapMatch(block: Blockchain): number{
     try {    
@@ -58,5 +59,27 @@ export function insertSnapMatch(block: Blockchain): number{
     const error: any = new Error(`Error during Tournament storage: ${err?.message || err}`);
     error.code = 'DB_INSERT_TOURNAMENT_ERR';
     throw error;
+  }
+}
+
+export function listSnap(): Blockchain[]{
+  try{
+    const info = listSnapStmt.all() as Blockchain[];
+    return info;
+  } catch (err: any) {
+    throw new Error(`DATA_ERROR.INTERNAL_ERROR: Snapshot DB Error ${err.message}`);
+  }
+}
+
+export function getSnapMatch(tx_id: number): Blockchain | null{
+  try {
+    const match = getSnapMatchStmt.get(tx_id)
+    return (match as Blockchain) || null
+  } catch (err) {
+    const error: any = new Error(
+      `Error during Blockchain lookup by ID: ${(err as any)?.message || String(err)}`,
+    )
+    error.code = 'DB_FIND_MATCH_BY_ID_ERROR'
+    throw error
   }
 }

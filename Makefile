@@ -85,6 +85,8 @@ game:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build game-service
 block:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build blockchain-service
+block-dev:
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/dev-docker-compose.yml up -d --build blockchain-service
 build:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build
 
@@ -94,6 +96,8 @@ stop :
 	$(COMPOSE_CMD) -f srcs/docker-compose.yml stop 
 down :
 	$(COMPOSE_CMD) -f srcs/docker-compose.yml down
+down-dev :
+	$(COMPOSE_CMD) -f srcs/dev-docker-compose.yml down
 
 logs:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml logs -f
