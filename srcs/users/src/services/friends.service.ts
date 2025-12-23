@@ -40,10 +40,25 @@ export async function addFriend(userId: number, friendId: number) {
 }
 
 export async function getFriendsByUserId(userId: number) {
-  return await prisma.friendship.findMany({
+  const friendships = await prisma.friendship.findMany({
     where: {
       OR: [{ userId }, { friendId: userId }],
     },
+    include: {
+      user: true,
+      friend: true,
+    },
+  });
+
+  return friendships.map((f) => {
+    const friendProfile = f.userId === userId ? f.friend : f.user;
+    return {
+      id: f.id,
+      userId: friendProfile.id,
+      username: friendProfile.username,
+      avatar_url: friendProfile.avatarUrl,
+      createdAt: f.createdAt,
+    };
   });
 }
 

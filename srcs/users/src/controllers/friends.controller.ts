@@ -3,7 +3,6 @@ import * as friendsService from '../services/friends.service.js';
 import { ValidationSchemas } from '../schemas/schemas.js';
 import z from 'zod';
 import { API_ERRORS, LOG_EVENTS } from '../utils/messages.js';
-import { mapFriendshipToDTO } from '../utils/mappers.js';
 
 function handleInvalidRequest<T>(
   req: FastifyRequest,
@@ -39,8 +38,7 @@ export async function getFriendsByUserId(req: FastifyRequest, reply: FastifyRepl
     if (!friends || friends.length === 0) {
       return reply.status(404).send({ message: 'User not found or has no friends' });
     }
-    const friendDTOs = friends.map((f) => mapFriendshipToDTO(f, userId));
-    return reply.status(200).send(friendDTOs);
+    return reply.status(200).send(friends);
   } catch (error) {
     req.log.error(error);
     return reply.status(500).send({ message: API_ERRORS.UNKNOWN });
@@ -59,7 +57,6 @@ export async function addFriend(
 
   if (!userId) {
     return reply.status(401).send({ message: 'Unauthorized' });
-    // user do not exist?
   }
 
   if (userId === targetId) {
@@ -106,16 +103,9 @@ export async function removeFriend(
 ) {
   const targetId = parseInt(req.params.targetId, 10);
   const userId = (req as any).user?.id;
-  const isAdmin = (req as any).user?.role === 'admin';
 
   if (!userId) {
     return reply.status(401).send({ message: 'Unauthorized' });
-  }
-
-  if (!isAdmin && userId !== targetId) {
-    return reply
-      .status(403)
-      .send({ message: 'Forbidden: You can only delete your own friendships' });
   }
 
   req.log.info({ event: LOG_EVENTS.REMOVE_FRIEND, userId, targetId });
