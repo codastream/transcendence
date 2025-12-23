@@ -110,6 +110,8 @@ logs-auth:
 	$(CONTAINER_CMD) logs -f auth-service
 logs-game:
 	$(CONTAINER_CMD) logs -f game-service
+logs-block:
+	$(CONTAINER_CMD) logs -f blockchain-service
 
 re : fclean all
 
