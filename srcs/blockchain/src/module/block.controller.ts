@@ -1,6 +1,6 @@
 // import { db } from "../core/database.js";
 import * as db from "../core/database.js";
-import { RecordNotFoundError } from "../core/error.js";
+import { errorEventMap, RecordNotFoundError } from "../core/error.js";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { BlockTournamentInput, BlockTournamentStored } from "./block.schema.js";
 import { storeTournament } from "./block.service.js";
@@ -49,21 +49,19 @@ export async function addTournament(this: FastifyInstance, request: FastifyReque
     const rowSnapId = db.insertSnapTournament(request.body as BlockTournamentInput);
     this.log.info({ event: "snapshot_register_success", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id, rowSnapId });
     
-    this.log.info({ event: "blockchain_register_attempt", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id});
-    const tournament: BlockTournamentStored = await storeTournament(this.log, request.body as  BlockTournamentInput);
-    const {date_confirmed, tx_hash} = tournament;
-    this.log.info({ event: "blockchain_register_success", tx_id, tour_id, tx_hash});
+    const blockchainReady = process.env.BLOCKCHAIN_READY === "true";
     
-    this.log.info({ event: "snapshot_update_attempt", tx_id, tour_id, tx_hash, date_confirmed });
-    const rowBlockId = db.updateTournament(tx_id, tournament.tx_hash, tournament.date_confirmed);
-    this.log.info({ event: "snapshot_update_success", tx_id, tour_id, tx_hash, date_confirmed, rowBlockId });
+    if (blockchainReady){
+      this.log.info({ event: "blockchain_register_attempt", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id});
+      const tournament: BlockTournamentStored = await storeTournament(this.log, request.body as  BlockTournamentInput);
+      const {date_confirmed, tx_hash} = tournament;
+      this.log.info({ event: "blockchain_register_success", tx_id, tour_id, tx_hash});
+      
+      this.log.info({ event: "snapshot_update_attempt", tx_id, tour_id, tx_hash, date_confirmed });
+      const rowBlockId = db.updateTournament(tx_id, tournament.tx_hash, tournament.date_confirmed);
+      this.log.info({ event: "snapshot_update_success", tx_id, tour_id, tx_hash, date_confirmed, rowBlockId });
+    }
   } catch (err: any) {
-    const errorEventMap: Record<string, string> = {
-      TOURNAMENT_EXISTS: 'snapshot_register_error',
-      BD_INSERT_TOURNAMENT_ERR: 'snapshot_register_error',
-      BLOCKCHAIN_INSERT_TOURNAMENT_ERR: 'blockchain_register_error',
-      BLOCKCHAIN_NO_SMART_CONTRACT_ERR: 'blockchain_dont_exist_error',
-    };
     const event = errorEventMap[err.code];
     if (event) {
       this.log.error({ event, err });
