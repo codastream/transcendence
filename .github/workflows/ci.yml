@@ -1,0 +1,43 @@
+# This is a basic workflow to help you get started with Actions
+name: CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+  workflow_dispatch:
+
+jobs:
+  
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create .env for docker compose
+        env:
+          GH_JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          mkdir -p srcs
+          if [ -z "$GH_JWT_SECRET" ]; then
+            echo "Using dummy JWT secret for CI"
+            JWT_SECRET="dummysupersecretkey"
+          else
+            JWT_SECRET="$GH_JWT_SECRET"
+          fi
+          cp srcs/.env.example srcs/.env
+          cp srcs/.env.auth.example srcs/.env.auth
+          cp srcs/.env.blockchain.example srcs/.env.blockchain
+          cp srcs/.env.game.example srcs/.env.game
+          cp srcs/.env.gateway.example srcs/.env.gateway
+          cp srcs/.env.um.example srcs/.env.um
+
+          sed -i "s|JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|g" srcs/.env.auth
+          sed -i "s|JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|g" srcs/.env.gateway
+
+      - name: Build
+        run: make all
