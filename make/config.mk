@@ -17,10 +17,9 @@ endif
 UPLOADS_PATH := $(VOLUMES_PATH)/uploads
 
 # --- Docker or Podman ---
-# Checking if Podman is installed (replaces check on Jean in username)
-HAS_PODMAN := $(shell command -v podman 2> /dev/null)
+JM := $(findstring Jean, $(shell uname -a))
 
-ifdef HAS_PODMAN
+ifeq ($(JM), Jean)
   CONTAINER_CMD := podman
   COMPOSE_CMD   := podman-compose
 else
