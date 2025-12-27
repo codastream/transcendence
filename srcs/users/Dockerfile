@@ -8,6 +8,8 @@
 
 FROM node:20-alpine AS builder
 
+# needed for better-sqlite3
+RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 # Copy root package files for workspace resolution
@@ -34,8 +36,6 @@ COPY srcs/users/tsconfig.build.json ./srcs/users/tsconfig.build.json
 COPY srcs/users/src ./srcs/users/src
 COPY srcs/users/entrypoint.sh ./srcs/users/entrypoint.sh
 
-RUN apk add --no-cache python3 make g++
-
 # Copy Prisma files
 COPY srcs/users/prisma ./srcs/users/prisma
 COPY srcs/users/prisma.config.* ./srcs/users/
@@ -56,7 +56,7 @@ FROM node:20-alpine AS runner
 # Keep the same workspace root as builder
 WORKDIR /app
 
-RUN apk add --no-cache wget \
+RUN apk add --no-cache wget python3 make g++ \
     && addgroup -S appgroup \
     && adduser -S appuser -G appgroup
 
