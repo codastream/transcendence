@@ -80,6 +80,8 @@ build: build-core
 	$(D_COMPOSE) build
 
 # --- Test ---
+test: test-user
+
 test-user:
 	npm run test --workspace srcs/users
 
