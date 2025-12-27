@@ -1,21 +1,8 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import * as umService from '../services/um.service.js'
 import * as mappers from '../utils/mappers.js';
-// import z from 'zod'
 import { API_ERRORS, LOG_EVENTS } from '../utils/messages.js'
 import { ProfileCreateInDTO } from '@transcendence/core'
-
-// function handleInvalidRequest<T>(
-//   req: FastifyRequest,
-//   reply: FastifyReply,
-//   validation: z.ZodSafeParseError<T>
-// ) {
-//   req.log.warn({ event: LOG_EVENTS.INVALID_REQUEST, request: req })
-//   return reply.status(400).send({
-//     error: API_ERRORS.USER.INVALID_FORMAT,
-//     details: z.treeifyError(validation.error),
-//   })
-// }
 
 export async function getProfileByUsername(
   req: FastifyRequest<{ Params: { username: string } }>,
@@ -23,11 +10,6 @@ export async function getProfileByUsername(
 ) {
   const { username } = req.params
   req.log.info({ event: LOG_EVENTS.GET_PROFILE_BY_USERNAME, username })
-
-  // const validation = Schemas.FieldUsername.safeParse({ username })
-  // if (!validation.success) {
-  //   return handleInvalidRequest(req, reply, validation)
-  // }
 
   const profileDTO = await umService.findByUsername(username);
   if (!profileDTO) {

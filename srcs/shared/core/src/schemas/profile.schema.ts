@@ -18,14 +18,14 @@ export const ProfileData= z.object({
 
 export const Profile = z.object({
   username: usernameSchema,
-  avatarUrl: z.string().url().nullable(),
+  avatarUrl: z.string().nullable(),
 });
 
 export const ProfileCreateIn = z.object({
   authId: idSchema,
   username: z.string(),
   email: z.string().email().optional(),     // API accepts undefined
-  avatarUrl: z.string().url().optional(),   // API accepts undefined
+  avatarUrl: z.string().optional(),   // API accepts undefined
 });
 
 // inferred DTOs
