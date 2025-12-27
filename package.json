@@ -24,6 +24,7 @@
     "build:nginx": "npm run build --workspace srcs/nginx",
     "build:all": "npm run build:core && npm run build:users && npm run build:auth && npm run build:gateway && npm run build:game && npm run build:blockchain && npm run build:nginx",
     "format:users": "npm run format --workspace srcs/users",
+    "format:shared": "prettier --write srcs/shared",
     "clean": "rm -rf srcs/*/dist srcs/shared/core/dist node_modules srcs/*/node_modules"
   },
   "repository": {
