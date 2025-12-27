@@ -19,8 +19,8 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY conf.d/default.conf /etc/nginx/conf.d/default.conf
 
 # Copy entrypoint script
-COPY dev-start.sh /start.sh
-RUN chmod +x /start.sh
+COPY dev-start.sh /dev-start.sh
+RUN chmod +x /dev-start.sh
 
 EXPOSE 80 443
 
