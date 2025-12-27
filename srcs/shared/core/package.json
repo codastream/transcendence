@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "shared objects for transcendence",
   "license": "GPL-3.0",
-  "author": "",
+  "author": "Transcendence contributors",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -5,8 +5,6 @@ export const UsernameParams = z.object({
   username: usernameSchema
 });
 
-console.log('Schema:', JSON.stringify(UsernameParams, null, 2));
-
 export const ProfileData= z.object({
   id: idSchema,
   authId: z.number(),
@@ -23,7 +21,7 @@ export const Profile = z.object({
 
 export const ProfileCreateIn = z.object({
   authId: idSchema,
-  username: z.string(),
+  username: usernameSchema,
   email: z.string().email().optional(),     // API accepts undefined
   avatarUrl: z.string().optional(),   // API accepts undefined
 });

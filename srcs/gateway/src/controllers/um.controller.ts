@@ -14,7 +14,7 @@ export function registerUsersRoutes(app: FastifyInstance) {
     return res
   })
 
-  app.post('/', async (request, reply) => {
+  app.post('/', async (request: FastifyRequest, reply: FastifyReply) => {
     app.log.info({ event: 'um_new', remote: 'user-service', url: '/' })
     const res = await proxyRequest(app, request, reply, `${UM_SERVICE_URL}/`, {
       method: 'POST',
@@ -24,8 +24,8 @@ export function registerUsersRoutes(app: FastifyInstance) {
     return res
   })
 
-  app.get<{ Params: UserParams }>('/:username', async (request, reply) => {
-    const { username } = request.params;
+  app.get<{ Params: UserParams }>('/:username', async (request: FastifyRequest, reply: FastifyReply) => {
+    const { username } = request.params as UserParams;
     app.log.info({ 
       event: 'um_get_by_username', 
       username,
@@ -35,7 +35,7 @@ export function registerUsersRoutes(app: FastifyInstance) {
     return proxyRequest(app, request, reply, targetUrl);
   });
 
-  app.all('/*', async (request, reply) => {
+  app.all('/*', async (request: FastifyRequest, reply: FastifyReply) => {
     const rawPath = (request.params as any)['*']
     const cleanPath = rawPath.replace(/^api\/users\//, '')
     const url = `${UM_SERVICE_URL}/${cleanPath}`

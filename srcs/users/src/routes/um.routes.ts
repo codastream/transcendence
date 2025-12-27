@@ -28,9 +28,12 @@ export async function umRoutes(app: FastifyInstance) {
       params: UsernameParams,
       response: {
         200: Profile,
-        404: z.object({
+        400: z.object({
           message: z.string()
         }).describe("Validation error"),
+        404: z.object({
+          message: z.string()
+        }).describe("Profile not found"),
       },
     },
   }, getProfileByUsername);
@@ -41,11 +44,11 @@ export async function umRoutes(app: FastifyInstance) {
       schema: {
       tags: ['users'],
       summary: "Create user profile",
-      description: "Creates a new user profil linked to an authId",
+      description: "Creates a new user profile linked to an authId",
       body: ProfileCreateIn,
       response: {
         201: Profile,
-        404: z.object({
+        400: z.object({
           message: z.string()
         }).describe("Validation error"),
         409: z.object({

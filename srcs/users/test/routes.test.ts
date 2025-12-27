@@ -74,10 +74,10 @@ describe("GET /:username", () => {
             url: "/admin"
         });
 
-        expect(response.statusCode).toBe(400);
-
         const body = JSON.parse(response.payload);
-        expect(body.error).toBe(API_ERRORS.USER.BAD_REQUEST);
+
+        expect(response.statusCode).toBe(400);
+        expect(body.message).toBe("params/username Username cannot contain 'admin'");
     });
 
     test("GET /:username - Should return 500 if service throws error", async () => {

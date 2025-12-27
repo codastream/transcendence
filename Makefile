@@ -5,7 +5,7 @@ OS := $(shell uname)
 export
 PROJECT_PATH := $(shell pwd)
 VOLUMES_PATH := $(PROJECT_PATH)/data
-
+UPLOADS_PATH := $(VOLUMES_PATH)/uploads
 
 # Override VOLUMES_PATH if HOST_VOLUME_PATH is set in .env
 ifdef VOLUME_NAME
@@ -27,6 +27,7 @@ all : volumes colima build
 
 volumes:
 	@mkdir -p $(VOLUMES_PATH)
+	@mkdir -p $(UPLOADS_PATH)
 	@chmod -R 777 $(VOLUMES_PATH)
 
 dev: volumes colima-dev
