@@ -35,7 +35,6 @@
     ]
   },
   "dependencies": {
-    "@libsql/linux-x64-gnu": "^0.5.22",
     "ioredis": "^5.8.2"
   }
 }

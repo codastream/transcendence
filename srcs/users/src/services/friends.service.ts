@@ -1,4 +1,4 @@
-import { prisma } from 'src/data/prisma';
+import { prisma } from '../data/prisma.js';
 
 export async function addFriend(userId: number, friendId: number) {
   const userExists = await prisma.userProfile.findUnique({
@@ -44,7 +44,7 @@ export async function getFriendsByUserId(userId: number) {
     },
   });
 
-  return friendships.map((f) => {
+  return friendships.map((f: any) => {
     const friendProfile = f.userId === userId ? f.friend : f.user;
     return {
       id: f.id,

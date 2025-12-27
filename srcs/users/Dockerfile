@@ -39,8 +39,8 @@ COPY --from=builder /app/src/config/env.ts ./src/config/env.ts
 COPY --from=builder /app/dist ./dist
 
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
-RUN npx prisma generate
+COPY --from=builder /app/prisma/prisma.config.ts ./prisma.config.ts 
+RUN npx prisma generate --schema=./prisma/schema.prisma
 
 COPY ./entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
