@@ -12,10 +12,10 @@
     "start": "node dist/index.js",
     "preview": "vite preview",
     "pretest": "prisma generate",
-    "test": "vitest run",
-    "test:watch": "vitest run --watch",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui"
+    "test": "npx vitest run",
+    "test:watch": "npx vitest run --watch",
+    "test:coverage": "npx vitest run --coverage",
+    "test:ui": "npx vitest --ui"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

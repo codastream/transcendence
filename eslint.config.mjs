@@ -19,10 +19,14 @@ export default [
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
-        ...globals.node, // Par défaut, on assume qu'on est en Backend (Node.js)
+        ...globals.node,      // backend mode by default
         ...globals.es2021,
         },
       },
+     parserOptions: {
+      project: true,
+      tsconfigRootDir: __dirname,
+     },
      rules: {
        '@typescript-eslint/no-explicit-any': 'error',
        '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
@@ -38,6 +42,19 @@ export default [
       globals: {
         ...globals.browser,
       }
+    }
+  },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    extends: [tseslint.configs.disableTypeChecked],
+    languageOptions: {
+      globals: { ...globals.node },
+      parserOptions: {
+        project: false, // No tsconfig for config JS
+      },
+    },
+    rules: {
+        // add standard rules if needed
     }
   },
   eslintConfigPrettier,
