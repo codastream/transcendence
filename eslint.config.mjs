@@ -1,20 +1,31 @@
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default [
   {
     ignores: [
       '**/coverage/**', 
+      '**/build/**', 
       '**/dist/**',
       '**/node_modules/**',
       '**/migrations/**',
       '**/generated/**',      // prisma sql migrations
+      '**/prisma/client/**',      // prisma
       '**/*.d.ts',            // type definitions
-    ],
+      '**/*.json',            // type definitions
+      '**/*.yaml',            // type definitions
+      '**/*.yml',            // type definitions
+    ]
+
   },
   {
-    files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
+    files: ['**/*.{js,mts,cts}'],
     languageOptions: { 
       ecmaVersion: 2022,
       sourceType: 'module',
