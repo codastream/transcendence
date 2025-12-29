@@ -52,6 +52,5 @@ export async function updateFriend(userId: number, targetId: number, _nickname: 
   if (!friendship) {
     return null;
   }
-  await friendsData.updateFriendshipNickname(friendship.id, _nickname);
-  return await friendsData.findFriendshipAnyDirection(userId, targetId);
+  return await friendsData.updateFriendshipNickname(friendship.id, _nickname);
 }

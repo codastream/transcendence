@@ -7,6 +7,10 @@ export async function findProfileByUsername(username: string): Promise<UserProfi
   });
 }
 
+export async function findUserById(id: number) {
+  return prisma.userProfile.findUnique({ where: { id } });
+}
+
 export async function createProfile(data: {
   authId: number;
   email: string;

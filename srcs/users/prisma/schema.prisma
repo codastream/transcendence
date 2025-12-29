@@ -24,11 +24,11 @@ model Friendship {
   createdAt DateTime @default(now())
   nickname  String?
   
-  userId    Int
-  requester UserProfile @relation("requester", fields: [userId], references: [id], onDelete: Cascade)
+  requesterId    Int
+  requester UserProfile @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
 
   friendId  Int
-  receiver  UserProfile @relation("receiver", fields: [friendId], references: [id], onDelete: Cascade)
+  receiver  UserProfile @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
   
-  @@unique([userId, friendId])
+  @@unique([requesterId, receiverId])
 }

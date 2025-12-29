@@ -1,9 +1,5 @@
 import { prisma } from './prisma.js';
 
-export async function findUserById(id: number) {
-  return prisma.userProfile.findUnique({ where: { id } });
-}
-
 export async function findFriendship(userId: number, friendId: number) {
   return prisma.friendship.findUnique({
     where: { userId_friendId: { userId, friendId } },
