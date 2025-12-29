@@ -4,11 +4,11 @@
 # Global / infra / tooling
 # =========================
 
-/Makefile                     @rom98759 @jmtth @codastream
-/package.json                 @rom98759 @jmtth @codastream
-/package-lock.json            @rom98759 @jmtth @codastream
-/srcs/docker-compose.yml      @rom98759 @jmtth @codastream
-/srcs/dev-docker-compose.yml  @rom98759 @jmtth @codastream
+/Makefile                     @rom98759 @jmtth @codastream @Ilia1177
+/package.json                 @rom98759 @jmtth @codastream @Ilia1177
+/package-lock.json            @rom98759 @jmtth @codastream @Ilia1177
+/srcs/docker-compose.yml      @rom98759 @jmtth @codastream @Ilia1177
+/srcs/dev-docker-compose.yml  @rom98759 @jmtth @codastream @Ilia1177
 /.env.example                 @codastream @rom98759 @jmtth @Ilia1177 @lisambet
 
 /commitlint.config.js         @rom98759 @jmtth @codastream
