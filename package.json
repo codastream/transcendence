@@ -19,7 +19,8 @@
   "scripts": {
     "test": "",
     "prepare": "husky || true",
-    "clean": "rm -rf srcs/*/dist srcs/shared/core/dist node_modules srcs/*/node_modules"
+    "clean": "rm -rf srcs/*/dist srcs/shared/core/dist node_modules srcs/*/node_modules",
+    "lint:report": "eslint --output-file eslint_report.json --format json srcs"
   },
   "repository": {
     "type": "git",
