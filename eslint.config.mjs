@@ -57,7 +57,7 @@ export default [
   },
   {
     files: ['**/*.{js,mjs,cjs}'],
-    extends: [tseslint.configs.disableTypeChecked],
+    ...tseslint.configs.disableTypeChecked,
     languageOptions: {
       globals: { ...globals.node },
       parserOptions: {
