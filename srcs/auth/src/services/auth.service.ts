@@ -177,8 +177,9 @@ export function hasRole(userId: number, requiredRole: UserRole): boolean {
     const requiredRoleLevel = roleHierarchy[requiredRole];
 
     return userRoleLevel >= requiredRoleLevel;
-  } catch (err) {
+  } catch (err: unknown) {
     // En cas d'erreur, refuser l'accès par défaut
+    logger.error(err);
     return false;
   }
 }

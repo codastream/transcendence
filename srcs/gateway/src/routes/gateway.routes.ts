@@ -18,6 +18,6 @@ export async function apiRoutes(app: FastifyInstance) {
  */
 export async function publicRoutes(app: FastifyInstance) {
   app.register(healthRoutes);
-  app.get('/', rootHandler);
-  app.get('/help', helpHandler);
+  app.get('/', { config: { isPublic: true } }, rootHandler);
+  app.get('/help', { config: { isPublic: true } }, helpHandler);
 }
