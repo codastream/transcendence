@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { FastifyInstance } from 'fastify/types/instance.js';
 import { mockProfileDTO, mockProfileDTO2 } from './fixtures/profiles.fixtures.js';
-import { buildApp } from 'src/app.js';
+import { buildApp } from '../src/app.js';
 
 vi.mock('../src/services/friends.service.js', () => ({
   friendshipService: {

@@ -3,7 +3,7 @@ import { afterEach } from 'node:test';
 import { AppError, ERR_DEFS, LOG_RESOURCES, ProfileDTO } from '@transcendence/core';
 import { FastifyInstance } from 'fastify';
 import { mockProfileDTO } from './fixtures/profiles.fixtures.js';
-import { buildApp } from 'src/app.js';
+import { buildApp } from '../src/app.js';
 
 vi.mock('../src/services/um.service.js', () => ({
   profileService: {
