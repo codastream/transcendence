@@ -8,6 +8,7 @@ const Circle = ({ children, className = '' }: CircleProps) => {
     <div
       className={`
       bg-white/80
+      lg-bg-teal-100/10
       shadow-2xl
       z-0
       flex
@@ -30,7 +31,7 @@ const Circle = ({ children, className = '' }: CircleProps) => {
       lg:rounded-full
       ${className}`}
     >
-      <div className="relative z-10 text-center w-full max-w-4xl px-6">{children}</div>
+      <div className="relative z-10 text-center w-full max-w-4xl px-6 ">{children}</div>
     </div>
   );
 };

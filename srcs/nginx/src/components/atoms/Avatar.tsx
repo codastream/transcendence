@@ -5,7 +5,7 @@ interface AvatarProps {
   src?: string;
   alt?: string;
   size?: AvatarSize;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   className?: string;
 }
 

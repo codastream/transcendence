@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import { MenuActions } from '../../core/react-types';
+import { interpolate, Shape } from 'flubber';
 
-type Action = 'play' | 'profile';
 type Color = 'white' | 'cyan';
 interface Item {
   label: string;
@@ -14,62 +15,72 @@ const HALO_PATH =
 const HOUSE_PATH = 'M 8,2 L 14,7 L 14,14 L 10,14 L 10,10 L 6,10 L 6,14 L 2,14 L 2,7 Z';
 
 const RACKET_PATH =
-  'M12.318,6.166 C12.308,4.881 11.825,3.433 10.224,1.83 C7.905,-0.488 4.146,-0.488 1.828,1.83 C-0.49,4.148 -0.49,7.907 1.828,10.226 C3.312,11.709 4.66,12.219 5.875,12.288 L12.318,6.166 L12.318,6.166 Z M5.471,9.066 C4.628,9.066 3.945,8.374 3.945,7.517 C3.945,6.663 4.629,5.97 5.471,5.97 C6.315,5.97 6.999,6.663 6.999,7.517 C6.999,8.374 6.314,9.066 5.471,9.066 L5.471,9.066 Z M12.297,10.802 C11.846,10.35 11.85,9.903 11.925,9.658 C12.125,8.988 12.399,8.243 12.557,7.424 L7.53,12.451 C8.323,12.289 9.047,12.023 9.698,11.83 C9.948,11.756 10.421,11.777 10.895,12.251 C11.368,12.726 13.801,15.893 13.801,15.893 L15.965,13.73 C15.965,13.729 12.749,11.254 12.297,10.802 L12.297,10.802 Z';
+  'M8,2.56c3.01,0 5.44,2.43 5.44,5.44c0,0.75 -0.46,1.78 -0.82,2.52l-1.06,-0.89l-0.22,0.26l1.13,0.94l1.54,1.31c0.22,0.22 1.29,1.1 1.06,1.33l-1.54,1.58c-0.28,0.29 -1.1,-0.73 -1.31,-0.97l-0.21,-0.24l-2.1,-2.5l-0.26,0.22l0.94,1.11c-0.76,0.35 -1.84,0.74 -2.58,0.74c-3.01,0 -5.44,-2.43 -5.44,-5.44c0,-3.01 2.43,-5.44 5.44,-5.44z';
+
+const USER_PATH =
+  'M6.667 1.511q5.278 -0.455 4.356 4.8 -0.438 1.41 -1.422 2.489 -0.456 1.592 1.156 2.044a12.16 12.16 0 0 1 2.667 1.067q1.08 0.96 0.889 2.4h-12.8q-0.191 -1.44 0.889 -2.4a12.16 12.16 0 0 1 2.667 -1.067q1.612 -0.452 1.156 -2.044 -2.247 -2.473 -1.244 -5.689 0.641 -1.042 1.689 -1.6';
 
 // Props
+
 interface MenuElementProps {
-  action: Action;
+  action: MenuActions;
   items: Item[];
-  color: Color;
-  scale: number;
+  color?: Color;
+  scale?: number;
   className?: string;
 }
 
-const titles: Record<Action, string> = {
-  play: 'Play',
-  profile: 'My account',
+const titles: Record<MenuActions, string> = {
+  [MenuActions.PLAY]: 'Play',
+  [MenuActions.HOME]: 'Home',
+  [MenuActions.PROFILE]: 'Profile',
 };
 
-const paths: Record<Action, string> = {
-  play: RACKET_PATH,
-  profile: HOUSE_PATH,
+const paths: Record<MenuActions, string> = {
+  [MenuActions.PLAY]: RACKET_PATH,
+  [MenuActions.HOME]: HOUSE_PATH,
+  [MenuActions.PROFILE]: USER_PATH,
 };
 
 const dropdownStyle = 'shadow-[0_10px_10px_1px_rgba(255,255,255,0.4)] border-white-400/70';
-
-const morphTransition = {
-  type: 'spring',
-  stiffness: 42,
-  damping: 12,
-  mass: 1,
-} as const;
 
 const fadeTransition = {
   duration: 0.3,
   ease: 'easeInOut',
 } as const;
 
-const MenuElement = ({ action, items, scale = 1, className = '' }: MenuElementProps) => {
+const MenuElement = ({ action, items, scale = 1, className = '', ...props }: MenuElementProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const title = titles[action];
-  const iconPath = paths[action];
+  const targetPath = paths[action];
+  const progress = useMotionValue(0);
+  const pathD = useTransform(progress, [0, 1], [HALO_PATH, targetPath], {
+    mixer: (a: Shape, b: Shape) => interpolate(a, b, { maxSegmentLength: 0.1 }),
+  });
+  useEffect(() => {
+    const controls = animate(progress, isHovered ? 1 : 0, {
+      duration: 0.8,
+      ease: 'easeInOut', // or [0.4, 0, 0.2, 1]
+    });
+    return controls.stop;
+  }, [isHovered, targetPath]); //
 
   return (
-    <div
+    <motion.div
       className={`relative flex flex-col items-center justify-center mx-4 group cursor-pointer ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      {...props}
     >
       <div className="relative w-20 h-20 flex items-center justify-center">
         <motion.div
           animate={{
-            strokeWidth: isHovered ? 0 : 1,
             opacity: isHovered ? 0 : 0.5,
             scale: isHovered ? 0.5 : 1.3,
             filter: isHovered ? 'blur(0px)' : 'blur(8px)',
           }}
-          transition={fadeTransition}
-          className="absolute inset-0 rounded full bg-white"
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          className="absolute inset-0 rounded-full bg-white"
           style={{
             // Le dégradé radial est mathématiquement circulaire, pas de coins carrés
             background:
@@ -79,19 +90,19 @@ const MenuElement = ({ action, items, scale = 1, className = '' }: MenuElementPr
 
         <svg viewBox="0 0 16 16" className="w-full h-full z-10" style={{ overflow: 'visible' }}>
           <motion.path
+            d={pathD}
             initial={{}}
             animate={{
-              d: isHovered ? iconPath : HALO_PATH,
               fill: isHovered ? '#ffffff' : 'rgba(255,255,255,0)',
               stroke: isHovered ? 'rgba(255,255,255,0)' : '#ffffff',
               strokeWidth: isHovered ? 0 : 0.5,
               scale: isHovered ? scale : 1,
             }}
-            transition={morphTransition}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
             fillRule="evenodd"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ originX: '50%', originY: '50%' }}
+            style={{ transformOrigin: '50%' }}
           />
         </svg>
       </div>
@@ -121,7 +132,7 @@ const MenuElement = ({ action, items, scale = 1, className = '' }: MenuElementPr
             z-50 ${dropdownStyle}
             `}
           >
-            <div className="absolute top-0 left-0 w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="absolute top-0 left-0 w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
             <ul className="flex flex-col items center space-y-2 w-full">
               {items.map((item, index) => (
                 <li key={index} className="w-full text-center">
@@ -137,7 +148,7 @@ const MenuElement = ({ action, items, scale = 1, className = '' }: MenuElementPr
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 };
 
