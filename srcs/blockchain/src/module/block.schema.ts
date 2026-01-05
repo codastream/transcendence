@@ -4,7 +4,7 @@ export const blockIdSchema = {
   properties: {
     tx_id: { type: 'number' },
   },
-  required: ['tx_id'],
+  required: ['id'],
 } as const;
 
 // Body for POST /

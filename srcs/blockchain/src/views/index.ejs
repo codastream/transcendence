@@ -8,7 +8,7 @@
         <form action="" method="post">
             <div class="mb-2">
                 <label for="tx_id">tx_id</label>
-                <input type="number" class="form-control" id="tx_id" name="tx_id" />
+                <input type="number" class="form-control" id="id" name="id" />
             </div>
             <div class="mb-2">
                 <label for="tour_id">tour</label>
@@ -38,7 +38,7 @@
     <div class="card" id="registerCard">
         <h2>Enregistrement par JSON SPA</h2>
         <form id="registerForm">
-            <label for="regtxId">tx_id</label>
+            <label for="regtxId">id</label>
             <input id="regtxId" name="tx_id" type="text" />
             <label for="regmId">tour_id</label>
             <input id="regmId" name="tour_id" type="text" />
@@ -81,14 +81,14 @@
             regMsg.textContent = "";
             regMsg.className = "msg";
             regBtn.disabled = true;
-            const tx_id = document.getElementById("regtxId").value;
+            const id = document.getElementById("regtxId").value;
             const tour_id = document.getElementById("regmId").value;
             const player1_id = document.getElementById("regp1Id").value;
             const player2_id = document.getElementById("regp2Id").value;
             const player3_id = document.getElementById("regp3Id").value;
             const player4_id = document.getElementById("regp4Id").value;
             try {
-                const result = await postJson("/tournaments", { tx_id, tour_id, player1_id, player2_id,player3_id,player4_id  });
+                const result = await postJson("/tournaments", { id, tour_id, player1_id, player2_id,player3_id,player4_id  });
                 if (result.ok) {
                     regMsg.textContent = "Inscription réussie";
                     regMsg.classList.add("success");
@@ -110,9 +110,10 @@
         <table class="tabletable-striped">
             <thead>
                 <tr>
-                    <th scope="col">tx_id</th>
+                    <th scope="col">id</th>
                     <th scope="col">tx_hash</th>
-                    <th scope="col">date_confirmed</th>
+                    <th scope="col">snap_hash</th>
+                    <th scope="col">block_timestamp</th>
                     <th scope="col">t_id</th>
                     <th scope="col">p1_id</th>
                     <th scope="col">p2_id</th>
@@ -122,9 +123,10 @@
             </thead>
             <% for (const row of snapshots) { %>
             <tr>
-                <td><%= row.tx_id %></td>
+                <td><%= row.id %></td>
                 <td><%= row.tx_hash %></td>
-                <td><%= row.date_confirmed %></td>
+                <td><%= row.snap_hash %></td>
+                <td><%= row.block_timestamp %></td>
                 <td><%= row.tour_id %></td>
                 <td><%= row.player1_id %></td>
                 <td><%= row.player2_id %></td>

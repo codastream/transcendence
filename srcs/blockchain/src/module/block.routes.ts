@@ -17,7 +17,7 @@ async function blockRoutes(app: FastifyInstance) {
   app.get('/', listTournamentView);
   app.get('/tournaments', listTournament);
   app.post('/tournaments', { schema: { body: blockSchema } }, addTournament);
-  app.get('/tournaments/:tx_id', { schema: { params: blockIdSchema } }, getTournamentView);
+  app.get('/tournaments/:id', { schema: { params: blockIdSchema } }, getTournamentView);
   app.get('/cwd', chekCwd);
 }
 

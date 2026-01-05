@@ -15,9 +15,9 @@ contract GameStorage is Ownable {
     }
     mapping(uint32 => Tournament) public tournaments;
     uint256[] public tournamentIds;
-    mapping(uint256 => bool) public exists;
+    mapping(uint32 => bool) public exists;
 
-    event TournamentStored(uint32 match_id, uint32 player1, uint32 player2, uint32 player3, uint32 player4, uint32 ts, bytes32 snapshotHash);
+    event TournamentStored(uint32 tour_id, uint32 player1, uint32 player2, uint32 player3, uint32 player4, uint32 ts, bytes32 snapshotHash);
 
     function storeTournament(uint32 id, uint32 p1, uint32 p2, uint32 p3, uint32 p4) external onlyOwner {
         require(!exists[id], "Tournament already stored!");

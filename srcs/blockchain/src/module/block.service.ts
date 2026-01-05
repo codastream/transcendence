@@ -3,6 +3,7 @@ import { BlockTournamentInput, BlockTournamentStored } from './block.schema.js';
 import { FastifyInstance } from 'fastify';
 import type { AppLogger } from '../core/logger.js';
 import { extractTournamentStoredEvent, computeBusinessHash } from '../core/GameStorage.utils.js';
+import * as db from '../core/database.js';
 
 export async function storeTournament(
   logger: AppLogger,
@@ -40,21 +41,21 @@ export async function storeTournament(
     const event = extractTournamentStoredEvent(receipt, gamestorage);
 
     const localHash = computeBusinessHash(
-      event.id,
+      event.tour_id,
       event.p1,
       event.p2,
       event.p3,
       event.p4,
-      event.timestamp,
+      event.ts,
     );
-    if (localHash !== event.businessHash) {
+    if (localHash !== event.snapshotHash) {
       throw new Error('Business hash mismatch — integrity violation');
     }
     return {
       ...tournament,
       tx_hash: receipt.hash,
       snap_hash: localHash,
-      block_timestamp: event.timestamp,
+      block_timestamp: event.ts,
     };
   } catch (err: any) {
     const error: any = new Error(
@@ -63,6 +64,36 @@ export async function storeTournament(
     error.code = 'BLOCKCHAIN_INSERT_TOURNAMENT_ERR';
     throw error;
   }
+}
+
+export function addTournamentSnapDB(logger: AppLogger, data: BlockTournamentInput) {
+  logger.info({ event: 'snapshot_register_attempt', tournament: data });
+  const rowSnapId = db.insertSnapTournament(data);
+  logger.info({ event: 'snapshot_register_success', tournament: data });
+}
+
+export async function addTournamentBlockchain(
+  logger: AppLogger,
+  data: BlockTournamentInput,
+): Promise<BlockTournamentStored> {
+  logger.info({
+    event: 'blockchain_register_attempt',
+    data,
+  });
+  const tournament: BlockTournamentStored = await storeTournament(logger, data);
+  logger.info({ event: 'blockchain_register_success', tournament: tournament });
+  return tournament;
+}
+
+export function updateTournamentSnapDB(logger: AppLogger, data: BlockTournamentStored) {
+  logger.info({ event: 'snapshot_update_attempt', tournament: data });
+  const rowBlockId = db.updateTournament(
+    data.id,
+    data.tx_hash,
+    data.snap_hash,
+    data.block_timestamp,
+  );
+  logger.info({ event: 'snapshot_update_success', tournament: data, rowBlockId });
 }
 
 // export async function listBlockchainTournaments(): Promise<map<string, string>> {

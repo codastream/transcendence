@@ -68,7 +68,7 @@ describe('TEST blockchain without Smart Contract', () => {
     expect(response.statusCode).toBe(400);
     const body = response.json() as any;
     expect(body.code).toBe('FST_ERR_VALIDATION');
-    expect(body.validation?.[0]?.message).toBe("must have required property 'tx_id'");
+    expect(body.validation?.[0]?.message).toBe("must have required property 'id'");
     expect(body.validationContext).toBe('body');
   });
 
