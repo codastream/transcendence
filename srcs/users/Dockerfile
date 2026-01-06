@@ -60,21 +60,27 @@ RUN apk add --no-cache wget python3 make g++ \
     && addgroup -S appgroup \
     && adduser -S appuser -G appgroup
 
-# Copy root workspace files
+# Shared core package
+COPY --from=builder /app/srcs/shared/core/package.json ./srcs/shared/core/package.json
+
+# ROOT package defs
 COPY --from=builder /app/package.json /app/package-lock.json ./
 
-# Copy shared core (built artifacts + package.json for workspace resolution)
-COPY --from=builder /app/srcs/shared/core/package.json ./srcs/shared/core/package.json
-COPY --from=builder /app/srcs/shared/core/dist ./srcs/shared/core/dist
-
-# Copy users service package files
+# USER package defs
 COPY --from=builder /app/srcs/users/package.json ./srcs/users/package.json
 COPY --from=builder /app/srcs/users/package-lock.json ./srcs/users/package-lock.json
 
-# Copy users built artifacts
+# Install production dependencies (workspace resolution works because structure matches)
+RUN npm ci --omit=dev
+
+# Get Prisma client from root modules (not service)
+COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
+
+# Copy built artefacts
+COPY --from=builder /app/srcs/shared/core/dist ./srcs/shared/core/dist
 COPY --from=builder /app/srcs/users/dist ./srcs/users/dist
 
-# Copy Prisma files
+# Copy Config and Prisma files
 COPY --from=builder /app/srcs/users/src/config/ ./srcs/users/src/config
 COPY --from=builder /app/srcs/users/prisma ./srcs/users/prisma
 COPY --from=builder /app/srcs/users/prisma.config.ts ./srcs/users/prisma.config.ts
@@ -82,14 +88,8 @@ COPY --from=builder /app/srcs/users/prisma.config.ts ./srcs/users/prisma.config.
 # Skip husky in production
 ENV HUSKY=0
 
-# Install production dependencies (workspace resolution works because structure matches)
-RUN npm ci --omit=dev
-
-# Generate Prisma client
-RUN cd /app/srcs/users && npx prisma generate
-
 # Create data directory and set permissions (only for /app/srcs/users)
-RUN mkdir -p /app/srcs/users/data && chown -R appuser:appgroup /app
+RUN mkdir -p /app/srcs/users/data && chown -R appuser:appgroup /app/srcs/users/data
 
 # Change to users service directory
 WORKDIR /app/srcs/users
