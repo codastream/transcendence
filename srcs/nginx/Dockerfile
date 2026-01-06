@@ -48,5 +48,5 @@ COPY --from=builder /build/dist /usr/share/nginx/src/html/
 RUN mkdir -p /usr/share/nginx/html/uploads \
   && chmod 755 /usr/share/nginx/html/uploads
 
-EXPOSE 8080 4430
+EXPOSE 80 443
 CMD ["nginx", "-g", "daemon off;"]
