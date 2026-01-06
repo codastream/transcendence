@@ -1,0 +1,8 @@
+.scramble {
+  font-family: Helvetica;
+  font-size: 60px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  mix-blend-mode: difference;
+}

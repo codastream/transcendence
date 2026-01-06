@@ -2,7 +2,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { blockIdSchema, blockSchema } from './block.schema.js';
 import {
   addTournament,
-  addTournamentForm,
   getTournamentView,
   listTournament,
   listTournamentView,

@@ -2,13 +2,12 @@
 import * as db from '../core/database.js';
 import { errorEventMap, RecordNotFoundError } from '../core/error.js';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { BlockTournamentInput, BlockTournamentStored } from './block.schema.js';
 import {
   addTournamentBlockchain,
   addTournamentSnapDB,
-  storeTournament,
   updateTournamentSnapDB,
 } from './block.service.js';
+import { BlockTournamentInput } from './block.type.js';
 
 export async function listTournamentView(_request: FastifyRequest, reply: FastifyReply) {
   const snapshots = db.listSnap();
@@ -44,17 +43,15 @@ export async function addTournamentForm(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const { id, tour_id, player1_id, player2_id, player3_id, player4_id } =
-    request.body as BlockTournamentInput;
+  const { tour_id, player1, player2, player3, player4 } = request.body as BlockTournamentInput;
   const rowId = db.insertSnapTournament(request.body as BlockTournamentInput);
   this.log.info({
     event: 'register_success',
-    id,
     tour_id,
-    player1_id,
-    player2_id,
-    player3_id,
-    player4_id,
+    player1,
+    player2,
+    player3,
+    player4,
     rowId,
   });
   return reply.redirect('/');
@@ -67,11 +64,11 @@ export async function addTournament(
 ) {
   const data = request.body as BlockTournamentInput;
   try {
-    addTournamentSnapDB(this.log, data);
+    const rowSnapId = addTournamentSnapDB(this.log, data);
     const blockchainReady = process.env.BLOCKCHAIN_READY === 'true';
 
     if (blockchainReady) {
-      const dataStored = await addTournamentBlockchain(this.log, data);
+      const dataStored = await addTournamentBlockchain(this.log, data, rowSnapId);
       updateTournamentSnapDB(this.log, dataStored);
     }
   } catch (err: any) {
@@ -81,7 +78,7 @@ export async function addTournament(
     } else {
       this.log.error({ event: 'unknown_error', err });
     }
-    this.log.error({ data: data.id, err: err?.message || err });
+    this.log.error({ tournament: data.tour_id, err: err?.message || err });
     return reply.code(406).send({ error: { message: err.message, code: err.code } });
   }
 }
