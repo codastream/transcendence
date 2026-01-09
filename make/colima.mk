@@ -6,7 +6,7 @@ ifeq ($(OS),Darwin)
 		colima start --mount "$(PROJECT_PATH):w" --vm-type vz; \
 	else \
 		echo "Colima is running, checking mounts..."; \
-		if ! colima status 2>/dev/null | grep -q "$(PROJECT_PATH)"; then \
+		if ! colima ssh -- mount | grep -q "$(PROJECT_PATH)"; then \
 			echo "Mount missing, restarting Colima with correct mount..."; \
 			colima stop; \
 			colima start --mount "$(PROJECT_PATH):w" --vm-type vz; \
