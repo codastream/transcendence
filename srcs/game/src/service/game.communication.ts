@@ -9,7 +9,7 @@ export function broadcastToSession(sessionId: string, message: ServerMessage) {
   if (!currentSession || !currentSession.players) return;
 
   const messageStr = JSON.stringify(message);
-  currentSession.players.forEach((ws) => {
+  currentSession.players.forEach((id, ws) => {
     try {
       if (ws.readyState === ws.OPEN) {
         ws.send(messageStr);
@@ -26,23 +26,21 @@ export function handleClientMessage(this: FastifyInstance, ws: any, sessionId: s
     ws.send(JSON.stringify({ type: 'error', message: 'No game at this session' } as ServerMessage));
     return;
   }
-  if (!currentSession.players || currentSession.players.size === 0)
-    ws.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
-  else if (currentSession.players.size === 1)
-    ws.send(JSON.stringify({ type: 'connected', message: 'Player B' }));
-  else {
-    ws.close(WS_CLOSE.SESSION_FULL, 'session is full');
+
+  if (!addPlayerConnection.call(this, ws, sessionId)) {
     return;
   }
-  addPlayerConnection.call(this, ws, sessionId);
+
   const game = currentSession.game;
   // Handle incoming messages
   ws.on('message', (data: Buffer) => {
+    this.log.info(`receives WS: ${data}`);
     try {
       const message: ClientMessage = JSON.parse(data.toString());
+      this.log.info(`${message}`);
       switch (message.type) {
         case 'start':
-          if (game) {
+          if (game && game.status === 'waiting') {
             game.start();
             broadcastToSession(sessionId, {
               type: 'state',

@@ -14,7 +14,7 @@ export function cleanupConnection(
   if (socket) {
     socket.close(code, message);
   } else {
-    currentSession.players.forEach((socket) => socket.close(code, message));
+    currentSession.players.forEach((id, socket) => socket.close(code, message));
     currentSession.players.clear();
   }
   if (currentSession.players.size === 0) {
@@ -29,16 +29,30 @@ export function cleanupConnection(
 
 export function addPlayerConnection(this: FastifyInstance, socket: any, sessionId: string) {
   const currentSession = gameSessions.get(sessionId);
-  if (!currentSession || !currentSession.players || !socket) return;
+  if (!currentSession || !currentSession.players || !socket) return false;
 
-  currentSession.players.add(socket);
-  this.log.info(`[${sessionId}] Player connected. Total: ${currentSession.players.size}`);
+  const players = currentSession.players;
+
+  if (players.size === 1 && Array.from(players.values())[0] === 'A') {
+    players.set(socket, 'B');
+    socket.send(JSON.stringify({ type: 'connected', message: 'Player B' }));
+  } else if (players.size === 1 || players.size === 0) {
+    players.set(socket, 'A');
+    socket.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
+  } else if (players.size >= 2) {
+    socket.close(WS_CLOSE.SESSION_FULL, 'Session full');
+    return false;
+  }
+
+  this.log.info(
+    `[${sessionId}] Player ${players} connected. Total: ${currentSession.players.size}`,
+  );
 
   // Handle connection close
   socket.on('close', (code: number, reason: string) => {
     this.log.info(`[${sessionId}] Player disconnected: ${code} - ${reason}`);
-    currentSession.players.delete(socket);
-    if (currentSession.players.size === 0 && currentSession.game.status === 'waiting') {
+    players.delete(socket);
+    if (players.size === 0 && currentSession.game.status === 'waiting') {
       currentSession.game.stop();
       this.log.info(`[${sessionId}] Game stopped`);
     }
@@ -50,4 +64,5 @@ export function addPlayerConnection(this: FastifyInstance, socket: any, sessionI
     console.error(`[${sessionId}] WebSocket error:`, err);
     cleanupConnection(socket, sessionId, 4444, 'error');
   });
+  return true;
 }

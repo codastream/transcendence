@@ -99,7 +99,7 @@ export class GameDisplay {
                      <span id="final-score-p1" class="text-2xl font-bold text-blue-400">0</span>
                  </div>
                  <div class="flex justify-between items-center bg-gray-700 p-4 rounded">
-                     <span class="text-lg text-gray-300">Player 2:</span>
+                     <span class="text-lg text-gray-300">Player B:</span>
                      <span id="final-score-p2" class="text-2xl font-bold text-red-400">0</span>
                  </div>
              </div>
@@ -203,7 +203,7 @@ export class GameDisplay {
             <div class="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
               <div class="flex justify-around text-white">
                 <div class="text-center">
-                  <p class="text-sm text-purple-300">Player 1</p>
+                  <p class="text-sm text-purple-300">Player A</p>
                   <p id="player1-score" class="text-3xl font-bold">0</p>
                 </div>
                 <div class="text-center">
@@ -211,7 +211,7 @@ export class GameDisplay {
                   <p id="game-status-text" class="text-xl font-semibold text-yellow-400">Ready</p>
                 </div>
                 <div class="text-center">
-                  <p class="text-sm text-purple-300">Player 2</p>
+                  <p class="text-sm text-purple-300">Player B</p>
                   <p id="player2-score" class="text-3xl font-bold">0</p>
                 </div>
               </div>
@@ -412,6 +412,7 @@ export class GameDisplay {
       this.websocket = null;
     }
     this.updateConnectionStatus(false, 'Disconnected');
+    this.player = null;
     this.sessionId = undefined;
     this.gameState = null;
     this.drawWaitingScreen();
@@ -472,6 +473,7 @@ export class GameDisplay {
   }
 
   private async startGame(): Promise<void> {
+    console.log('trying to start game');
     this.showPanel('game-logs');
     try {
       this.sendWebSocketMessage({ type: 'start' });
@@ -481,6 +483,7 @@ export class GameDisplay {
       this.addGameLog(`Error: ${error}`, 'error');
     }
   }
+
   private clearGameLogs(): void {
     const logContainer = document.getElementById('game-log');
     if (!logContainer) return;
@@ -534,24 +537,24 @@ export class GameDisplay {
   private handleServerMessage(message: ServerMessage): void {
     switch (message.type) {
       case 'connected':
-        if (message.data) {
-          console.log(message);
-          this.gameState = message.data;
-          console.log('Session ID:', message.sessionId);
+        this.player = message.message;
+        if (message.sessionId) {
           this.sessionId = message.sessionId;
-          this.addGameLog(
-            `Connected to new session: ${this.sessionId} as player ${message.message}`,
-            'success',
-          );
-          this.player = message.message;
-          if (this.gameState.status === 'waiting') {
+        }
+        if (message.data) {
+          this.gameState = message.data;
+
+          if (this.gameState && this.gameState.status === 'waiting') {
             this.drawPreview();
-          } else if (this.gameState.status === 'playing') {
+          } else if (this.gameState && this.gameState.status === 'playing') {
             this.updateScores(message.data.scores);
             this.renderGame();
           }
-          console.log('URL updated to:', window.location.pathname);
         }
+        this.addGameLog(
+          `Connected to session: ${this.sessionId || 'none'} as ${this.player || 'undefined'}`,
+          'success',
+        );
         break;
 
       case 'state':
@@ -739,6 +742,7 @@ export class GameDisplay {
         this.addGameLog('WebSocket error occurred', 'error');
         this.updateConnectionStatus(false, 'Disconnected');
         reject(error);
+        this.player = null;
       };
 
       this.websocket.onclose = (event) => {
@@ -749,6 +753,7 @@ export class GameDisplay {
             `Connection closed: ${event.code} - ${event.reason || 'Unknown reason'}`,
             'error',
           );
+          this.player = null;
 
           // Reject if we haven't resolved yet
           if (this.websocket?.readyState !== WebSocket.OPEN) {
@@ -866,31 +871,35 @@ export class GameDisplay {
   }
 
   private handleKeyDown(e: KeyboardEvent): void {
-    if (!this.sessionId || this.gameState?.status !== 'playing') return;
+    if (!this.sessionId || !this.player) return; //|| this.gameState?.status !== 'playing') return;
 
     let paddle: 'left' | 'right' | null = null;
     let direction: 'up' | 'down' | null = null;
 
-    // W/S for left paddle
-    if (e.key === 'w' || e.key === 'W') {
-      paddle = 'left';
-      direction = 'up';
-    } else if (e.key === 's' || e.key === 'S') {
-      paddle = 'left';
-      direction = 'down';
-    }
-    // Arrow keys for right paddle
-    else if (e.key === 'ArrowUp') {
-      paddle = 'right';
-      direction = 'up';
-      e.preventDefault(); // Prevent page scroll
-    } else if (e.key === 'ArrowDown') {
-      paddle = 'right';
-      direction = 'down';
-      e.preventDefault();
+    if (this.player === 'Player A') {
+      // W/S for left paddle
+      if (e.key === 'w' || e.key === 'W') {
+        paddle = 'left';
+        direction = 'up';
+      } else if (e.key === 's' || e.key === 'S') {
+        paddle = 'left';
+        direction = 'down';
+      }
+    } else if (this.player === 'Player B') {
+      // Arrow keys for right paddle
+      if (e.key === 'ArrowUp') {
+        paddle = 'right';
+        direction = 'up';
+        e.preventDefault(); // Prevent page scroll
+      } else if (e.key === 'ArrowDown') {
+        paddle = 'right';
+        direction = 'down';
+        e.preventDefault();
+      }
     }
 
     if (paddle && direction) {
+      console.log('Player a move');
       this.sendWebSocketMessage({
         type: 'paddle',
         paddle,
@@ -900,15 +909,18 @@ export class GameDisplay {
   }
 
   private handleKeyUp(e: KeyboardEvent): void {
-    if (!this.sessionId || this.gameState?.status !== 'playing') return;
+    if (!this.sessionId || !this.player) return;
 
     let paddle: 'left' | 'right' | null = null;
 
-    if (e.key === 'w' || e.key === 'W' || e.key === 's' || e.key === 'S') {
+    if (
+      this.player === 'Player A' &&
+      (e.key === 'w' || e.key === 'W' || e.key === 's' || e.key === 'S')
+    ) {
       paddle = 'left';
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      paddle = 'right';
+    } else if (this.player === 'Player B' && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       e.preventDefault();
+      paddle = 'right';
     }
 
     if (paddle) {

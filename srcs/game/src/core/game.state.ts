@@ -8,7 +8,7 @@ export const gameSessions = new Map<
     id: string;
     game: PongGame;
     interval: NodeJS.Timeout | null;
-    players: Set<any>; // sockets
+    players: Map<any, 'A' | 'B'>; // sockets
   }
 >();
 
