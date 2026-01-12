@@ -2,7 +2,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { blockIdSchema, blockSchema } from './block.schema.js';
 import {
   addTournament,
-  addTournamentForm,
   getTournamentView,
   listTournament,
   listTournamentView,
@@ -17,8 +16,7 @@ async function blockRoutes(app: FastifyInstance) {
   app.get('/', listTournamentView);
   app.get('/tournaments', listTournament);
   app.post('/tournaments', { schema: { body: blockSchema } }, addTournament);
-  app.get('/tournaments/:tx_id', { schema: { params: blockIdSchema } }, getTournamentView);
-  app.get('/cwd', chekCwd);
+  app.get('/tournaments/:tour_id', { schema: { params: blockIdSchema } }, getTournamentView);
 }
 
 async function healthRoutes(app: FastifyInstance) {
@@ -28,10 +26,4 @@ async function healthRoutes(app: FastifyInstance) {
       return reply.code(200).send({ status: 'healthy', hotReload: 'ok fdac!' });
     },
   );
-}
-
-async function chekCwd() {
-  return {
-    cwd: process.cwd(),
-  };
 }
