@@ -115,6 +115,7 @@ jobs:
     env:
       NODE_ENV: test
       NPM_CONFIG_PRODUCTION: false
+      HOST_VOLUME_PATH: ${{ github.workspace }}/volumes
 
     steps:
       - uses: actions/checkout@v4
