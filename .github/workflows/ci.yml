@@ -97,6 +97,8 @@ jobs:
           fi
 
       - name: Update coverage badge
+        # Only run when secrets exist and either this is not a pull_request OR the PR head repo is the same repository
+        if: ${{ secrets.GIST_SECRET && secrets.GIST_ID && (github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository) }}
         uses: Schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
@@ -108,6 +110,7 @@ jobs:
           maxColorRange: 100
           minColorRange: 50
           namedLogo: vitest
+        continue-on-error: true
 
   functional-tests:
     runs-on: ubuntu-latest
