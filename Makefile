@@ -180,11 +180,11 @@ reset-hard: clean clean-packages
 	-$(CONTAINER_CMD) network prune -f
 	-$(CONTAINER_CMD) system prune -a --volumes --force
 ifeq ($(OS), Darwin)
+ifneq ($(CHIP), arm64)
 	@echo "Stopping Colima…"
 	-colima stop
-	rm -rf $(VOLUMES_PATH)
-else
-	rm -rf $(VOLUMES_PATH)
 endif
+endif
+	rm -rf $(VOLUMES_PATH)
 
 .PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev
