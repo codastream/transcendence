@@ -157,6 +157,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .DS_Store
 .DS_Store
+!animation.js
 **/*.js
 *.pyc
 __pycache__
