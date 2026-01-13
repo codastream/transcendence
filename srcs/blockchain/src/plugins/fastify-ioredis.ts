@@ -1,8 +1,9 @@
 import fp from 'fastify-plugin';
 import { Redis } from 'ioredis';
+import { env } from '../config/env.js';
 
 export default fp(async (app) => {
-  const url = process.env.REDIS_URL;
+  const url = env.REDIS_URL;
 
   if (!url) {
     app.log.warn('REDIS_URL not set, redis plugin disabled');

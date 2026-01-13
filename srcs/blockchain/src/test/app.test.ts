@@ -113,13 +113,13 @@ describe.runIf(blockchainReady)('TEST blockchain with Smart Contract', () => {
     db.truncateSnapshot();
     const response = await app.inject({
       method: 'POST',
-      url: '/tournaments',
+      url: '/tournamentspub',
       body: tournamentBlockData,
     });
 
     expect(response.statusCode).toBe(200);
     const body = response.json() as any;
-    expect(body.verify_status).toBe('OK');
+    expect(body.status).toBe('published');
   });
 });
 

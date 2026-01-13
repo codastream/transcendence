@@ -4,6 +4,7 @@ import { extractTournamentStoredEvent } from '../core/GameStorage.utils.js';
 import * as db from '../core/database.js';
 import { BlockTournamentInput, SnapshotRow } from './block.type.js';
 import { verifyTournamentSnapshot } from '../core/Gamestorage.verification.js';
+import { env } from '../config/env.js';
 
 export async function storeTournament(
   logger: AppLogger,
@@ -12,9 +13,9 @@ export async function storeTournament(
 ): Promise<SnapshotRow> {
   logger.info({
     event: 'blockchain_env_check',
-    BLOCKCHAIN_READY: process.env.BLOCKCHAIN_READY,
-    GAME_STORAGE_ADDRESS: !!process.env.GAME_STORAGE_ADDRESS,
-    AVALANCHE_RPC_URL: !!process.env.AVALANCHE_RPC_URL,
+    BLOCKCHAIN_READY: env.BLOCKCHAIN_READY,
+    GAME_STORAGE_ADDRESS: !!env.GAME_STORAGE_ADDRESS,
+    AVALANCHE_RPC_URL: !!env.AVALANCHE_RPC_URL,
   });
 
   const gamestorage = getGameStorage(logger);

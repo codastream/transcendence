@@ -7,6 +7,7 @@ import {
   updateTournamentSnapDB,
 } from './block.service.js';
 import { BlockTournamentInput, SnapshotRow } from './block.type.js';
+import { env } from '../config/env.js';
 
 export async function listTournamentView(_request: FastifyRequest, reply: FastifyReply) {
   const snapshots = db.listSnap();
@@ -45,7 +46,7 @@ export async function addTournament(
   const data = request.body as BlockTournamentInput;
   try {
     const rowSnapId = addTournamentSnapDB(this.log, data);
-    const blockchainReady = process.env.BLOCKCHAIN_READY === 'true';
+    const blockchainReady = env.BLOCKCHAIN_READY;
     if (blockchainReady) {
       const dataStored = await addTournamentBlockchain(this.log, data, rowSnapId);
       updateTournamentSnapDB(this.log, dataStored);

@@ -16,7 +16,6 @@ COPY tsconfig.json ./
 COPY nodemon.json ./
 COPY .env.test ./
 COPY .env.test.blockchain ./
-# COPY src ./src
 
 EXPOSE 3005
 

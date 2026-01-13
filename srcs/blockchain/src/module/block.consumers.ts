@@ -7,6 +7,7 @@ import {
   updateTournamentSnapDB,
 } from './block.service.js';
 import { AppLogger } from '../core/logger.js';
+import { env } from '../config/env.js';
 
 export async function startTournamentConsumer(app: FastifyInstance) {
   if (!app.redis) {
@@ -91,7 +92,7 @@ export async function startTournamentConsumer(app: FastifyInstance) {
 async function addSubTournament(logger: AppLogger, tournament: BlockTournamentInput) {
   try {
     const rowSnapId = addTournamentSnapDB(logger, tournament);
-    const blockchainReady = process.env.BLOCKCHAIN_READY === 'true';
+    const blockchainReady = env.BLOCKCHAIN_READY;
     if (blockchainReady) {
       const dataStored = await addTournamentBlockchain(logger, tournament, rowSnapId);
       updateTournamentSnapDB(logger, dataStored);
