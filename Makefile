@@ -5,8 +5,8 @@ include make/config.mk
 all : volumes colima build
 	$(D_COMPOSE) up -d
 
-dev: volumes colima-dev
-	$(D_COMPOSE_DEV) up --build -d
+dev: volumes colima-dev build-dev
+	$(D_COMPOSE_DEV) up -d
 
 volumes:
 	@mkdir -p $(VOLUMES_PATH)
@@ -101,6 +101,8 @@ block: build-core build-block
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
 build: build-core
 	$(D_COMPOSE) build
+build-dev: build-core
+	$(D_COMPOSE_DEV) build
 
 # --- Test ---
 test: install test-user

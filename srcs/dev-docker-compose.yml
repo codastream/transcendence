@@ -16,6 +16,7 @@ services:
       - "4430:443"
     volumes:
       - ./nginx/src:/usr/share/nginx/src
+      - ${HOST_VOLUME_PATH}:/usr/share/nginx/html/uploads:ro
     networks:
       - app-network
     restart: unless-stopped
