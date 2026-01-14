@@ -15,6 +15,8 @@ volumes:
 
 start :
 	$(D_COMPOSE) start
+start-dev :
+	$(D_COMPOSE_DEV) start
 stop :
 	$(D_COMPOSE) stop
 down :

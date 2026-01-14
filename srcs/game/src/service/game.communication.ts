@@ -2,14 +2,14 @@ import { FastifyInstance, FastifyRequest } from 'fastify';
 import { gameSessions } from '../core/game.state.js';
 import { ServerMessage, ClientMessage } from '../core/game.types.js';
 import { addPlayerConnection, cleanupConnection } from './game.connections.js';
-
+import { WS_CLOSE } from '../core/game.state.js';
 // Broadcast state to all clients in a session
 export function broadcastToSession(sessionId: string, message: ServerMessage) {
   const currentSession = gameSessions.get(sessionId);
   if (!currentSession || !currentSession.players) return;
 
   const messageStr = JSON.stringify(message);
-  currentSession.players.forEach((ws) => {
+  currentSession.players.forEach((id, ws) => {
     try {
       if (ws.readyState === ws.OPEN) {
         ws.send(messageStr);
@@ -26,15 +26,21 @@ export function handleClientMessage(this: FastifyInstance, ws: any, sessionId: s
     ws.send(JSON.stringify({ type: 'error', message: 'No game at this session' } as ServerMessage));
     return;
   }
-  addPlayerConnection.call(this, ws, sessionId);
+
+  if (!addPlayerConnection.call(this, ws, sessionId)) {
+    return;
+  }
+
   const game = currentSession.game;
   // Handle incoming messages
   ws.on('message', (data: Buffer) => {
+    this.log.info(`receives WS: ${data}`);
     try {
       const message: ClientMessage = JSON.parse(data.toString());
+      this.log.info(`${message}`);
       switch (message.type) {
         case 'start':
-          if (game) {
+          if (game && game.status === 'waiting') {
             game.start();
             broadcastToSession(sessionId, {
               type: 'state',
@@ -44,16 +50,20 @@ export function handleClientMessage(this: FastifyInstance, ws: any, sessionId: s
             this.log.info(`[${sessionId}] Game started`);
           }
           break;
-        case 'stop': // Should be 'quit' it mean quit & disconnect
+        case 'stop': // Should be 'quit' -> it mean quit & disconnect but the game still running (even with no players)
           if (game) {
-            broadcastToSession(sessionId, {
-              type: 'gameOver',
-              message: 'Game stopped',
-              data: game.getState(),
-            });
-            game.stop();
-            cleanupConnection(ws, currentSession.id);
-            this.log.info(`[${sessionId}] Game stopped`);
+            // broadcastToSession(sessionId, {
+            //   type: 'gameOver',
+            //   message: 'Game stopped',
+            //   data: game.getState(),
+            // });
+            // game.stop();
+            cleanupConnection(
+              ws,
+              currentSession.id,
+              WS_CLOSE.PLAYER_QUIT,
+              'A player has quit the game',
+            );
           }
           break;
         case 'paddle':
@@ -104,7 +114,9 @@ export function defineCommunicationInterval(sessionId: string): any {
         type: 'gameOver',
         data: currentSessionData.game.getState(),
       });
-      cleanupConnection(null, sessionId);
+      //at game over, cleanup all WS connexions + delete the gameSession
+      cleanupConnection(null, sessionId, 4001, 'Game Over');
+      gameSessions.delete(sessionId);
     } else if (status === 'waiting') {
       broadcastToSession(sessionId, {
         type: 'state',
