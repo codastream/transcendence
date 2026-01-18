@@ -43,20 +43,26 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   }
 });
 
-app.setErrorHandler((error: AppBaseError | ServiceError, req, reply) => {
+app.setErrorHandler((error: AppBaseError, req, reply) => {
+  const statusCode = (error as any)?.statusCode || 500;
+
   req.log.error(
     {
       err: error,
       event: error?.context?.event || EVENTS.CRITICAL.BUG,
       reason: error?.context?.reason || REASONS.UNKNOWN,
     },
-    error.message || 'Unhandled Error',
+    'Error',
   );
-  const statusCode = (error as unknown as ServiceError).statusCode || 500;
-  reply.status(statusCode).send({
-    error: true,
-    message: error.message,
-    code: 'INTERNAL_SERVER_ERROR',
+
+  if (reply.sent) return;
+
+  reply.code(statusCode).send({
+    error: {
+      message: (error as any)?.message || 'Internal server error',
+      code: (error as any)?.code || EVENTS.CRITICAL.BUG,
+      reason: error?.context?.reason || REASONS.UNKNOWN,
+    },
   });
 });
 
