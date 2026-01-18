@@ -9,6 +9,7 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<ProfileAuthDTO | null>(() => {
     const storedUser = localStorage.getItem('user');
+    console.log(`auth provider user avatar ${storedUser}`);
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
@@ -22,14 +23,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('user');
   };
 
+  const updateUser = (newUser: ProfileAuthDTO) => {
+    setUser((prevUser) => {
+      const updated = { ...prevUser, ...newUser };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated as ProfileAuthDTO;
+    });
+  };
+
   // memoize to avoid re-render
   const contextValue = useMemo(
     () => ({
       user,
       login,
       logout,
+      updateUser,
     }),
-    [user, login, logout],
+    [user],
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

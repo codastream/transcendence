@@ -18,6 +18,10 @@ const profileItems = [
 
 // const homeItems = [{ label: 'Home', href: '#' }];
 
+// interface NavbarProps {
+//   user: ProfileAuthDTO;
+// }
+
 export const NavBar = () => {
   const { user, isLoggedIn } = useAuth();
 
@@ -31,7 +35,7 @@ export const NavBar = () => {
       <MenuElement action={MenuActions.PLAY} items={playItems}></MenuElement>
       <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
       <DevLoginButtons></DevLoginButtons>
-      {user && isLoggedIn && <UserRow avatarSize="sm" user={user}></UserRow>}
+      {user && isLoggedIn && <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow>}
     </nav>
   );
 };

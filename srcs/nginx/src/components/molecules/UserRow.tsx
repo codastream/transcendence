@@ -11,6 +11,7 @@ interface Props {
 }
 
 export const UserRow = ({ user, avatarSize }: Props) => {
+  console.log(`from UserRow ${user.avatarUrl}`);
   return (
     <div className="flex items-center gap-4">
       <Avatar alt="user avatar" size={avatarSize} src={user.avatarUrl}></Avatar>

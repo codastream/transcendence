@@ -1,10 +1,12 @@
 import {
   idDTO,
   IdSchema,
+  ProfileAuthDTO,
   UserDTO,
   UserLoginDTO,
   UserLoginSchema,
   usernameDTO,
+  usernameSchema,
   UserRegisterDTO,
   UserRegisterSchema,
 } from '@transcendence/core';
@@ -17,20 +19,20 @@ export const authApi = {
     return data.result.id;
   },
 
-  login: async (payload: UserLoginDTO): Promise<{ username: string; token: string }> => {
+  login: async (payload: UserLoginDTO): Promise<usernameDTO> => {
     UserLoginSchema.parse(payload);
     const { data } = await api.post(`/auth/login`, payload);
     return data.result.username;
   },
 
-  me: async (param: idDTO): Promise<UserDTO> => {
-    IdSchema.parse(param);
-    // const response = await api.get(`/auth/me/${param}`);
+  me: async (username: usernameDTO): Promise<UserDTO> => {
+    usernameSchema.parse(username);
+    // const response = await api.get(`/auth/me/${username}`);
     const response = {
       data: {
         authId: 1,
         email: 'toto@mail.com',
-        username: 'toto',
+        username: 'Toto',
       },
       message: 'OK',
     };

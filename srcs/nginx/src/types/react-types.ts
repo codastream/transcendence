@@ -19,6 +19,7 @@ export interface AuthContextType {
   user: ProfileAuthDTO | null;
   login: (user: ProfileAuthDTO) => void;
   logout: () => void;
+  updateUser: (newUser: ProfileAuthDTO) => void;
 }
 
 export interface AuthProviderProps {

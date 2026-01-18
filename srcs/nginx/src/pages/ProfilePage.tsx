@@ -4,18 +4,21 @@ import FileUploader from '../components/molecules/FileUploader';
 import { Page } from '../components/organisms/PageContainer';
 import { useAuth } from '../components/helpers/AuthProvider';
 import Avatar from '../components/atoms/Avatar';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../api/profile-api';
-
-const loadAvatar = () => {};
+import { useState } from 'react';
 
 const toggle2FA = () => {};
 
+// sources https://omarshishani.medium.com/how-to-upload-images-to-a-server-with-react-and-express-%EF%B8%8F-cbccf0ca3ac9
+// source https://www.bezkoder.com/upload-image-react-typescript/
 // TODO have auth getUserById endpoint to provide role and email
 export const ProfilePage = () => {
   const params = useParams();
+  const queryClient = useQueryClient();
   const username = params.username;
-  const { user: authUser } = useAuth();
+  if (!username) throw Error();
+  const { user: authUser, updateUser } = useAuth();
   const {
     data: displayedUser,
     isLoading,
@@ -30,6 +33,8 @@ export const ProfilePage = () => {
   });
 
   const isOwner = authUser && authUser.username === username;
+  const [progress, setProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
 
   if (isLoading) {
     return (
@@ -46,6 +51,26 @@ export const ProfilePage = () => {
       </Page>
     );
   }
+
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const updatedProfile = await profileApi.updateAvatar(username, file, (p: number) =>
+        setProgress(p),
+      );
+      queryClient.invalidateQueries({ queryKey: ['username', username] });
+      if (isOwner && authUser) {
+        updateUser({
+          ...authUser,
+          avatarUrl: updatedProfile.avatarUrl,
+        });
+      }
+    } catch (error: unknown) {
+      alert('failed upload ' + error); // TODO modal
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <Page className="flex flex-col">
@@ -75,8 +100,16 @@ export const ProfilePage = () => {
             <div className="mb-3">
               <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">Update avatar</h1>
               <div className="flex flex-row justify-center">
-                <FileUploader onClick={loadAvatar}></FileUploader>
+                <FileUploader onFileSelect={handleUpload}></FileUploader>
               </div>
+              {isUploading && (
+                <div className="w-full bg-gray-200 h-2 mt-4">
+                  <div
+                    className="bg-blue-600 h-2 transition-all duration-300"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}

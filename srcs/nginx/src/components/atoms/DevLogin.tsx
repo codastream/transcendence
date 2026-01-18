@@ -1,31 +1,29 @@
-import { ProfileAuthDTO, RoleDTO } from '@transcendence/core';
+import { RoleDTO } from '@transcendence/core';
 import { Roles } from '../../types/react-types';
 import Button from './Button';
 import { useAuth } from '../helpers/AuthProvider';
 import { authApi } from '../../api/auth-api';
+import { profileApi } from '../../api/profile-api';
 
 export const DevLoginButtons = () => {
   const { login, logout } = useAuth();
 
-  const fakeUser = (role: RoleDTO): ProfileAuthDTO => {
-    return {
-      authId: role === Roles.ADMIN ? 1 : 2,
-      email: 'test@mail.com',
-      username: role === Roles.ADMIN ? 'Admin' : 'Toto',
-      avatarUrl: role === Roles.ADMIN ? 'einstein_sq.jpg' : 'default.png',
-    };
-  };
-
-  const handleDevLogin = (role: RoleDTO) => {
+  const handleDevLogin = async (role: RoleDTO) => {
     try {
-      const user = fakeUser(role);
+      const username = role === Roles.ADMIN ? 'Admin' : 'Toto';
       const credentials = {
         password: 'Password123!',
-        username: user.username,
+        username: username,
       };
-      const response = authApi.login(credentials);
-      console.log(`Login success for ${response}`);
-      login(user);
+      const loggedUsername = await authApi.login(credentials);
+      const profile = await profileApi.getProfileByUsername(loggedUsername);
+      console.log(`dev login full profile = ${profile}`);
+      const fullProfile = {
+        ...profile,
+        email: 'test@mail.com',
+      };
+      login(fullProfile);
+      console.log('Login success with real data:', fullProfile.avatarUrl);
     } catch (error) {
       console.error(`Login error:`, error);
     }
@@ -33,11 +31,11 @@ export const DevLoginButtons = () => {
 
   const handleDevRegister = (role: RoleDTO) => {
     try {
-      const user = fakeUser(role);
+      const username = role === Roles.ADMIN ? 'Admin' : 'Toto';
       const credentials = {
         password: 'Password123!',
-        username: user.username,
-        email: user.email,
+        username: username,
+        email: 'test@mail.com',
       };
       const response = authApi.register(credentials);
       console.log(`Regster success for ${response}`);
