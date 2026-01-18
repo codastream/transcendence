@@ -266,8 +266,10 @@ export class GameDisplay {
 
   async askForAIGameSession(): Promise<void> {
     if (this.sessionId) return;
-    this.askForGameSession();
-    this.sessionId = 'AI-' + this.sessionId;
+    //this.askForGameSession();
+    const response = await fetch(`api/pong-ai/invite-pong-ai`);
+    console.log('New');
+    console.log(response);
   }
 
   async joinSession(sessionId: string) {

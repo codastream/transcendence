@@ -6,7 +6,9 @@ import requests
 class PongEnv(gym.Env):
     
     metadata = {"render_modes": [], "render_fps": 60}
-    
+
+    #when post invite-pong-ai is triggered
+
     def __init__(self, base_url="http://game-service:3003", render_mode=None):
         super().__init__()
         

@@ -1,10 +1,12 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Dict, Optional
 import numpy as np
 from datetime import datetime
 from stable_baselines3 import PPO
 from pong_env import PongEnv
+import FastAPIRequest 
+
 
 
 app = FastAPI(
@@ -144,12 +146,18 @@ async def startup_event():
     print("🚀 Pong AI Service started")
 
 
-@app.get("/")
-async def root():
+@app.get("/invite-pong-ai")
+async def invite(headers: dict):
+    session_id = headers.get("session_id")
+    uri = f"ws://game-service/{session_id}" 
+   #async with connect(uri) as websocket:
+    #    await websocket.send(json.dumps({"type": "start", "session_id": session_id}))
+     #   response = await websocket.recv()
+      #  print("Response from WebSocket server:", response)
     return {
         "service": "Pong AI",
         "version": "1.0.0",
-        "status": "running",
+        "status": response,
         "stats": ai_service.get_stats()
     }
 
