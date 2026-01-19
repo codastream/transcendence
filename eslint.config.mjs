@@ -1,8 +1,11 @@
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import reactPlugin from 'eslint-plugin-react';
+import hooksPlugin from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,57 +13,56 @@ const __dirname = dirname(__filename);
 export default [
   {
     ignores: [
-      '**/coverage/**', 
-      '**/build/**', 
+      '**/coverage/**',
+      '**/build/**',
       '**/dist/**',
       '**/node_modules/**',
       '**/migrations/**',
-      '**/generated/**',      // prisma sql migrations
-      '**/prisma/client/**',      // prisma
-      '**/*.d.ts',            // type definitions
-      '**/*.json',            // type definitions
-      '**/*.yaml',            // type definitions
-      '**/*.yml',            // type definitions
-    ]
-
+      '**/generated/**', // prisma sql migrations
+      '**/prisma/client/**', // prisma
+      '**/*.d.ts', // type definitions
+      '**/*.json', // type definitions
+      '**/*.yaml', // type definitions
+      '**/*.yml', // type definitions
+    ],
   },
+  ...tseslint.configs.recommended,
   {
     files: ['**/*.{js,mts,cts}'],
-    languageOptions: { 
+    languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
-        ...globals.node,      // backend mode by default
+        ...globals.node, // backend mode by default
         ...globals.es2021,
-        },
       },
-     parserOptions: {
-      project: true,
-      tsconfigRootDir: __dirname,
-     },
-     rules: {
-       '@typescript-eslint/no-explicit-any': 'error',
-       '@typescript-eslint/no-unused-vars': ['warn', { 'argsIgnorePattern': '^_' }],
-       'eqeqeq': ['error', 'always'],
-       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
-       'prefer-const': 'error',
-     },
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: __dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      eqeqeq: ['error', 'always'],
+      'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+      'prefer-const': 'error',
+    },
   },
-   ...tseslint.configs.recommended,
   {
     files: ['srcs/nginx/**/*.{ts, tsx}'],
+    plugins: {
+      react: reactPlugin,
+      'react-hooks': hooksPlugin,
+      'react-refresh': reactRefresh,
+    },
     languageOptions: {
       globals: {
         ...globals.browser,
-      }
+      },
     },
-    "extends": [
-        "plugin:react/recommended", 
-        "plugin:react-hooks/recommended"
-      ],
-    "plugins": ["react-refresh", "react-hooks"],
-    "rules": {
-      "react-refresh/only-export-components": "warn"
+    rules: {
+      'react-refresh/only-export-components': 'warn',
     },
   },
   {
@@ -73,8 +75,8 @@ export default [
       },
     },
     rules: {
-        // add standard rules if needed
-    }
+      // add standard rules if needed
+    },
   },
   eslintConfigPrettier,
 ];

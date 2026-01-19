@@ -58,6 +58,7 @@
     ]
   },
   "dependencies": {
+    "eslint-plugin-react": "^7.37.5",
     "husky": "^9.1.7",
     "ioredis": "^5.8.2"
   }
