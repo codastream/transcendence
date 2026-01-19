@@ -92,7 +92,7 @@ async function processMessage(
 
   app.log.info(
     {
-      event: 'tournament.received',
+      event: 'tournament_received',
       streamId: id,
       tourId: tournoi.tour_id,
     },
@@ -104,7 +104,7 @@ async function processMessage(
     await redis.xack(STREAM, GROUP, id);
     app.log.info(
       {
-        event: 'tournament.acknowledged',
+        event: 'tournament_acknowledged',
         streamId: id,
         tourId: tournoi.tour_id,
       },
@@ -142,7 +142,7 @@ async function recoverPending(app: FastifyInstance, redis: any): Promise<void> {
 
     app.log.warn(
       {
-        event: 'tournament.reclaim',
+        event: 'tournament_reclaim',
         streamId: id,
         idleMs: idle,
         previousConsumer: consumer,

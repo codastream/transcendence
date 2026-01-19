@@ -161,3 +161,7 @@ vite.config.ts.timestamp-*
 **/*.js
 *.pyc
 __pycache__
+output.css
+**/src/SmartContract/ignition/deployments/chain-31337
+**/src/SmartContract/artifacts
+**/src/SmartContract/dump.rdb
