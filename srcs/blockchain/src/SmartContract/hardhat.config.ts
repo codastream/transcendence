@@ -14,7 +14,7 @@ export default defineConfig({
     fuji: {
       type: 'http',
       url: env.AVALANCHE_RPC_URL,
-      accounts: [configVariable('AVALANCHE_PRIVATE_KEY')],
+      accounts: [configVariable('BLOCKCHAIN_PRIVATE_KEY')],
     },
   },
 });
