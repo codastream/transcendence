@@ -1,9 +1,14 @@
-import { ProfileAuthDTO, ProfileDTO, usernameDTO, usernameSchema } from '@transcendence/core';
+import { ProfileDTO, ProfileSimpleDTO, usernameDTO, usernameSchema } from '@transcendence/core';
 import api from './api-client';
-import { authApi } from './auth-api';
 
 export const profileApi = {
-  getProfileByUsername: async (username: usernameDTO): Promise<ProfileDTO> => {
+  getMe: async (username: usernameDTO): Promise<ProfileDTO> => {
+    usernameSchema.parse(username);
+    const { data } = await api.get(`/users/username/${username}`);
+    return { ...data };
+  },
+
+  getProfileByUsername: async (username: usernameDTO): Promise<ProfileDTO | ProfileSimpleDTO> => {
     usernameSchema.parse(username);
     const { data } = await api.get(`/users/username/${username}`);
     return { ...data };
@@ -36,19 +41,5 @@ export const profileApi = {
     usernameSchema.parse(username);
     const { data } = await api.delete(`/users/username/${username}`);
     return { ...data };
-  },
-
-  // to use to retrieve all user info (excepted id and role) (from auth + users) in one call
-  getProfileAuthByUsername: async (username: usernameDTO): Promise<ProfileAuthDTO> => {
-    usernameSchema.parse(username);
-
-    const [authRes, profileRes] = await Promise.all([
-      authApi.me(username),
-      profileApi.getProfileByUsername(username),
-    ]);
-    return {
-      ...profileRes,
-      email: authRes.email,
-    };
   },
 };

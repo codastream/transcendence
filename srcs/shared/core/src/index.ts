@@ -37,7 +37,11 @@ export { type LogContext, type EventValue, type ReasonValue } from './logging/lo
 export { idSchema, usernameSchema, IdSchema, roleShema } from './schemas/base.schema.js';
 export { UserNameSchema } from './schemas/user.schema.js';
 export { UserSchema, UserLoginSchema, UserRegisterSchema } from './schemas/auth.schema.js';
-export { ProfileSchema, ProfileCreateInSchema } from './schemas/profile.schema.js';
+export {
+  ProfileSchema,
+  ProfileSimpleSchema,
+  ProfileCreateInSchema,
+} from './schemas/profile.schema.js';
 export {
   FriendshipFullSchema,
   FriendshipUnifiedSchema,
@@ -74,6 +78,7 @@ export type {
 } from './schemas/friend.schema.js';
 export type {
   ProfileDTO,
+  ProfileSimpleDTO,
   ProfileAuthDTO,
   ProfileDataDTO,
   ProfileStoredDTO,

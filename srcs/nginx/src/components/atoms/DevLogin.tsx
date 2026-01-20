@@ -19,7 +19,7 @@ export const DevLoginButtons = () => {
       console.log(`dev login logged username = ${loggedUsername}`);
 
       if (!loggedUsername) return;
-      const profile = await profileApi.getProfileByUsername(loggedUsername);
+      const profile = await profileApi.getMe(loggedUsername);
       console.log(`dev login full profile = ${profile}`);
       const fullProfile = {
         ...profile,

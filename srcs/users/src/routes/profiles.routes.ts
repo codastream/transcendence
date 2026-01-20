@@ -7,6 +7,7 @@ import {
   ProfileCreateInSchema,
   DetailedErrorSchema,
   ValidationErrorSchema,
+  ProfileSimpleSchema,
 } from '@transcendence/core';
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
@@ -36,10 +37,13 @@ export const createProfileSchema = {
 const getProfileByUsernameSchema = {
   tags: ['users'],
   summary: 'Get user profile by username',
-  description: 'Returns the profile of a user for the given username',
+  description: 'Returns a full profile if requested by the owner, or a simple one otherwise',
   params: UserNameSchema,
+  headers: z.object({
+    'x-user-name': z.string().optional(),
+  }),
   response: {
-    200: ProfileSchema,
+    200: z.union([ProfileSchema, ProfileSimpleSchema]),
     400: ValidationErrorSchema,
     404: DetailedErrorSchema,
   },

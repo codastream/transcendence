@@ -11,7 +11,6 @@ import {
   UserNameDTO,
 } from '@transcendence/core';
 import { MultipartFile } from '@fastify/multipart';
-import { logger } from '../utils/logger.js';
 
 export class ProfileController {
   async createProfile(req: FastifyRequest, reply: FastifyReply) {
@@ -24,12 +23,16 @@ export class ProfileController {
 
   async getProfileByUsername(req: FastifyRequest, reply: FastifyReply) {
     const { username } = req.params as UserNameDTO;
-    logger.info(`req from controller profile ${req}`);
-    logger.info(`req header username ${req.headers['x-user-name']}`);
-
+    const xUserName = req.headers['x-user-name'];
     req.log.trace({ event: `${LOG_ACTIONS.READ}_${LOG_RESOURCES.PROFILE}`, param: username });
 
     const profileDTO = await profileService.getByUsername(username);
+
+    if (xUserName != username) {
+      return reply
+        .status(200)
+        .send({ username: profileDTO?.username, avatarUrl: profileDTO?.avatarUrl });
+    }
     return reply.status(200).send(profileDTO);
   }
 
