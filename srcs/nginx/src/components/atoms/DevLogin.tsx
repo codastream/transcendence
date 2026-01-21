@@ -16,17 +16,17 @@ export const DevLoginButtons = () => {
         username: username,
       };
       const loggedUsername = await authApi.login(credentials);
-      console.log(`dev login logged username = ${loggedUsername}`);
+      // console.log(`dev login logged username = ${loggedUsername}`);
 
       if (!loggedUsername) return;
       const profile = await profileApi.getMe(loggedUsername);
-      console.log(`dev login full profile = ${profile}`);
+      // console.log(`dev login full profile = ${profile}`);
       const fullProfile = {
         ...profile,
         email: 'test@mail.com',
       };
       login(fullProfile);
-      console.log('Login success with real data:', fullProfile.avatarUrl);
+      // console.log('Login success with real data:', fullProfile.avatarUrl);
     } catch (error) {
       console.error(`Login error:`, error);
     }

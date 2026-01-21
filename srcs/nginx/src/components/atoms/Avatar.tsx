@@ -16,13 +16,6 @@ const Avatar = ({ src, alt = 'User avatar', size = 'md', className = '' }: Avata
     lg: 'w-24 h-24',
   };
 
-  // const getImageUrl = (src: string) => {
-  //   return new URL(`${src}`, import.meta.url).href;
-  // };
-
-  // const displaySrc = src || getImageUrl('../../assets/default.png');
-  console.log(`Avatar ${src}`);
-
   return (
     <div
       className={`

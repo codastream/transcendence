@@ -9,7 +9,6 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<ProfileAuthDTO | null>(() => {
     const storedUser = localStorage.getItem('user');
-    console.log(`auth provider user avatar ${storedUser}`);
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
