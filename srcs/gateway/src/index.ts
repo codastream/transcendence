@@ -22,23 +22,49 @@ app.register(fastifyCookie);
 // Register fastify-jwt
 app.register(fastifyJwt, { secret: gatewayenv.JWT_SECRET });
 
-// Rate limiting global
-app.register(fastifyRateLimit, {
-  max: gatewayenv.RATE_LIMIT_MAX,
-  timeWindow: gatewayenv.RATE_LIMIT_WINDOW,
-  keyGenerator: (request: FastifyRequest) => {
-    // Rate limit par IP
-    return request.ip || 'unknown';
-  },
-  errorResponseBuilder: (req, context) => ({
-    error: {
-      message: 'Too many requests, please try again later',
-      code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
-      retryAfter: context.after,
-    },
-  }),
-});
+// Rate limiting - désactivé en mode test/développement
+const isTestOrDev = gatewayenv.NODE_ENV === 'test' || gatewayenv.NODE_ENV === 'development';
 
+if (isTestOrDev) {
+  logger.info({
+    event: 'rate_limit_disabled',
+    environment: gatewayenv.NODE_ENV,
+    reason: 'test_environment - avoiding 500 errors',
+  });
+} else {
+  // Rate limiting uniquement en production
+  logger.info({
+    event: 'rate_limit_enabled',
+    environment: gatewayenv.NODE_ENV,
+    max: gatewayenv.RATE_LIMIT_MAX,
+    timeWindow: gatewayenv.RATE_LIMIT_WINDOW,
+  });
+
+  app.register(fastifyRateLimit, {
+    max: gatewayenv.RATE_LIMIT_MAX,
+    timeWindow: gatewayenv.RATE_LIMIT_WINDOW,
+    keyGenerator: (request: FastifyRequest) => {
+      return request.ip || 'unknown';
+    },
+    errorResponseBuilder: (req, context) => {
+      logger.warn({
+        event: 'rate_limit_429_sent',
+        ip: req.ip,
+        url: req.url,
+        method: req.method,
+        retryAfter: context.after,
+      });
+
+      return {
+        error: {
+          message: 'Too many requests, please try again later',
+          code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+          retryAfter: context.after,
+        },
+      };
+    },
+  });
+}
 console.log('register');
 app.register(websocketPlugin);
 
@@ -118,13 +144,77 @@ app.addHook('onResponse', async (request: FastifyRequest, reply: FastifyReply) =
 
 // Central error handler: structured errors
 app.setErrorHandler((error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
+  // Ne pas traiter les erreurs déjà envoyées
+  if (reply.sent) {
+    logger.debug({
+      event: 'error_handler_skipped_reply_sent',
+      method: request?.method,
+      url: request?.url,
+      errorCode: (error as any)?.code,
+      errorMessage: error?.message,
+    });
+    return;
+  }
+
+  // Gestion spéciale pour les erreurs de rate limiting
+  // @fastify/rate-limit utilise le code 'FST_ERR_RATE_LIMITED'
+  if (
+    error.statusCode === 429 ||
+    (error as any).code === 'FST_ERR_RATE_LIMITED' ||
+    (error as any).code === 'FST_ERR_RATE_LIMIT' ||
+    error.message?.includes('Rate limit exceeded')
+  ) {
+    logger.warn({
+      event: 'rate_limit_handled_in_error_handler',
+      method: request?.method,
+      url: request?.url,
+      user: request?.user?.username || null,
+      ip: request.ip,
+      errorCode: (error as any).code,
+      errorMessage: error.message,
+      statusCode: error.statusCode,
+    });
+
+    // Envoi de la réponse et stop
+    reply.code(429).send({
+      error: {
+        message: 'Too many requests, please try again later',
+        code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+        retryAfter: '60s',
+      },
+    });
+    return; // Important : arrêter le traitement ici
+  }
+
+  // Gestion spéciale pour les timeouts de proxy
+  if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+    logger.warn({
+      event: 'proxy_timeout',
+      method: request?.method,
+      url: request?.url,
+      user: request?.user?.username || null,
+      err: error?.message,
+    });
+
+    return reply.code(504).send({
+      error: {
+        message: 'Gateway timeout - upstream service took too long to respond',
+        code: ERROR_CODES.UPSTREAM_TIMEOUT,
+      },
+    });
+  }
+
+  // Log l'erreur pour les autres cas avec plus de détails pour le débogage
   logger.error({
     event: 'unhandled_error',
     method: request?.method,
     url: request?.url,
     user: request?.user?.username || null,
     err: error?.message,
-    stack: error?.stack,
+    errorCode: (error as any)?.code,
+    statusCode: error?.statusCode,
+    errorName: error?.name,
+    stack: gatewayenv.NODE_ENV === 'development' ? error?.stack : undefined,
   });
 
   const status = error?.statusCode || 500;

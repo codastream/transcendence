@@ -57,8 +57,9 @@ export const ERROR_CODES = {
   // Rate Limiting
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
 
-  // Proxy
+  // Proxy & Gateway
   BAD_GATEWAY: 'BAD_GATEWAY',
+  GATEWAY_TIMEOUT: 'GATEWAY_TIMEOUT',
   UPSTREAM_ERROR: 'UPSTREAM_ERROR',
   UPSTREAM_TIMEOUT: 'UPSTREAM_TIMEOUT',
   NETWORK_ERROR: 'NETWORK_ERROR',
@@ -78,6 +79,7 @@ export const ERROR_MESSAGES = {
   [ERROR_CODES.TOKEN_EXPIRED]: 'Token has expired',
   [ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'Too many requests. Please try again later.',
   [ERROR_CODES.BAD_GATEWAY]: 'Bad gateway',
+  [ERROR_CODES.GATEWAY_TIMEOUT]: 'Gateway timeout',
   [ERROR_CODES.UPSTREAM_ERROR]: 'Upstream service error',
   [ERROR_CODES.UPSTREAM_TIMEOUT]: 'Upstream request timed out',
   [ERROR_CODES.NETWORK_ERROR]: 'Network error',
