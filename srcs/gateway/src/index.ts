@@ -126,25 +126,17 @@ export const getInternalHeaders = (req: FastifyRequest): Record<string, string> 
 app.decorate(
   'fetchInternal',
   async (request: FastifyRequest, url: string, init: RequestInit = {}) => {
-    const headers = getInternalHeaders(request);
+    const userName = request.user?.username || request.headers['x-user-name'] || '';
+    const userId = request.user?.sub || request.user?.id || request.headers['x-user-id'] || '';
 
-    let existingHeaders: Record<string, string> = {};
-    if (init.headers) {
-      if (init.headers instanceof Headers) {
-        init.headers.forEach((value, key) => {
-          existingHeaders[key] = value;
-        });
-      } else {
-        existingHeaders = { ...(init.headers as Record<string, string>) };
-      }
-    }
-    return fetch(url, {
-      ...init,
-      headers: {
-        ...existingHeaders,
-        ...headers,
-      },
+    const headers = Object.assign({}, init.headers || {}, {
+      'x-user-name': userName,
+      'x-user-id': String(userId),
+      'x-user-role': request.user?.role || 'USER',
+      cookie: request.headers?.cookie || '',
     });
+
+    return fetch(url, Object.assign({}, init, { headers }));
   },
 );
 
