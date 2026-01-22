@@ -37,7 +37,7 @@ export const loggerConfig: LoggerOptions = {
     req(request: FastifyRequest | IncomingMessage) {
       const rawReq = isFastifyRequest(request) ? request.raw : request;
       if (isFastifyRequest(request) && request.routeOptions.url === '/health') {
-        return { message: 'Health check, logging skipped' }; // or return undefined
+        return { message: 'Health check in auth OK' };
       }
       const serialized = stdSerializers.req(rawReq);
       if (isFastifyRequest(request)) {
