@@ -14,12 +14,11 @@ function getCookieOptions(maxAgeSeconds: number = AUTH_CONFIG.COOKIE_MAX_AGE_SEC
   const env = (globalThis as any).process?.env || {};
   const isProduction = env.NODE_ENV === 'production';
   const forceSecure = isProduction || env.FORCE_SECURE_COOKIE === 'true';
-  const sameSitePolicy = isProduction ? ('strict' as const) : ('lax' as const);
   return {
     path: '/',
     httpOnly: true,
     secure: forceSecure,
-    sameSite: sameSitePolicy,
+    sameSite: 'strict' as const,
     maxAge: maxAgeSeconds,
   };
 }
