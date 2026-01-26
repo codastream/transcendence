@@ -1,7 +1,12 @@
 import gymnasium as gym
 from gymnasium import spaces
 import requests
+import urllib3
 import numpy as np
+import os
+
+# Suppress InsecureRequestWarning when verify=False (dev self-signed certs)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class PongEnv(gym.Env):
@@ -10,10 +15,21 @@ class PongEnv(gym.Env):
 
     #when post invite-pong-ai is triggered
 
-    def __init__(self, base_url="http://game-service:3003", render_mode=None):
+    def __init__(self, base_url=None, render_mode=None, verify_ssl=None):
         super().__init__()
-        
+        # Allow overriding the game service URL via env var for flexibility
+        if base_url is None:
+            base_url = os.getenv("GAME_SERVICE_URL", "http://localhost:8080/api/game")
+
+        # SSL verification: default False for localhost (self-signed), True otherwise
+        if verify_ssl is None:
+            verify_ssl = os.getenv("GAME_SERVICE_VERIFY_SSL", "").lower() in ("1", "true", "yes")
+            # Auto-disable for localhost/127.0.0.1 unless explicitly set
+            if "localhost" in base_url or "127.0.0.1" in base_url:
+                verify_ssl = False
+
         self.base_url = base_url
+        self.verify_ssl = verify_ssl
         self.render_mode = render_mode
         self.window = None
         self.clock = None
@@ -31,14 +47,18 @@ class PongEnv(gym.Env):
         # Action space: 0 = stop, 1 = up, 2 = down
         self.action_space = spaces.Discrete(3)
         
+        # Use a persistent HTTP session to reuse TCP connections
+        self._http = requests.Session()
+        self._http.verify = self.verify_ssl  # Apply SSL setting to session
+        self._http.headers.update({"Content-Type": "application/json"})  # Ensure JSON content type
         self.session_id = self._create_session()
-        print(f"[PongEnv] Session created: {self.session_id}")
+        print(f"[PongEnv] Session created: {self.session_id} (SSL verify={self.verify_ssl})")
         
         self.reset()
     
     def _create_session(self):
         try:
-            resp = requests.post(f"{self.base_url}/create-session", timeout=5)
+            resp = self._http.post(f"{self.base_url}/create-session", timeout=5)
             resp.raise_for_status()
             session_id = resp.json()["sessionId"]
             print(f"[PongEnv] Created session at {self.base_url}: {session_id}")
@@ -51,13 +71,18 @@ class PongEnv(gym.Env):
         super().reset(seed=seed)
         
         try:
-            resp = requests.post(
+            resp = self._http.post(
                 f"{self.base_url}/rl/reset",
                 json={"sessionId": self.session_id},
                 timeout=5
             )
             resp.raise_for_status()
-            obs = self._convert_state(resp.json()["state"])
+            data = resp.json()
+            # Handle both {state: ...} and {status: 'success', state: ...} formats
+            if "state" not in data:
+                print(f"[PongEnv] Reset response missing 'state': {data}")
+                raise KeyError(f"Expected 'state' in response, got: {list(data.keys())}")
+            obs = self._convert_state(data["state"])
             return obs, {}
         except requests.exceptions.RequestException as e:
             print(f"[PongEnv] Error resetting game: {e}")
@@ -67,7 +92,7 @@ class PongEnv(gym.Env):
         action_map = {0: "stop", 1: "up", 2: "down"}
         
         try:
-            resp = requests.post(
+            resp = self._http.post(
                 f"{self.base_url}/rl/step",
                 json={
                     "sessionId": self.session_id,

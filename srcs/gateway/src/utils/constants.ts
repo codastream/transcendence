@@ -13,6 +13,10 @@ export const GATEWAY_CONFIG = {
     '/api/auth/health',
     '/api/game/health',
     '/api/block/health',
+    // AI training endpoints LUBA
+    '/api/game/create-session',
+    '/api/game/rl/reset',
+    '/api/game/rl/step',
   ],
 
   // Rate Limiting

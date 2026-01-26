@@ -95,7 +95,7 @@ class GameSession:
 
 
 class AIService:
-    def __init__(self, model_path: str = "models/pong_moderate/pong_moderate_final"):
+    def __init__(self, model_path: str = "models/pong_moderate/checkpoints/srcs/pong-ai/models/pong_moderate/checkpoints/pong_checkpoint_50000_steps"):
         self.model_path = model_path
         self.model: Optional[PPO] = None
         self.sessions: Dict[str, GameSession] = {}

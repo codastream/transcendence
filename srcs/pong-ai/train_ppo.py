@@ -19,17 +19,27 @@ def train_moderate_agent(
     total_timesteps=100_000,
     save_path="models/pong_moderate",
     eval_episodes=10,
-    use_gpu=True
+    use_gpu=True,
+    base_url=None
 ):
     os.makedirs(save_path, exist_ok=True)
     os.makedirs(f"{save_path}/checkpoints", exist_ok=True)
-    
-    env = DummyVecEnv([make_env()])
-    eval_env = DummyVecEnv([make_env()])
-    
+
+    # Determine game service URL: CLI arg -> env var -> default
+    if base_url is None:
+        base_url = os.getenv("GAME_SERVICE_URL", "http://localhost:8080/api/game")
+
+    def _make_env():
+        env = PongEnv(base_url=base_url)
+        return Monitor(env)
+
+    env = DummyVecEnv([_make_env])
+    eval_env = DummyVecEnv([_make_env])
+
     device = "cuda" if use_gpu else "cpu"
-    
+
     print(f"Training on {device}")
+    print(f"Game API: {base_url}")
     print(f"Steps: {total_timesteps:,}")
     print(f"Time: ~{total_timesteps // 2000} minutes")
     print("-" * 50)
@@ -88,9 +98,11 @@ def train_moderate_agent(
     return model
 
 
-def test_agent(model_path, episodes=5, render=True):
+def test_agent(model_path, episodes=5, render=True, base_url=None):
     model = PPO.load(model_path)
-    env = PongEnv(render_mode="human" if render else None)
+    if base_url is None:
+        base_url = os.getenv("GAME_SERVICE_URL", "http://localhost:8080/api/game")
+    env = PongEnv(base_url=base_url, render_mode="human" if render else None)
     
     total_rewards = []
     total_scores_ai = []
@@ -141,18 +153,21 @@ if __name__ == "__main__":
     parser.add_argument("--episodes", type=int, default=5, help="Number of test episodes")
     parser.add_argument("--no-render", action="store_true", help="Disable rendering during test")
     parser.add_argument("--use-gpu", action="store_true", help="Use GPU for training")
-    
+    parser.add_argument("--game-url", type=str, default=None, help="Base URL for game service (or set GAME_SERVICE_URL env var)")
+
     args = parser.parse_args()
     
     if args.mode == "train":
         train_moderate_agent(
             total_timesteps=args.timesteps,
             save_path=args.save_path,
-            use_gpu=args.use_gpu
+            use_gpu=args.use_gpu,
+            base_url=args.game_url
         )
     else:
         test_agent(
             model_path=args.model,
             episodes=args.episodes,
-            render=not args.no_render
+            render=not args.no_render,
+            base_url=args.game_url
         )
