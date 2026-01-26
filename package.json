@@ -1,6 +1,7 @@
 {
   "name": "transcendence",
   "version": "1.0.0",
+  "type": "module",
   "description": "School 42 Transcendence project",
   "private": true,
   "workspaces": [
@@ -29,7 +30,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/codastream/transcendence/issues"
   },

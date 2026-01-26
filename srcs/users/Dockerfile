@@ -12,40 +12,21 @@ FROM node:20-alpine AS builder
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
-# Copy root package files for workspace resolution
+# all package files to get necessary node modules
 COPY package.json package-lock.json ./
-
-# Copy shared core package files
 COPY srcs/shared/core/package.json ./srcs/shared/core/package.json
-COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
-
-# Copy users service package files
 COPY srcs/users/package.json ./srcs/users/package.json
-COPY srcs/users/package-lock.json ./srcs/users/package-lock.json
-
-# Install dependencies for workspace (this links @transcendence/core)
 RUN npm ci
 
-# Copy and build shared core first - done before in Makefile yet 
 COPY srcs/shared/core/src ./srcs/shared/core/src
-RUN npm run build --workspace srcs/shared/core
+COPY srcs/users/ ./srcs/users/
 
-# Copy users service source files
-COPY srcs/users/tsconfig.json ./srcs/users/tsconfig.json
-COPY srcs/users/tsconfig.build.json ./srcs/users/tsconfig.build.json
-COPY srcs/users/src ./srcs/users/src
-COPY srcs/users/entrypoint.sh ./srcs/users/entrypoint.sh
-
-# Copy Prisma files
-COPY srcs/users/prisma ./srcs/users/prisma
-COPY srcs/users/prisma.config.ts ./srcs/users/prisma.config.ts
-
-# Generate Prisma client
 WORKDIR /app/srcs/users
 RUN npx prisma generate
+RUN npx vite build
 
-# Build → dist/
-RUN npm run build
+WORKDIR /app
+RUN npm prune --omit=dev
 
 # ==========================
 # Stage 2 — Production
@@ -53,46 +34,27 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 
-# Keep the same workspace root as builder
 WORKDIR /app
 
-# Shared core package
-COPY --from=builder /app/srcs/shared/core/package.json ./srcs/shared/core/package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./
 
-# ROOT package defs
-COPY --from=builder /app/package.json /app/package-lock.json ./
+WORKDIR /app/srcs/users
+COPY --from=builder /app/srcs/users/package.json ./
+COPY --from=builder /app/srcs/users/dist ./dist
 
-# USER package defs
-COPY --from=builder /app/srcs/users/package.json ./srcs/users/package.json
-COPY --from=builder /app/srcs/users/package-lock.json ./srcs/users/package-lock.json
-
-# Install production dependencies (workspace resolution works because structure matches)
-RUN npm ci --omit=dev
-
-# Get Prisma client from root modules (not service)
-COPY --from=builder /app/node_modules/.prisma /app/node_modules/.prisma
-
-# Copy built artefacts
-COPY --from=builder /app/srcs/shared/core/dist ./srcs/shared/core/dist
-COPY --from=builder /app/srcs/users/dist ./srcs/users/dist
-
-# Copy Config and Prisma files
-COPY --from=builder /app/srcs/users/src/config/ ./srcs/users/src/config
-COPY --from=builder /app/srcs/users/prisma ./srcs/users/prisma
-COPY --from=builder /app/srcs/users/prisma.config.ts ./srcs/users/prisma.config.ts
+COPY --from=builder /app/srcs/users/src/config/ ./src/config
+COPY --from=builder /app/srcs/users/prisma ./prisma
+COPY --from=builder /app/srcs/users/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/srcs/users/entrypoint.sh ./entrypoint.sh
 
 # Skip husky in production
 ENV HUSKY=0
+ENV NODE_ENV=production
 
-# Create data directory and set permissions (only for /app/srcs/users)
-RUN mkdir -p /app/data /app/uploads
+RUN chmod +x ./entrypoint.sh && mkdir -p /app/data /app/uploads
 
-# Change to users service directory
 WORKDIR /app/srcs/users
-
-# Copy entrypoint
-COPY --from=builder /app/srcs/users/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh" ]
 
