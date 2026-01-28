@@ -159,12 +159,11 @@ services:
       - '8080:80'
       - '4430:443'
     volumes:
-      -../make/scripts/certs/certs/nginx:/etc/nginx/certs:ro
+      - ../make/scripts/certs/certs/nginx:/etc/nginx/certs:ro
       - ../make/scripts/certs/certs/ca:/etc/nginx/ca:ro
+      - uploads:/usr/share/nginx/html/uploads
     networks:
       - app-network
-    volumes:
-      - uploads:/usr/share/nginx/html/uploads
     restart: unless-stopped
     depends_on:
       api-gateway:
