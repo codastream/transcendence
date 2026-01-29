@@ -13,6 +13,5 @@ export const mtlsAgent = new Agent({
 });
 
 export const fetchOptions: MTLSRequestInit = {
-  method: 'GET',
   dispatcher: mtlsAgent,
 };

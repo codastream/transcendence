@@ -14,7 +14,13 @@ export function registerAuthRoutes(app: FastifyInstance) {
     const init: MTLSRequestInit = {
       dispatcher: mtlsAgent,
     };
-    const res = await proxyRequest(app, request, reply, `${GATEWAY_CONFIG.SERVICES.AUTH}/health`);
+    const res = await proxyRequest(
+      app,
+      request,
+      reply,
+      `${GATEWAY_CONFIG.SERVICES.AUTH}/health`,
+      init,
+    );
     return res;
   });
 

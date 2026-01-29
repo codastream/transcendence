@@ -19,7 +19,7 @@ export function registerBlockRoutes(app: FastifyInstance) {
     const rawPath = (request.params as any)['*'];
     const cleanPath = rawPath.replace(/^api\/block\//, ''); // 🔥 FIX
     const url = `${GATEWAY_CONFIG.SERVICES.BLOCK}/${cleanPath}`;
-    const queryString = new URL(request.url, 'http://localhost').search;
+    const queryString = new URL(request.url, 'https://localhost').search;
     const fullUrl = `${url}${queryString}`;
 
     app.log.info({
