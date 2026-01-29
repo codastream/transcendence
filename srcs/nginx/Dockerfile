@@ -41,13 +41,7 @@ RUN rm /etc/nginx/conf.d/default.conf || true
 
 # Remove official entrypoint scripts
 RUN rm -f /docker-entrypoint.d/*
-RUN mkdir -p /etc/nginx/ssl
 
-# Generate self-signed certificate directly to /etc/nginx/ssl
-RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout /etc/nginx/ssl/key.pem \
-  -out /etc/nginx/ssl/cert.pem \
-  -subj "/CN=localhost"
 
 # Copy nginx config
 COPY srcs/nginx/nginx.conf /etc/nginx/nginx.conf

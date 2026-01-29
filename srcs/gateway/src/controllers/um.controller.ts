@@ -2,17 +2,13 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { CatchAllParams } from '../types/params.types.js';
 import { fastStreamProxy } from '../utils/proxy.js';
 import { fastifyReplyFrom } from '@fastify/reply-from';
+import { mtlsAgent } from '../utils/mtlsAgent.js';
 
-const UM_SERVICE_URL = 'http://user-service:3002';
+const UM_SERVICE_URL = 'https://user-service:3002';
 
 export function registerUsersRoutes(app: FastifyInstance) {
   app.register(fastifyReplyFrom, {
-    undici: {
-      connections: 100,
-      pipelining: 1,
-      bodyTimeout: 60000,
-      headersTimeout: 15000,
-    },
+    undici: mtlsAgent,
   });
 
   app.all<{ Params: CatchAllParams }>(

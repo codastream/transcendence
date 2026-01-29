@@ -2,7 +2,7 @@ include make/config.mk
 
 # === Global ===
 
-all : volumes colima build
+all : volumes certs colima build
 	$(D_COMPOSE) up -d
 
 dev: volumes colima-dev build-dev
@@ -44,6 +44,16 @@ envs:
 	done; \
 	echo "JWT_SECRET applied to all files"
 
+# --- Certificats mTLS---
+CERTS_DIR=./make/scripts/certs/certs
+
+certs:
+	@if [ ! -d "$(CERTS_DIR)/ca" ]; then \
+		echo "Generating TLS certificates..."; \
+		cd make/scripts/certs && ./generate_certs.sh; \
+	else \
+		echo "TLS certificates already exist"; \
+	fi
 
 include make/colima.mk
 
@@ -109,9 +119,9 @@ build-dev: build-core
 	$(D_COMPOSE_DEV) build
 
 # --- Test ---
-test: install test-user
+test: certs install test-user
 
-test-coverage: install test-coverage-user
+test-coverage: certs install test-coverage-user
 
 test-user: build-core
 	cd srcs/users && npm install && npx vitest run --config vite.config.mjs
@@ -235,5 +245,7 @@ ifneq ($(CHIP), arm64)
 endif
 endif
 	rm -rf $(VOLUMES_PATH)
+	@echo "Remove certificates"
+	rm -rf make/scripts/certs/certs
 
 .PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev

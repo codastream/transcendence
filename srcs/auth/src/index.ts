@@ -11,13 +11,36 @@ import { loggerConfig } from './config/logger.config.js';
 import { AUTH_CONFIG, ERROR_CODES, EVENTS, REASONS } from './utils/constants.js';
 import { AppBaseError } from './types/errors.js';
 import { authenv } from './config/env.js';
+import fs from 'fs';
 
 const app = fastify({
+  https: {
+    key: fs.readFileSync('/etc/certs/auth-service.key'),
+    cert: fs.readFileSync('/etc/certs/auth-service.crt'),
+    ca: fs.readFileSync('/etc/ca/ca.crt'),
+
+    requestCert: true,
+    rejectUnauthorized: false,
+  },
   logger: loggerConfig,
   disableRequestLogging: false,
 });
 
 export const logger = app.log;
+
+app.addHook('onRequest', (request, reply, done) => {
+  const socket = request.raw.socket as any;
+  // Autorise les healthchecks locaux sans mTLS
+  if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
+    return done();
+  }
+  const cert = socket.getPeerCertificate();
+  if (!cert || !cert.subject) {
+    reply.code(401).send({ error: 'Client certificate required' });
+    return;
+  }
+  done();
+});
 
 /**
  * @abstract add userId and userName to logger

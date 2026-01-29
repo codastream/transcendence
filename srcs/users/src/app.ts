@@ -7,6 +7,7 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from 'fastify-type-provider-zod';
+import fs from 'fs';
 import multipart from '@fastify/multipart';
 
 import { umRoutes } from './routes/profiles.routes.js';
@@ -17,9 +18,31 @@ import { loggerConfig } from './config/logger.config.js';
 
 export async function buildApp() {
   const app = fastify({
+    https: {
+      key: fs.readFileSync('/etc/certs/user-service.key'),
+      cert: fs.readFileSync('/etc/certs/user-service.crt'),
+      ca: fs.readFileSync('/etc/ca/ca.crt'),
+
+      requestCert: true,
+      rejectUnauthorized: false,
+    },
     logger: loggerConfig,
     disableRequestLogging: false,
   }).withTypeProvider<ZodTypeProvider>();
+
+  app.addHook('onRequest', (request, reply, done) => {
+    const socket = request.raw.socket as any;
+    // Autorise les healthchecks locaux sans mTLS
+    if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
+      return done();
+    }
+    const cert = socket.getPeerCertificate();
+    if (!cert || !cert.subject) {
+      reply.code(401).send({ error: 'Client certificate required' });
+      return;
+    }
+    done();
+  });
 
   await app.setValidatorCompiler(validatorCompiler);
   await app.setSerializerCompiler(serializerCompiler);

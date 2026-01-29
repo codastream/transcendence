@@ -1,12 +1,19 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { proxyRequest, webSocketProxyRequest } from '../utils/proxy.js';
 import { GATEWAY_CONFIG } from '../utils/constants.js';
+import { fetchOptions } from '../utils/mtlsAgent.js';
 
 export function registerGameRoutes(app: FastifyInstance) {
   // Regular HTTP routes
   app.get('/health', async (request, reply) => {
     app.log.info({ event: 'game_health', remote: 'game', url: '/health' });
-    const res = await proxyRequest(app, request, reply, `${GATEWAY_CONFIG.SERVICES.GAME}/health`);
+    const res = await proxyRequest(
+      app,
+      request,
+      reply,
+      `${GATEWAY_CONFIG.SERVICES.GAME}/health`,
+      fetchOptions,
+    );
     return res;
   });
 
