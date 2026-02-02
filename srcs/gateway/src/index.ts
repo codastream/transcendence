@@ -11,6 +11,8 @@ import fs from 'fs';
 import { GATEWAY_CONFIG, ERROR_CODES, parseTimeWindowToSeconds } from './utils/constants.js';
 import { gatewayenv } from './config/env.js';
 import { UserPayload } from './types/types.d.js';
+import fastifyReplyFrom from '@fastify/reply-from';
+import { mtlsAgent } from './utils/mtlsAgent.js';
 
 const app = fastify({
   https: {
@@ -24,19 +26,13 @@ const app = fastify({
   logger: false, // Utiliser notre logger
   disableRequestLogging: true, // Désactiver les logs automatiques
 });
-app.addHook('onRequest', (request, reply, done) => {
-  const socket = request.raw.socket as any;
-  // Autorise les healthchecks locaux sans mTLS
-  if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
-    return done();
-  }
-  const cert = socket.getPeerCertificate();
-  if (!cert || !cert.subject) {
-    reply.code(401).send({ error: 'Client certificate required' });
-    return;
-  }
-  done();
+
+app.register(fastifyReplyFrom, {
+  undici: {
+    dispatcher: mtlsAgent,
+  },
 });
+
 // Register fastify-cookie
 app.register(fastifyCookie);
 
@@ -99,12 +95,46 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   logger.logAuth({ url: request.url, user: request.user?.username }, true);
 });
 
-export const getInternalHeaders = (req: FastifyRequest): Record<string, string> => ({
-  'x-user-name': req.user?.username || (req.headers['x-user-name'] as string) || '',
-  'x-user-id': String(req.user?.sub || req.user?.id || req.headers['x-user-id'] || ''),
-  'x-user-role': req.user?.role || 'USER',
-  cookie: req.headers?.cookie || '',
-});
+// export const getInternalHeaders = (req: FastifyRequest): Record<string, string> => ({
+//   'x-user-name': req.user?.username || (req.headers['x-user-name'] as string) || '',
+//   'x-user-id': String(req.user?.sub || req.user?.id || req.headers['x-user-id'] || ''),
+//   'x-user-role': req.user?.role || 'USER',
+//   cookie: req.headers?.cookie || '',
+// });
+
+export const getInternalHeaders = (req: FastifyRequest): Record<string, string> => {
+  const headers: Record<string, string> = {};
+
+  // username
+  if (typeof req.user?.username === 'string') {
+    headers['x-user-name'] = req.user.username;
+  } else if (typeof req.headers['x-user-name'] === 'string') {
+    headers['x-user-name'] = req.headers['x-user-name'];
+  }
+
+  // user id
+  if (req.user?.sub !== undefined) {
+    headers['x-user-id'] = String(req.user.sub);
+  } else if (req.user?.id !== undefined) {
+    headers['x-user-id'] = String(req.user.id);
+  } else if (typeof req.headers['x-user-id'] === 'string') {
+    headers['x-user-id'] = req.headers['x-user-id'];
+  }
+
+  // role
+  if (typeof req.user?.role === 'string') {
+    headers['x-user-role'] = req.user.role;
+  } else {
+    headers['x-user-role'] = 'USER';
+  }
+
+  // cookie (CRITIQUE)
+  if (typeof req.headers.cookie === 'string') {
+    headers['cookie'] = req.headers.cookie;
+  }
+
+  return headers;
+};
 
 // Décorateur requêtes internes : ajoute automatiquement
 // header `x-user-name` + `x-user-id` + cookies de fetchInternal dans proxyRequest

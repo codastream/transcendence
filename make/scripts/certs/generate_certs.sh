@@ -99,10 +99,10 @@ for SERVICE in "${SERVICES[@]}"; do
     -out "$DIR/$SERVICE.csr" \
     -config "$SAN_CONF"
   
-  EXT="server_ext"
-  if [ "$SERVICE" = "api-gateway" ]; then
-    EXT="client_server_ext"
-  fi
+  EXT="client_server_ext"
+  # if [ "$SERVICE" = "api-gateway" ]; then
+  #   EXT="client_server_ext"
+  # fi
   openssl x509 -req \
     -in "$DIR/$SERVICE.csr" \
     -CA "$CA_DIR/ca.crt" \

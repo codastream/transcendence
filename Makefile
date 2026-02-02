@@ -165,7 +165,7 @@ shell-api:
 shell-auth:
 	$(CONTAINER_CMD) exec -it $(AUTH_SERVICE_NAME) /bin/sh
 shell-user:
-	$(CONTAINER_CMD) exec -it $(USER_SERVICE_NAME) /bin/sh
+	$(CONTAINER_CMD) exec -it $(UM_SERVICE_NAME) /bin/sh
 shell-game:
 	$(CONTAINER_CMD) exec -it $(GAME_SERVICE_NAME) /bin/sh
 shell-block:

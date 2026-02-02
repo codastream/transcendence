@@ -2,15 +2,10 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { CatchAllParams } from '../types/params.types.js';
 import { fastStreamProxy } from '../utils/proxy.js';
 import { fastifyReplyFrom } from '@fastify/reply-from';
-import { mtlsAgent } from '../utils/mtlsAgent.js';
 
 const UM_SERVICE_URL = 'https://user-service:3002';
 
 export function registerUsersRoutes(app: FastifyInstance) {
-  app.register(fastifyReplyFrom, {
-    undici: mtlsAgent,
-  });
-
   app.all<{ Params: CatchAllParams }>(
     '/*',
     async (request: FastifyRequest, reply: FastifyReply) => {
@@ -18,7 +13,8 @@ export function registerUsersRoutes(app: FastifyInstance) {
       const cleanPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath;
       const url = `${UM_SERVICE_URL}/${cleanPath}`;
 
-      return fastStreamProxy(request, reply, url);
+      await fastStreamProxy(request, reply, url);
+      return;
     },
   );
 }

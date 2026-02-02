@@ -54,7 +54,7 @@ export function registerGameRoutes(app: FastifyInstance) {
     const rawPath = (request.params as any)['*'];
     const cleanPath = rawPath.replace(/^api\/game\//, ''); // 🔥 FIX
     const url = `${GATEWAY_CONFIG.SERVICES.GAME}/${cleanPath}`;
-    const queryString = new URL(request.url, 'http://localhost').search;
+    const queryString = new URL(request.url, 'https://localhost').search;
     const fullUrl = `${url}${queryString}`;
 
     app.log.info({

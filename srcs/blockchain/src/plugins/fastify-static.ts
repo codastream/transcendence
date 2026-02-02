@@ -10,6 +10,6 @@ const publicPath = join(__dirname, '../public');
 export default fp(async (app) => {
   app.register(fastifyStatic, {
     root: publicPath,
-    prefix: '/',
+    prefix: '/blockchain/',
   });
 });

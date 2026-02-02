@@ -30,20 +30,6 @@ export async function buildApp() {
     disableRequestLogging: false,
   }).withTypeProvider<ZodTypeProvider>();
 
-  app.addHook('onRequest', (request, reply, done) => {
-    const socket = request.raw.socket as any;
-    // Autorise les healthchecks locaux sans mTLS
-    if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
-      return done();
-    }
-    const cert = socket.getPeerCertificate();
-    if (!cert || !cert.subject) {
-      reply.code(401).send({ error: 'Client certificate required' });
-      return;
-    }
-    done();
-  });
-
   await app.setValidatorCompiler(validatorCompiler);
   await app.setSerializerCompiler(serializerCompiler);
 
