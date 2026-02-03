@@ -203,9 +203,8 @@ export async function proxyRequest(
   init?: RequestInit,
 ) {
   const startTime = Date.now();
-  const method = init?.method || req.method || 'GET';
-  const userName = (req.headers['x-user-name'] as string) || null;
-  const contentTypeReq = req.headers['content-type'] || 'application/json';
+  const method = init?.method || 'GET';
+  const userName = (req.headers as any)['x-user-name'] || null;
 
   // Log début de proxy
   logger.logProxyRequest({
@@ -221,37 +220,7 @@ export async function proxyRequest(
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
-    const mergedInit = {
-      ...init,
-      method,
-      signal: controller.signal,
-      headers: {
-        ...init?.headers,
-        'Content-Type': contentTypeReq,
-      },
-    };
-
-    // body management
-    if (method !== 'GET' && method !== 'HEAD') {
-      // Case 1 : Multipart
-      if (contentTypeReq.includes('multipart/form-data')) {
-        (mergedInit as any).body = req.raw;
-        (mergedInit as any).duplex = 'half';
-      }
-      // Cas 2 : JSON
-      else if (req.body && typeof req.body === 'object') {
-        mergedInit.body = JSON.stringify(req.body);
-        app.log.info({
-          event: 'proxy_body_debug',
-          bodyType: typeof req.body,
-          body: req.body,
-          stringified: mergedInit.body,
-          contentType: contentTypeReq,
-          headers: mergedInit.headers,
-        });
-      }
-    }
-
+    const mergedInit = Object.assign({}, init || {}, { signal: controller.signal });
     const response: Response = await (app as any).fetchInternal(req, url, mergedInit);
 
     clearTimeout(timeoutHandle);

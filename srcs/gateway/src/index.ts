@@ -7,9 +7,9 @@ import websocketPlugin from '@fastify/websocket';
 import { apiRoutes, publicRoutes } from './routes/gateway.routes.js';
 import { logger, optimizeErrorHandler } from './utils/logger.js';
 import { verifyRequestJWT } from './utils/jwt.service.js';
-import { GATEWAY_CONFIG, ERROR_CODES } from './utils/constants.js';
-import { UserPayload } from './types/user.types.js';
-import { registerUsersRoutes } from './controllers/um.controller.js';
+import { GATEWAY_CONFIG, ERROR_CODES, parseTimeWindowToSeconds } from './utils/constants.js';
+import { gatewayenv } from './config/env.js';
+import { UserPayload } from './types/types.d.js';
 
 const app = fastify({
   logger: false, // Utiliser notre logger
@@ -20,56 +20,20 @@ const app = fastify({
 app.register(fastifyCookie);
 
 // Register fastify-jwt
-const JWT_SECRET = process?.env?.JWT_SECRET;
-if (!JWT_SECRET || JWT_SECRET === 'supersecretkey') {
-  console.error('❌ CRITICAL: JWT_SECRET must be defined and cannot be the default value');
-  console.error('   Set a secure JWT_SECRET in environment variables');
-  process?.exit?.(1);
-}
-app.register(fastifyJwt, { secret: JWT_SECRET });
+app.register(fastifyJwt, { secret: gatewayenv.JWT_SECRET });
 
-// Rate limiting global
 app.register(fastifyRateLimit, {
-  max: GATEWAY_CONFIG.RATE_LIMIT.GLOBAL.max,
-  timeWindow: GATEWAY_CONFIG.RATE_LIMIT.GLOBAL.timeWindow,
+  max: gatewayenv.RATE_LIMIT_MAX,
+  timeWindow: gatewayenv.RATE_LIMIT_WINDOW,
   keyGenerator: (request: FastifyRequest) => {
-    // Rate limit par IP
     return request.ip || 'unknown';
   },
-  errorResponseBuilder: (req, context) => ({
-    error: {
-      message: 'Too many requests, please try again later',
-      code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
-      retryAfter: context.after,
-    },
-  }),
 });
 
-logger.info({ event: 'register' });
 app.register(websocketPlugin);
 
 app.addContentTypeParser('multipart/form-data', function (req, payload, done) {
   done(null, payload); // Pass raw stream through
-});
-
-app.addContentTypeParser('application/json', (request, payload, done) => {
-  // for users routes = streaming
-  if (request.url.includes('/api/users')) {
-    done(null, payload);
-  } else {
-    // for others routes = parsing
-    let data = '';
-    payload.on('data', (chunk) => {
-      data += chunk;
-    });
-    payload.on('end', () => {
-      try {
-        done(null, JSON.parse(data));
-      } catch (e) {
-        done(e as Error);
-      }
-    });
-  }
 });
 
 // Hook verify JWT routes `/api` sauf les routes publiques
@@ -126,29 +90,20 @@ export const getInternalHeaders = (req: FastifyRequest): Record<string, string> 
 app.decorate(
   'fetchInternal',
   async (request: FastifyRequest, url: string, init: RequestInit = {}) => {
-    const headers = getInternalHeaders(request);
+    const userName = request.user?.username || request.headers['x-user-name'] || '';
+    const userId = request.user?.sub || request.user?.id || request.headers['x-user-id'] || '';
 
-    let existingHeaders: Record<string, string> = {};
-    if (init.headers) {
-      if (init.headers instanceof Headers) {
-        init.headers.forEach((value, key) => {
-          existingHeaders[key] = value;
-        });
-      } else {
-        existingHeaders = { ...(init.headers as Record<string, string>) };
-      }
-    }
-    return fetch(url, {
-      ...init,
-      headers: {
-        ...existingHeaders,
-        ...headers,
-      },
+    const headers = Object.assign({}, init.headers || {}, {
+      'x-user-name': userName,
+      'x-user-id': String(userId),
+      'x-user-role': request.user?.role || 'USER',
+      cookie: request.headers?.cookie || '',
     });
+
+    return fetch(url, Object.assign({}, init, { headers }));
   },
 );
 
-// Log request end - duplicate with proxy
 app.addHook('onResponse', async (request: FastifyRequest, reply: FastifyReply) => {
   logger.logRequest(
     {
@@ -163,17 +118,87 @@ app.addHook('onResponse', async (request: FastifyRequest, reply: FastifyReply) =
 
 // Central error handler: structured errors
 app.setErrorHandler((error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
+  // Ne pas traiter les erreurs déjà envoyées
+  if (reply.sent) {
+    logger.debug({
+      event: 'error_handler_skipped_reply_sent',
+      method: request?.method,
+      url: request?.url,
+      errorCode: (error as any)?.code,
+      errorMessage: error?.message,
+    });
+    return;
+  }
+
+  // Gestion spéciale pour les erreurs de rate limiting
+  // @fastify/rate-limit utilise le code 'FST_ERR_RATE_LIMITED'
+  if (
+    (error as any).code === 'FST_ERR_RATE_LIMITED' ||
+    (error as any).code === 'FST_ERR_RATE_LIMIT' ||
+    error.message?.includes('Rate limit exceeded')
+  ) {
+    // Calculer le retry-after dynamiquement
+    // header Retry-After de fastify-rate-limit en sec
+    const retryAfterHeader = reply.getHeader('Retry-After');
+    const retryAfterSeconds = retryAfterHeader
+      ? Math.ceil(Number(retryAfterHeader))
+      : Math.ceil(parseTimeWindowToSeconds(gatewayenv.RATE_LIMIT_WINDOW));
+
+    const timeUnit = retryAfterSeconds === 1 ? 'second' : 'seconds';
+
+    logger.warn({
+      event: 'rate_limit_429_sent',
+      method: request?.method,
+      url: request?.url,
+      user: request?.user?.username || null,
+      ip: request.ip,
+      errorCode: (error as any).code,
+      retryAfter: `${retryAfterSeconds}s`,
+    });
+
+    // Envoi de la réponse 429 et stop
+    return reply.code(429).send({
+      error: {
+        message: `Too many requests, please try again in ${retryAfterSeconds} ${timeUnit}`,
+        code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
+        retryAfter: `${retryAfterSeconds}s`,
+      },
+    });
+  }
+
+  // Gestion spéciale pour les timeouts de proxy
+  if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+    logger.warn({
+      event: 'proxy_timeout',
+      method: request?.method,
+      url: request?.url,
+      user: request?.user?.username || null,
+      err: error?.message,
+    });
+
+    return reply.code(504).send({
+      error: {
+        message: 'Gateway timeout - upstream service took too long to respond',
+        code: ERROR_CODES.UPSTREAM_TIMEOUT,
+      },
+    });
+  }
+
+  // Log l'erreur pour les autres cas avec plus de détails pour le débogage
   logger.error({
     event: 'unhandled_error',
     method: request?.method,
     url: request?.url,
     user: request?.user?.username || null,
     err: error?.message,
-    stack: error?.stack,
+    errorCode: (error as any)?.code,
+    statusCode: error?.statusCode,
+    errorName: error?.name,
+    stack: gatewayenv.NODE_ENV === 'development' ? error?.stack : undefined,
   });
 
   const status = error?.statusCode || 500;
-  const isDev = process?.env?.NODE_ENV === 'development';
+  const isDev = gatewayenv.NODE_ENV === 'development';
   const errorResponse = optimizeErrorHandler(error, isDev);
 
   reply.code(status).send({ error: errorResponse });
@@ -192,23 +217,24 @@ app.register(fastifyCors, {
 app.register(apiRoutes, { prefix: '/api' });
 app.register(publicRoutes);
 
-app.register(registerUsersRoutes, { prefix: '/api/users' });
-
 // Start the server
-app.listen({ host: '0.0.0.0', port: 3000 }, (err: Error | null, address: string) => {
-  if (err) {
-    logger.error({
-      event: 'server_startup_failed',
-      err: err.message,
-      stack: err.stack,
-    });
-    process?.exit?.(1);
-  }
+app.listen(
+  { host: '0.0.0.0', port: gatewayenv.API_GATEWAY_PORT },
+  (err: Error | null, address: string) => {
+    if (err) {
+      logger.error({
+        event: 'server_startup_failed',
+        err: err.message,
+        stack: err.stack,
+      });
+      process?.exit?.(1);
+    }
 
-  logger.info({
-    event: 'server_started',
-    address,
-    port: 3000,
-    environment: process?.env?.NODE_ENV || 'unknown',
-  });
-});
+    logger.info({
+      event: 'server_started',
+      address,
+      port: gatewayenv.API_GATEWAY_PORT,
+      environment: gatewayenv.NODE_ENV,
+    });
+  },
+);
