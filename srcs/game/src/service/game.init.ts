@@ -24,8 +24,6 @@ export function getGame(this: FastifyInstance, socket: WebSocket | null, session
     this.log.info(`[${sessionId}] Game created, interval started`);
   }
 
-  //LUBA - add AI player
-
   if (socket) {
     addPlayerConnection.call(this, socket, sessionId);
   }

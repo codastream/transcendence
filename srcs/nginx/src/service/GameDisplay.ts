@@ -250,7 +250,6 @@ export class GameDisplay {
     this.setupEventListeners();
     // this.loadSessions()
   }
-  // LUBA change here and look for your routes that should be /api/game/create-session for ai
   async askForGameSession(): Promise<void> {
     if (this.sessionId) return;
     this.clearGameLogs();

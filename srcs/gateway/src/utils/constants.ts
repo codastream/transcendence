@@ -45,7 +45,6 @@ export const GATEWAY_CONFIG = {
     '/api/users/health',
     '/api/game/health',
     '/api/block/health',
-    // AI training endpoints LUBA
     '/api/game/create-session',
     '/api/game/rl/reset',
     '/api/game/rl/step',

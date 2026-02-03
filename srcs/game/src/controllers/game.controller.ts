@@ -169,7 +169,7 @@ export async function stepGame(this: FastifyInstance, req: FastifyRequest) {
   };
 }
 
-// RL API: Get current state LUBA
+// RL API: Get current state
 export async function getGameState(this: FastifyInstance, req: FastifyRequest) {
   const sessionId = (req.query as any).sessionId || (req.body as any)?.sessionId;
   if (!sessionId) {
