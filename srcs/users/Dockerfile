@@ -69,8 +69,6 @@ RUN chmod +x ./entrypoint.sh
 # Runtime dirs
 RUN mkdir -p /app/data /app/uploads
 
-EXPOSE 5555
-
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["node", "dist/index.js"]
 
