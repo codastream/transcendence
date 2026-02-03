@@ -99,18 +99,22 @@ build-dev:
 	$(D_COMPOSE_DEV) build
 
 # --- Test ---
-test: certs install test-user
+test: certs test-user
 
-test-coverage: certs install test-coverage-user
+test-coverage: certs test-coverage-user
 
 test-user:
-	$(D_COMPOSE) run --rm user-service \
-		node ./node_modules/vitest/vitest.mjs run --config vite.config.mjs
+	$(COMPOSE_CMD) \
+		-f srcs/docker-compose.yml \
+		-f srcs/docker-compose.test.yml \
+		run --rm test-runner
+
 test-coverage-user:
-	$(D_COMPOSE) run --rm user-service \
-		node ./node_modules/vitest/vitest.mjs run \
-		--coverage \
-		--config vite.config.mjs
+	$(COMPOSE_CMD) \
+		-f srcs/docker-compose.yml \
+		-f srcs/docker-compose.test.yml \
+		run --rm test-runner \
+		sh -lc "npm ci && npm run test:coverage --workspace srcs/users"
 
 test-block:
 	@gnome-terminal -- bash -c "cd srcs/blockchain/src/SmartContract && npx hardhat node" &

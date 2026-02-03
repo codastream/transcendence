@@ -1,4 +1,4 @@
-import fastify from 'fastify';
+import fastify, { FastifyServerOptions } from 'fastify';
 import fastifySwagger from '@fastify/swagger';
 import ScalarApiReference from '@scalar/fastify-api-reference';
 import {
@@ -17,18 +17,24 @@ import { friendsRoutes } from './routes/friends.routes.js';
 import { loggerConfig } from './config/logger.config.js';
 
 export async function buildApp() {
-  const app = fastify({
-    https: {
-      key: fs.readFileSync('/etc/certs/user-service.key'),
-      cert: fs.readFileSync('/etc/certs/user-service.crt'),
-      ca: fs.readFileSync('/etc/ca/ca.crt'),
+  const isTest = appenv.NODE_ENV === 'test';
 
-      requestCert: true,
-      rejectUnauthorized: false,
-    },
+  const options: FastifyServerOptions = {
     logger: loggerConfig,
     disableRequestLogging: false,
-  }).withTypeProvider<ZodTypeProvider>();
+    ...(isTest
+      ? {}
+      : {
+          https: {
+            key: fs.readFileSync('/etc/certs/user-service.key'),
+            cert: fs.readFileSync('/etc/certs/user-service.crt'),
+            ca: fs.readFileSync('/etc/ca/ca.crt'),
+            requestCert: true,
+            rejectUnauthorized: false,
+          },
+        }),
+  };
+  const app = fastify(options).withTypeProvider<ZodTypeProvider>();
 
   await app.setValidatorCompiler(validatorCompiler);
   await app.setSerializerCompiler(serializerCompiler);
