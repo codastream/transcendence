@@ -6,6 +6,13 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# NGINX
+srcs/nginx/src/html/app.js
+
+# SSL and secrets
+secrets
+*.pem
+
 # VScode
 .vscode
 
@@ -156,8 +163,8 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .DS_Store
-*.txt
 .DS_Store
+!animation.js
 **/*.js
 
 srcs/pong-ai/__pycache__/
@@ -166,3 +173,12 @@ srcs/pong-ai/.venv
 *.csh
 *.fish
 *.ps1
+*.pyc
+__pycache__
+output.css
+**/src/SmartContract/ignition/deployments/chain-31337
+**/srcs/blockchain/src/SmartContract/ignition/deployments/
+**/src/SmartContract/artifacts
+**/src/SmartContract/dump.rdb
+
+.venv

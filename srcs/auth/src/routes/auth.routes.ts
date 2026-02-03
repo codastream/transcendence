@@ -1,33 +1,35 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { HTTP_STATUS } from '../utils/constants.js';
 import {
   meHandler,
   loginHandler,
   registerHandler,
   logoutHandler,
   verifyHandler,
-  listAllUsers,
   notFoundHandler,
   setup2FAHandler,
   verify2FASetupHandler,
   verify2FAHandler,
   disable2FAHandler,
-} from '../controllers/auth.controller.js'
-import { AUTH_CONFIG } from '../utils/constants.js'
+  heartbeatHandler,
+  isUserOnlineHandler,
+} from '../controllers/auth.controller.js';
+import { AUTH_CONFIG } from '../utils/constants.js';
 
 export async function authRoutes(app: FastifyInstance) {
   app.get(
     '/',
     async function (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-      return { message: 'Auth service is running' }
+      return { message: 'Auth service is running' };
     },
-  )
+  );
 
   app.get(
     '/health',
     async function (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-      return reply.code(200).send({ status: 'healthy' })
+      return reply.code(HTTP_STATUS.OK).send({ status: 'healthy' });
     },
-  )
+  );
 
   // Register avec rate limiting strict
   app.post(
@@ -41,7 +43,7 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     registerHandler,
-  )
+  );
 
   // Login avec rate limiting strict
   app.post(
@@ -55,16 +57,28 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     loginHandler,
-  )
+  );
 
-  app.post('/logout', logoutHandler)
+  app.post('/logout', logoutHandler);
 
-  app.get('/verify', verifyHandler)
+  app.get('/verify', verifyHandler);
 
   // DEV ONLY - À supprimer en production
-  app.get('/me', meHandler)
+  app.get('/me', meHandler);
 
-  app.get('/list', listAllUsers)
+  // Heartbeat endpoint - pour tracker les statuts en ligne
+  app.post(
+    '/heartbeat',
+    {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: '10 seconds',
+        },
+      },
+    },
+    heartbeatHandler,
+  );
 
   // Routes 2FA avec rate limiting
   app.post(
@@ -78,7 +92,7 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     setup2FAHandler,
-  )
+  );
 
   app.post(
     '/2fa/setup/verify',
@@ -91,7 +105,7 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     verify2FASetupHandler,
-  )
+  );
 
   app.post(
     '/2fa/verify',
@@ -104,10 +118,23 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     verify2FAHandler,
-  )
+  );
 
-  app.post('/2fa/disable', disable2FAHandler)
+  app.post('/2fa/disable', disable2FAHandler);
+
+  app.get(
+    '/is-online/:name',
+    {
+      config: {
+        rateLimit: {
+          max: AUTH_CONFIG.RATE_LIMIT.IS_USER_ONLINE.max,
+          timeWindow: AUTH_CONFIG.RATE_LIMIT.IS_USER_ONLINE.timeWindow,
+        },
+      },
+    },
+    isUserOnlineHandler,
+  );
 
   // Gestion des routes inconnues (doit être en dernier)
-  app.all('/*', notFoundHandler)
+  app.all('/*', notFoundHandler);
 }
