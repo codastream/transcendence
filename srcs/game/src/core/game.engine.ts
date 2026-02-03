@@ -60,12 +60,13 @@ export class PongGame {
     this.width = 800;
     this.height = 600;
     this.time = 0;
-    this.serve = 1;
+    // Randomly choose who serves first: 1 = right player serves, -1 = left player serves
+    this.serve = Math.random() < 0.5 ? 1 : -1;
     this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, 10);
     // this.cosmicBackground = null;
     this.ball = new Ball(
       new Vector2(this.width / 2, this.height / 2), // position
-      new Vector2(5, 0), // velocity (direction + vitesse)
+      new Vector2(5 * this.serve, 0), // velocity matches serve direction
       this.settings.ballRadius, // size of the ball
       this.settings.ballSpeed, // speed limit
       this.settings.ballMass, // mass -> more the mass is, less it is affected by other forces
