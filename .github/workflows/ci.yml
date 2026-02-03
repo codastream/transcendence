@@ -70,12 +70,6 @@ jobs:
         with:
           jwt_secret: ${{ secrets.JWT_SECRET }}
 
-      - name: Build Core
-        run: make build-core
-
-      - name: Build Users
-        run: make build-user
-
       - name: Test coverage
         run: make test-coverage
 

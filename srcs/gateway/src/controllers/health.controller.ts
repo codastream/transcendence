@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { logger } from '../utils/logger.js';
+import { fetchOptions } from '../utils/mtlsAgent.js';
 
 const SERVICES: Record<string, { host: string; port: number }> = {
   auth: { host: 'auth-service', port: 3001 },
@@ -24,7 +25,7 @@ export async function healthByNameHandler(req: FastifyRequest, reply: FastifyRep
   }
 
   try {
-    const res = await fetch(`http://${service.host}:${service.port}/health`);
+    const res = await fetch(`https://${service.host}:${service.port}/health`, fetchOptions);
     const healthy = res.status === 200;
 
     req.log.info({
@@ -59,8 +60,8 @@ export async function healthAllHandler(req: FastifyRequest, reply: FastifyReply)
     services.map(async (service) => {
       const serviceKey = `${service.host}:${service.port}`;
       try {
-        const res = await fetch(`http://${service.host}:${service.port}/health`);
-        results[serviceKey] = res.status === 200 ? 'healthy' : 'unhealthy';
+        const res = await fetch(`https://${service.host}:${service.port}/health`, fetchOptions);
+        results[name] = res.status === 200 ? 'healthy' : 'unhealthy';
       } catch (error) {
         results[serviceKey] = `unhealthy (error: ${(error as Error).message})`;
       }

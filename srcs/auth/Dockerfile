@@ -5,38 +5,55 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Installer les deps (dev + prod)
+# 1) Manifests nécessaires au calcul du graphe workspace
+# Copy ROOT workspace manifests
 COPY package.json package-lock.json ./
-RUN npm install
+# les manisfests du service
+COPY srcs/auth/package.json ./srcs/auth/package.json
+# Copy shared core package files
+COPY srcs/shared/core/package*.json ./srcs/shared/core/
+COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 
-# Copier le code source
-COPY tsconfig.json ./
-COPY src ./src
+# 2) Installation déterministe (workspaces)
+RUN npm ci
 
-# Compiler TypeScript → dist/
-RUN npm run build
+# 3) Sources minimales nécessaires au build
+COPY srcs/auth ./srcs/auth
+COPY srcs/shared/core/src ./srcs/shared/core/src
 
+# 4) Build (core puis auth)
+RUN npm run build --workspace srcs/shared/core
+RUN npm run build --workspace srcs/auth
 
 
 # ==========================
-# Stage 2 — Production
+# Stage 2 — Runner
 # ==========================
-FROM node:20-alpine AS runner
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Installer wget pour health check
+ENV NODE_ENV=production
+
+# Install runtime-only system deps (wget for healthcheck)
 RUN apk add --no-cache wget
-RUN apk add --no-cache python3 make g++
-# Copier uniquement package.json pour installer deps prod
-COPY package.json package-lock.json ./
 
-# Installer uniquement les deps nécessaires en runtime
-RUN npm install --omit=dev
+# 5) Installer UNIQUEMENT les dépendances runtime du workspace users
+COPY package-lock.json ./package-lock.json
+COPY srcs/auth/package.json ./package.json
+# audit and fund are done in builder
+RUN npm install --omit=dev --no-audit --no-fund
 
-# Copier build compilé depuis le builder
-COPY --from=builder /app/dist ./dist
+# 6) Injecter le package interne @transcendence/core (compilé)
+RUN mkdir -p node_modules/@transcendence
+# Copier le package core compilé
+COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json
+COPY --from=builder /app/srcs/shared/core/dist ./node_modules/@transcendence/core/dist
+
+# 7) Artifacts runtime du service
+COPY --from=builder /app/srcs/auth/dist ./dist
 
 EXPOSE 3001
 
 CMD ["node", "dist/index.js"]
+
