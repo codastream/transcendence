@@ -37,18 +37,22 @@ RUN npm run build --workspace srcs/gateway
 
 FROM node:20-alpine AS runner
 
-# Keep the same workspace root as builder
 WORKDIR /app
 
 ENV NODE_ENV=production
 
+COPY package.json package-lock.json ./
+COPY srcs/gateway/package.json ./srcs/gateway/package.json
+RUN npm ci --omit=dev --workspace srcs/gateway
+
+# Créer le namespace
+RUN mkdir -p node_modules/@transcendence
 # Copier le package core compilé
 COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json
 COPY --from=builder /app/srcs/shared/core/dist ./node_modules/@transcendence/core/dist
+
 # 5. Copier uniquement ce qui est nécessaire à la gateway
 COPY --from=builder /app/srcs/gateway/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 

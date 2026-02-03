@@ -39,11 +39,17 @@ ENV NODE_ENV=production
 # Install runtime-only system deps (wget for healthcheck)
 RUN apk add --no-cache wget
 
+COPY package.json package-lock.json ./
+COPY srcs/auth/package.json ./srcs/auth/package.json
+RUN npm ci --omit=dev --workspace srcs/auth
+
+# Créer le namespace
+RUN mkdir -p node_modules/@transcendence
 # Copier le package core compilé
 COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json
 COPY --from=builder /app/srcs/shared/core/dist ./node_modules/@transcendence/core/dist
+
 # Copy runtime deps and built artefacts
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/srcs/auth/dist ./dist
 
 EXPOSE 3001

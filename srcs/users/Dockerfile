@@ -3,32 +3,29 @@
 # ==========================
 FROM node:20-alpine AS builder
 
-# Native deps for better-sqlite3
 RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# 1. Copy ROOT workspace manifests
+# 1) Manifests nécessaires au calcul du graphe workspace
 COPY package.json package-lock.json ./
-
-# les manisfests du service
 COPY srcs/users/package.json ./srcs/users/package.json
-# Copy shared core package files
 COPY srcs/shared/core/package*.json ./srcs/shared/core/
 COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 
-# 2. Install full workspace deps (deterministic)
+# 2) Installation déterministe (workspaces)
 RUN npm ci
 
-# 3. Copy full monorepo
+# 3) Sources minimales nécessaires au build
 COPY srcs/users ./srcs/users
 COPY srcs/shared/core/src ./srcs/shared/core/src
 
-# 4. Generate Prisma client (users workspace)
+# 4) Prisma (génération du client pour users)
 WORKDIR /app/srcs/users
 RUN npx prisma generate
 
-# 5. Build users service ONLY
+
+# 5) Build (core puis users)
 WORKDIR /app
 RUN npm run build --workspace srcs/shared/core
 RUN npm run build --workspace srcs/users
@@ -43,22 +40,28 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# 6. Copy runtime deps and built artefacts
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/srcs/users/dist ./dist
+# 6) Installer UNIQUEMENT les dépendances runtime du workspace users
+# COPY package.json package-lock.json ./
+COPY package-lock.json ./package-lock.json
+COPY srcs/users/package.json ./package.json
+# audit and fund are done in builder
+RUN npm install --omit=dev --no-audit --no-fund
 
-# Copier le package core compilé
+# 7) Injecter le package interne @transcendence/core (compilé)
+RUN mkdir -p node_modules/@transcendence
 COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json
 COPY --from=builder /app/srcs/shared/core/dist ./node_modules/@transcendence/core/dist
 
+# 8) Artifacts runtime du service
+COPY --from=builder /app/srcs/users/dist ./dist
 
-# Prisma runtime files
+# 9) Prisma runtime (client généré)
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
-# Config & prisma schema (runtime usage)
-COPY --from=builder /app/srcs/users/src/config ./src/config
 COPY --from=builder /app/srcs/users/prisma ./prisma
 COPY --from=builder /app/srcs/users/prisma.config.ts ./prisma.config.ts
+
+# 10) Config runtime
+COPY --from=builder /app/srcs/users/src/config ./src/config
 
 # Entry point
 COPY --from=builder /app/srcs/users/entrypoint.sh ./entrypoint.sh
