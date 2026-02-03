@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY pong_env.py .
 COPY pong_server.py .
 COPY ai_player.py .
-COPY train_ppo.py .
+#COPY train_ppo.py .
 
 RUN mkdir -p /app/models/pong_moderate
 
