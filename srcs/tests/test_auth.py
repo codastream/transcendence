@@ -391,8 +391,7 @@ def test_08b_login_missing_identifier():
     )
     data = resp.json()
     assert data.get("error", {}).get("code") in {
-        "VALIDATION_ERROR",
-        "MISSING_IDENTIFIER",
+        "validation_error",
     }
     print_success("400 pour identifiant manquant")
 
@@ -406,7 +405,7 @@ def test_08c_login_missing_password():
         "/auth/login", json={"username": "someone"}, expected_status=400
     )
     data = resp.json()
-    assert data.get("error", {}).get("code") in {"VALIDATION_ERROR", "MISSING_PASSWORD"}
+    assert data.get("error", {}).get("code") in {"validation_error"}
     print_success("400 pour mot de passe manquant")
 
 
