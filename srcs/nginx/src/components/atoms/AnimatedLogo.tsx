@@ -59,7 +59,6 @@ const AnimatedLogo = ({
       if (p < 1) {
         frameId = requestAnimationFrame(animate);
       } else if (!hasCalledComplete) {
-        console.log('p');
         hasCalledComplete = true;
         updateStyles(1);
         requestAnimationFrame(() => {
