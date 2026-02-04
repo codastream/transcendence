@@ -76,19 +76,19 @@ const AnimatedLogo = ({
       let rotZ = -15;
       // const morphOpacity = 1;
 
-      if (p >= 0.4 && p < 0.45) {
+      if (p >= 0.1 && p < 0.25) {
         rotY = 90 * (1 - (p - 0.4) / 0.05);
-      } else if (p >= 0.45 && p < 0.47) {
+      } else if (p >= 0.25 && p < 0.27) {
         rotY = 0;
-        const subP = (p - 0.45) / 0.02;
+        const subP = (p - 0.25) / 0.02;
         currentD = interpolators.toOval(subP);
         rotZ = -15 - subP * 2;
-      } else if (p >= 0.47 && p < 0.6) {
+      } else if (p >= 0.27 && p < 0.4) {
         rotY = 0;
-        const subP = (p - 0.47) / 0.13;
+        const subP = (p - 0.27) / 0.13;
         currentD = interpolators.toBar(subP);
         rotZ = -17 - subP * 8;
-      } else if (p >= 0.6) {
+      } else if (p >= 0.4) {
         rotY = 0;
         currentD = PATH_EXCLAMATION_TRAPEZE;
         rotZ = -25;
@@ -102,14 +102,14 @@ const AnimatedLogo = ({
         morphPathRef.current.style.opacity = '1';
       }
       if (dotRef.current) {
-        dotRef.current.style.opacity = p >= 0.8 ? '1' : '0';
+        dotRef.current.style.opacity = p >= 0.6 ? '1' : '0';
         dotRef.current.style.transform = transformStr;
       }
 
       // Ball
       if (ballRef.current) {
-        if (p >= 0.45 && p < 0.8) {
-          const bP = (p - 0.45) / 0.35;
+        if (p >= 0.1 && p < 0.6) {
+          const bP = (p - 0.1) / 0.35;
           const x =
             Math.pow(1 - bP, 2) * 50 +
             2 * (1 - bP) * bP * trajectory.x1 +
@@ -130,8 +130,8 @@ const AnimatedLogo = ({
       }
 
       // Typography & Particle effect
-      const tStart = 0.82;
-      const tEnd = 0.99;
+      const tStart = 0.62;
+      const tEnd = 0.9;
       if (p >= tStart) {
         const tP = Math.min((p - tStart) / (tEnd - tStart), 1);
         const eP = easeOutCubic(tP);
@@ -151,7 +151,7 @@ const AnimatedLogo = ({
           const pongEP = easeOutCubic(pongP);
           textPongRef.current.style.opacity = Math.min(pongP * 2, 1).toString();
           if (turbulenceRef.current && displacementRef.current) {
-            const freq = 0.5 * (1 - pongEP);
+            const freq = 0.7 * (1 - pongEP);
             const scale = 50 * (1 - pongEP);
             turbulenceRef.current.setAttribute('baseFrequency', `0 ${freq}`);
             displacementRef.current.setAttribute('scale', scale.toString());

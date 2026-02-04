@@ -1,4 +1,5 @@
 import * as z from 'zod';
+import { AUTH_CONFIG } from '../config/auth.js';
 
 // camelCase for fields : idSchema
 // PascalCase for Objects : IdSchema
@@ -17,7 +18,17 @@ export const nicknameSchema = z
   .min(2, 'Nickname must be at least 2 characters')
   .max(20, 'Nickname must be at most 20 characters');
 
-export const passwordSchema = z.string().min(8, 'Password must be at least 8 chars long');
+export const passwordSchema = z
+  .string()
+  .min(
+    AUTH_CONFIG.PASSWORD_MIN_LENGTH,
+    `Password must be at least ${AUTH_CONFIG.PASSWORD_MIN_LENGTH} characters`,
+  )
+  .max(AUTH_CONFIG.PASSWORD_MAX_LENGTH, 'Password too long')
+  .regex(/^(?=.*[a-z])/, 'Password must contain at least one lowercase letter')
+  .regex(/^(?=.*[A-Z])/, 'Password must contain at least one uppercase letter')
+  .regex(/^(?=.*\d)/, 'Password must contain at least one number')
+  .regex(/^(?=.*[!@#$%^&*])/, 'Password must contain at least one special character (!@#$%^&*)');
 
 export const roleShema = z.enum(['GUEST', 'USER', 'ADMIN']);
 
