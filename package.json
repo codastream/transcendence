@@ -20,7 +20,7 @@
   "scripts": {
     "test": "",
     "prepare": "husky || true",
-    "clean": "rm -rf srcs/*/dist srcs/shared/core/dist node_modules srcs/*/node_modules",
+    "clean": "rm -rf node_modules package-lock.json && rm -rf srcs/*/dist srcs/shared/core/dist node_modules srcs/*/node_modules",
     "lint:report": "eslint --output-file eslint_report.json --format json srcs"
   },
   "repository": {
@@ -62,5 +62,9 @@
     "eslint-plugin-react": "^7.37.5",
     "husky": "^9.1.7",
     "ioredis": "^5.8.2"
+  },
+  "overrides": {
+    "lodash": "4.17.23",
+    "hono": "^4.11.7"
   }
 }

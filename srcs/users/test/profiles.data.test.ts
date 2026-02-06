@@ -205,7 +205,10 @@ describe('ProfileRepository', () => {
 
       const result = await profileRepository.deleteProfile(1);
 
-      expect(dbMocks.delete).toHaveBeenCalledWith({ where: { authId: 1 } });
+      expect(dbMocks.delete).toHaveBeenCalledWith({
+        where: { authId: 1 },
+        select: { username: true, avatarUrl: true },
+      });
       expect(result).toEqual(mockProfile);
     });
   });

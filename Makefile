@@ -224,12 +224,13 @@ fclean: clean
 
 re : fclean all
 
-clean-packages:
+clean-pack:
 	@echo "Cleaning local build artifacts..."
 	npm run clean
+	npm cache clean --force
 
 # Hard reset - deletes everything including folder
-reset-hard: clean clean-packages
+reset-hard: clean clean-pack
 	@echo "WARNING: Full reset including Colima stop"
 	@if [ -n "$$($(CONTAINER_CMD) -q)" ]; then $(CONTAINER_CMD) rmi -f $$($(CONTAINER_CMD) images -q); else echo "No images to remove."; fi
 	-$(CONTAINER_CMD) volume prune -f
