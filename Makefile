@@ -3,6 +3,7 @@ include make/config.mk
 # === Global ===
 
 all : volumes certs colima build
+	npm i
 	$(D_COMPOSE) up -d
 
 dev: volumes colima-dev build-dev
@@ -76,6 +77,10 @@ lint-fix:
 
 # === Services ===
 
+# --- Install workspaces ---
+
+install:
+	npm i
 
 # --- Builds Images ---
 nginx:
@@ -138,6 +143,10 @@ test-block:
 # --- DB ---
 redis-cli:
 	$(CONTAINER_CMD) exec -it $(REDIS_SERVICE_NAME) redis-cli
+
+
+dev-nginx: install
+	npm run dev --workspace proxy-service
 
 # --- Shell access ---
 
@@ -215,12 +224,13 @@ fclean: clean
 
 re : fclean all
 
-clean-packages:
+clean-pack:
 	@echo "Cleaning local build artifacts..."
 	npm run clean
+	npm cache clean --force
 
 # Hard reset - deletes everything including folder
-reset-hard: clean clean-packages
+reset-hard: clean clean-pack
 	@echo "WARNING: Full reset including Colima stop"
 	@if [ -n "$$($(CONTAINER_CMD) -q)" ]; then $(CONTAINER_CMD) rmi -f $$($(CONTAINER_CMD) images -q); else echo "No images to remove."; fi
 	-$(CONTAINER_CMD) volume prune -f

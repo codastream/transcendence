@@ -1,6 +1,7 @@
 import { ReasonValue } from '../logging/logging-types.js';
 import { LOG_EVENTS, LOG_REASONS } from '../logging/logging.js';
-import { ErrorCode, ErrorDefinition } from './error-types.js';
+import { ErrorCode, ErrorDefinition, HttpStatus } from './error-types.js';
+import { HTTP_STATUS } from '../constants/index.js';
 import { ERROR_CODES } from './error-codes.js';
 
 // Factory pattern to centralize error generation
@@ -10,11 +11,11 @@ const authError = (
   code: ErrorCode,
   reason: ReasonValue,
   message: string,
-  statusCode = 401,
+  statusCode: HttpStatus,
 ): ErrorDefinition => ({
   code: code,
   event: LOG_EVENTS.APPLICATION.AUTH_FAIL,
-  statusCode,
+  statusCode: statusCode ?? HTTP_STATUS.UNAUTHORIZED,
   reason,
   message,
 });
@@ -24,12 +25,12 @@ const serviceError = (
   code: ErrorCode,
   reason: ReasonValue,
   message: string,
-  statusCode = 500,
+  statusCode: HttpStatus,
   event = LOG_EVENTS.APPLICATION.VALIDATION_FAIL,
 ): ErrorDefinition => ({
   code: code,
   event: event,
-  statusCode,
+  statusCode: statusCode ?? HTTP_STATUS.INTERNAL_SERVER_ERROR,
   reason,
   message,
 });
@@ -40,35 +41,37 @@ export const ERR_DEFS = {
     ERROR_CODES.INVALID_CREDENTIALS,
     LOG_REASONS.SECURITY.BAD_CREDENTIALS,
     'Invalid email or password',
+    HTTP_STATUS.UNAUTHORIZED,
   ),
   LOGIN_USER_NOT_FOUND: authError(
     ERROR_CODES.UNAUTHORIZED,
     LOG_REASONS.SECURITY.USER_NOT_FOUND,
     'User not found',
+    HTTP_STATUS.UNAUTHORIZED,
   ),
   LOGIN_ACCOUNT_LOCKED: authError(
     ERROR_CODES.RATE_LIMIT_EXCEEDED,
     LOG_REASONS.SECURITY.ACCOUNT_LOCKED,
     'Account is locked due to too many failed attempts',
-    403,
+    HTTP_STATUS.FORBIDDEN,
   ),
   LOGIN_MISSING_FIELDS: authError(
     ERROR_CODES.VALIDATION_ERROR,
     LOG_REASONS.VALIDATION.MISSING_FIELD,
     'Email and password are required',
-    400,
+    HTTP_STATUS.BAD_REQUEST,
   ),
   LOGIN_2FA_REQUIRED: authError(
     ERROR_CODES.MFA_REQUIRED,
     LOG_REASONS.SECURITY.MFA_ON,
     '2FA is required',
-    400,
+    HTTP_STATUS.BAD_REQUEST,
   ),
   LOGIN_2FA_INVALID: authError(
     ERROR_CODES.MFA_INVALID,
     LOG_REASONS.SECURITY.MFA_INVALID,
     '2FA code is invalid',
-    400,
+    HTTP_STATUS.BAD_REQUEST,
   ),
 
   // === REGISTER ===
@@ -76,17 +79,19 @@ export const ERR_DEFS = {
     ERROR_CODES.CONFLICT,
     LOG_REASONS.CONFLICT.UNIQUE_VIOLATION,
     'Email address is already in use',
+    HTTP_STATUS.CONFLICT,
   ),
   REG_USERNAME_TAKEN: authError(
     ERROR_CODES.CONFLICT,
     LOG_REASONS.CONFLICT.UNIQUE_VIOLATION,
     'Username is already taken',
+    HTTP_STATUS.CONFLICT,
   ),
   REG_WEAK_PASSWORD: authError(
     ERROR_CODES.VALIDATION_ERROR,
     LOG_REASONS.VALIDATION.WEAK_PASSWORD,
     'Password does not meet security requirements',
-    400,
+    HTTP_STATUS.BAD_REQUEST,
   ),
 
   // === GATEWAY ===
@@ -94,16 +99,19 @@ export const ERR_DEFS = {
     ERROR_CODES.UNAUTHORIZED,
     LOG_REASONS.SECURITY.TOKEN_EXPIRED,
     'Session token has expired',
+    HTTP_STATUS.UNAUTHORIZED,
   ),
   TOKEN_INVALID: authError(
     ERROR_CODES.UNAUTHORIZED,
     LOG_REASONS.SECURITY.TOKEN_INVALID,
     'Invalid token signature',
+    HTTP_STATUS.UNAUTHORIZED,
   ),
   TOKEN_MISSING: authError(
     ERROR_CODES.UNAUTHORIZED,
     LOG_REASONS.SECURITY.TOKEN_MISSING,
     'Authentication header missing',
+    HTTP_STATUS.UNAUTHORIZED,
   ),
 
   // === ROLE ===
@@ -111,7 +119,7 @@ export const ERR_DEFS = {
     ERROR_CODES.FORBIDDEN,
     LOG_REASONS.SECURITY.ROLE_ADMIN_REQUIRED,
     'Forbidden',
-    403,
+    HTTP_STATUS.FORBIDDEN,
   ),
 
   // === SYSTEM / INTER-SERVICE ===
@@ -119,52 +127,57 @@ export const ERR_DEFS = {
     ERROR_CODES.RATE_LIMIT_EXCEEDED,
     LOG_REASONS.SECURITY.RATE_LIMIT_REACHED,
     'Too many requests. Please try again later.',
-    429,
+    HTTP_STATUS.TOO_MANY_REQUESTS,
   ),
   SERVICE_BAD_GATEWAY: serviceError(
     ERROR_CODES.INTERNAL_ERROR,
     LOG_REASONS.NETWORK.TIMEOUT,
     'Bad gateway',
-    502,
+    HTTP_STATUS.BAD_GATEWAY,
   ),
   SERVICE_UNAVAILABLE: serviceError(
     ERROR_CODES.INTERNAL_ERROR,
     LOG_REASONS.NETWORK.UPSTREAM_ERROR,
     'Service returned an error',
-    503,
+    HTTP_STATUS.SERVICE_UNAVAILABLE,
   ),
-  SERVICE_GENERIC: serviceError(ERROR_CODES.INTERNAL_ERROR, LOG_REASONS.UNKNOWN, 'Internal error'),
+  SERVICE_GENERIC: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.UNKNOWN,
+    'Internal error',
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
 
   // === RESOURCES ===
   RESOURCE_NOT_FOUND: serviceError(
     ERROR_CODES.NOT_FOUND,
     LOG_REASONS.UNKNOWN,
     'Resource not found',
-    404,
+    HTTP_STATUS.NOT_FOUND,
   ),
   RESOURCE_ALREADY_EXIST: serviceError(
     ERROR_CODES.CONFLICT,
     LOG_REASONS.CONFLICT.UNIQUE_VIOLATION,
     'Resource already exists',
-    409,
+    HTTP_STATUS.CONFLICT,
   ),
   RESOURCE_LIMIT_REACHED: serviceError(
     ERROR_CODES.CONFLICT,
     LOG_REASONS.CONFLICT.LIMIT_VIOLATION,
     'Resource limit reached',
-    422,
+    HTTP_STATUS.UNPROCESSABLE_ENTITY,
   ),
   RESOURCE_INVALID_STATE: serviceError(
     ERROR_CODES.CONFLICT,
     LOG_REASONS.CONFLICT.STATE_VIOLATION,
     'Resource cannot be in invalid state',
-    422,
+    HTTP_STATUS.UNPROCESSABLE_ENTITY,
   ),
   // Validation
   RESSOURCE_INVALID_TYPE: serviceError(
     ERROR_CODES.VALIDATION_ERROR,
     LOG_REASONS.VALIDATION.INVALID_FORMAT,
     'Invalid format',
-    400,
+    HTTP_STATUS.BAD_REQUEST,
   ),
 } as const;

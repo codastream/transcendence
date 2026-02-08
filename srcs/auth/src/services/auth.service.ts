@@ -6,6 +6,7 @@ import { APP_ERRORS } from '../utils/error-catalog.js';
 import { EVENTS, REASONS, UserRole } from '../utils/constants.js';
 import { authenv } from '../config/env.js';
 import { logger } from '../index.js';
+import { AppError, ERR_DEFS } from '@transcendence/core';
 
 const SALT_ROUNDS = 10;
 
@@ -38,10 +39,10 @@ export async function createUser(user: {
   } catch (err: unknown) {
     if (err instanceof DataError) {
       if (err.meta?.field === 'email') {
-        throw new ServiceError(APP_ERRORS.REG_EMAIL_EXISTS, { details: user.email });
+        throw new AppError(ERR_DEFS.REG_EMAIL_EXISTS, { field: 'email' });
       }
       if (err.meta?.field === 'username') {
-        throw new ServiceError(APP_ERRORS.REG_USERNAME_TAKEN, { details: user.username });
+        throw new AppError(ERR_DEFS.REG_USERNAME_TAKEN, { field: 'username' });
       }
     }
     throw err;

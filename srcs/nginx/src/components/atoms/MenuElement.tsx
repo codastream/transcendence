@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { MenuActions } from '../../types/react-types';
 import { interpolate, Shape } from 'flubber';
 import { useTranslation } from 'react-i18next';
+import { NavDropdown } from './NavDropDown';
+import { Link } from 'react-router-dom';
 
 type Color = 'white' | 'cyan';
 interface Item {
   label: string;
-  href: string;
+  to?: string;
+  onClick?: () => void;
 }
 
 const HALO_PATH =
@@ -18,11 +21,13 @@ const HOUSE_PATH = 'M 8,2 L 14,7 L 14,14 L 10,14 L 10,10 L 6,10 L 6,14 L 2,14 L 
 const PIE_PATH =
   'M4.15 3.07a6.33 6.33 0 0 1 0.93-0.52c0.92-0.41 1.38-0.62 1.98-0.22 0.61 0.39 0.61 1.04 0.61 2.33v1c0 1.26 0 1.88 0.39 2.28s1.02 0.39 2.28 0.39h1c1.29 0 1.94 0 2.33 0.61 0.39 0.61 0.19 1.07-0.22 1.98a6.33 6.33 0 0 1-7.02 3.63 6.33 6.33 0 0 1-2.28-11.48 M14.3 4.72a5.35 5.35 0 0 0-3-3c-1.03-0.41-1.97 0.52-1.97 1.62v2.67a0.67 0.67 0 0 0 0.67 0.67h2.67c1.1 0 2.03-0.92 1.63-1.95';
 
-const RACKET_PATH =
-  'M8,2.56c3.01,0 5.44,2.43 5.44,5.44c0,0.75 -0.46,1.78 -0.82,2.52l-1.06,-0.89l-0.22,0.26l1.13,0.94l1.54,1.31c0.22,0.22 1.29,1.1 1.06,1.33l-1.54,1.58c-0.28,0.29 -1.1,-0.73 -1.31,-0.97l-0.21,-0.24l-2.1,-2.5l-0.26,0.22l0.94,1.11c-0.76,0.35 -1.84,0.74 -2.58,0.74c-3.01,0 -5.44,-2.43 -5.44,-5.44c0,-3.01 2.43,-5.44 5.44,-5.44z';
+const RACKET_PATH2 =
+  'M14.2 12.5c-0.79-0.68-1.08-1.82-0.62-2.9 0.74-1.93 0.11-3.81-2.1-6.03C10.23 2.33 8.52 1.7 6.82 1.76c-1.76 0.05-3.35 0.79-4.55 2.16-2.31 2.65-2.03 6.57 0.52 9.02 2.1 1.93 3.93 2.5 5.75 1.76 1.02-0.4 2.16-0.17 2.84 0.62l1.76 1.99c0.17 0.23 0.51 0.34 0.79 0.4 0.28 0 0.57-0.11 0.79-0.34l1.42-1.42c0.23-0.23 0.34-0.51 0.34-0.79s-0.17-0.57-0.4-0.79zM15.34 0.57c-1.25 0-2.27 1.02-2.27 2.27s1.02 2.27 2.27 2.27 2.27-1.02 2.27-2.27-1.02-2.27-2.27-2.27';
+// const RACKET_PATH =
+//   'M8,2.56c3.01,0 5.44,2.43 5.44,5.44c0,0.75 -0.46,1.78 -0.82,2.52l-1.06,-0.89l-0.22,0.26l1.13,0.94l1.54,1.31c0.22,0.22 1.29,1.1 1.06,1.33l-1.54,1.58c-0.28,0.29 -1.1,-0.73 -1.31,-0.97l-0.21,-0.24l-2.1,-2.5l-0.26,0.22l0.94,1.11c-0.76,0.35 -1.84,0.74 -2.58,0.74c-3.01,0 -5.44,-2.43 -5.44,-5.44c0,-3.01 2.43,-5.44 5.44,-5.44z';
 
-// const USER_PATH =
-//   'M6.667 1.511q5.278 -0.455 4.356 4.8 -0.438 1.41 -1.422 2.489 -0.456 1.592 1.156 2.044a12.16 12.16 0 0 1 2.667 1.067q1.08 0.96 0.889 2.4h-12.8q-0.191 -1.44 0.889 -2.4a12.16 12.16 0 0 1 2.667 -1.067q1.612 -0.452 1.156 -2.044 -2.247 -2.473 -1.244 -5.689 0.641 -1.042 1.689 -1.6';
+const USER_PATH =
+  'M6.667 1.511q5.278 -0.455 4.356 4.8 -0.438 1.41 -1.422 2.489 -0.456 1.592 1.156 2.044a12.16 12.16 0 0 1 2.667 1.067q1.08 0.96 0.889 2.4h-12.8q-0.191 -1.44 0.889 -2.4a12.16 12.16 0 0 1 2.667 -1.067q1.612 -0.452 1.156 -2.044 -2.247 -2.473 -1.244 -5.689 0.641 -1.042 1.689 -1.6';
 
 // Props
 
@@ -35,12 +40,11 @@ interface MenuElementProps {
 }
 
 const paths: Record<MenuActions, string> = {
-  [MenuActions.PLAY]: RACKET_PATH,
+  [MenuActions.PLAY]: RACKET_PATH2,
   [MenuActions.HOME]: HOUSE_PATH,
   [MenuActions.STATS]: PIE_PATH,
+  [MenuActions.PROFILE]: USER_PATH,
 };
-
-const dropdownStyle = 'shadow-[0_10px_10px_1px_rgba(255,255,255,0.4)] border-white-400/70';
 
 const fadeTransition = {
   duration: 0.3,
@@ -56,6 +60,7 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
     [MenuActions.PLAY]: t('navbar.play'),
     [MenuActions.HOME]: t('navbar.home'),
     [MenuActions.STATS]: t('navbar.stats'),
+    [MenuActions.PROFILE]: t('navbar.profile'),
   };
   const title = titles[action];
   const targetPath = paths[action];
@@ -65,10 +70,10 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
   useEffect(() => {
     const controls = animate(progress, isHovered ? 1 : 0, {
       duration: 0.8,
-      ease: 'easeInOut', // or [0.4, 0, 0.2, 1]
+      ease: 'easeInOut',
     });
     return controls.stop;
-  }, [isHovered, targetPath]); //
+  }, [isHovered, targetPath]);
 
   return (
     <motion.div
@@ -87,7 +92,6 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
           transition={{ duration: 0.8, ease: 'easeInOut' }}
           className="absolute inset-0 rounded-full bg-white"
           style={{
-            // Le dégradé radial est mathématiquement circulaire, pas de coins carrés
             background:
               'radial-gradient(circle, rgba(255,255,255,0.9) 60%, rgba(255,255,255,0.5) 20%, rgba(255,255,255,0) 70%)',
           }}
@@ -119,40 +123,32 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
       >
         {title}
       </motion.span>
-
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className={`
-            absolute top-full left-1/2 -translate-x-1/2 
-            mt-5 
-            w-64 pt-6 pb-10 px-4
-            bg-slate-100/80 backdrop-blur-xl 
-            border-t-0 border-b-0 border-x-0 rounded-t-none rounded-b-[8rem]
-            flex flex-col items-center justify-start
-            z-50 ${dropdownStyle}
-            `}
-          >
-            <div className="absolute top-0 left-0 w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
-            <ul className="flex flex-col items center space-y-2 w-full">
-              {items.map((item, index) => (
-                <li key={index} className="w-full text-center">
-                  <a
-                    href={item.href}
-                    className="block py-1 px-x text-slate-900 hover:text-white hover:scale-110 transition-all text-sm font-medium tracking-wide"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <NavDropdown isOpen={isHovered}>
+        <ul className="flex flex-col items-center space-y-2 w-full">
+          {items.map((item, index) => (
+            <li key={index} className="w-full text-center">
+              {item.onClick ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    item.onClick?.();
+                  }}
+                  className="block w-full py-1 px-2 text-slate-900 hover:text-slate-600 hover:scale-110 transition-all text-sm font-medium"
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  to={item.to || '#'}
+                  className="block py-1 px-2 text-slate-900 hover:text-slate-600 hover:scale-110 transition-all text-sm font-medium tracking-wide"
+                >
+                  {item.label}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      </NavDropdown>
     </motion.div>
   );
 };

@@ -8,10 +8,11 @@ import { initAdminUser, initInviteUser } from './utils/init-users.js';
 import * as totpService from './services/totp.service.js';
 import * as onlineService from './services/online.service.js';
 import { loggerConfig } from './config/logger.config.js';
-import { AUTH_CONFIG, ERROR_CODES, EVENTS, REASONS } from './utils/constants.js';
+import { AUTH_CONFIG, EVENTS, REASONS } from './utils/constants.js';
 import { AppBaseError } from './types/errors.js';
 import { authenv } from './config/env.js';
 import fs from 'fs';
+import { ERROR_CODES } from '@transcendence/core';
 
 const app = fastify({
   https: {

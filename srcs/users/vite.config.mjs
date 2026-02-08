@@ -2,14 +2,15 @@
 import { builtinModules } from 'module';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 // import { defineConfig } from 'vitest/config'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const packageJsonPath = path.resolve(__dirname, 'package.json');
+const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'));
 
-// /**
-//  * @type {import('vitest/config').UserConfig}
-//  */
+/**  @type {import('vitest/config').UserConfig} */
 export default {
   root: '.',
   build: {
@@ -18,13 +19,17 @@ export default {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'UserManagementService',
-      format: ['esm'],
+      format: ['es'],
       fileName: 'index',
     },
     rollupOptions: {
       external: [
         ...builtinModules,
         ...builtinModules.map((m) => `node:${m}`),
+        ...Object.keys(pkg.dependencies || {}).filter(
+          (dep) =>
+            dep !== 'fastify-type-provider-zod' && dep !== 'zod' && dep !== '@transcendence/core',
+        ),
         '@prisma/client',
         '@prisma/adapter-better-sqlite3',
       ],

@@ -1,5 +1,6 @@
-import { DATA_ERROR, ERROR_CODES, EVENTS, REASONS } from '../utils/constants.js';
+import { DATA_ERROR, EVENTS, REASONS } from '../utils/constants.js';
 import { LogContext } from './logger.js';
+import { ERROR_CODES } from '@transcendence/core';
 
 type DeepValues<T> = T extends object ? { [K in keyof T]: DeepValues<T[K]> }[keyof T] : T;
 

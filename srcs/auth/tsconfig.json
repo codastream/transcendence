@@ -2,7 +2,11 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "NodeNext",
+    "baseUrl": ".",
     "moduleResolution": "nodenext",
+    "paths": {
+      "@transcendence/core": ["../shared/core/src/index.ts"]
+    },
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,
@@ -12,5 +16,6 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "references": [{ "path": "../shared/core" }]
 }

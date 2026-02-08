@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite",
     "prebuild": "prisma generate",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "vite build",
     "start": "node dist/index.js",
     "preview": "vite preview",
     "pretest": "prisma generate",
@@ -27,17 +27,19 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-node": "^11.1.0",
     "globals": "^16.5.0",
-    "prisma": "^7.0.0",
+    "prisma": "7.3.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.0",
-    "vitest": "^4.0.16"
+    "vitest": "^4.0.16",
+    "hono": "^4.11.7",
+    "lodash": "4.17.23"
   },
   "dependencies": {
     "@fastify/http-proxy": "11.4.1",
     "@fastify/multipart": "^9.3.0",
     "@fastify/swagger": "^9.6.1",
     "@prisma/adapter-better-sqlite3": "^7.0.0",
-    "@prisma/client": "^7.0.1",
+    "@prisma/client": "7.3.0",
     "@scalar/fastify-api-reference": "^1.40.9",
     "@transcendence/core": "^1.1.0",
     "better-sqlite3": "^12.4.1",
