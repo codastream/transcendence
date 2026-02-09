@@ -8,6 +8,7 @@ interface HaloProps {
   isRegister: boolean;
   className?: string;
   size?: number;
+  onToggleForm: () => void; // Add this line
 }
 
 const Halo = ({ className = '', size = 120, isRegister, onToggleForm }: HaloProps) => {
