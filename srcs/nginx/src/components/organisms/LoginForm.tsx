@@ -79,7 +79,7 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
   }
 }
 
-export const LoginForm = () => {
+export const LoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const navigate = useNavigate();
@@ -88,10 +88,12 @@ export const LoginForm = () => {
     if (state?.success && state.fields?.username) {
       const username = state.fields.username;
       login({ username: username, avatarUrl: null });
-      navigate(`/profile/${username}`, { replace: true });
+      // navigate(`/profile/${username}`, { replace: true });
+      navigate(`/welcome`, { replace: true });
     }
     if (user?.username) {
-      navigate(`/profile/${user.username}`, { replace: true });
+      // navigate(`/profile/${username}`, { replace: true });
+      navigate(`/welcome`, { replace: true });
     }
   }, [state?.success, state?.fields?.username, user, navigate, login]);
   return (
@@ -119,11 +121,9 @@ export const LoginForm = () => {
 
       <div className="text-xs text-gray-500 mt-5">
         {t('auth.noAccount')}{' '}
-        <span>
-          <Link className="hover:text-blue-400" to={`/signup`}>
-            {t('auth.signup')}
-          </Link>
-        </span>
+        <button type="button" onClick={onToggleForm} className="hover:text-blue-400 underline">
+          {t('auth.signup')}
+        </button>
       </div>
     </form>
   );

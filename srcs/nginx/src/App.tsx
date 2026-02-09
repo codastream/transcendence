@@ -3,6 +3,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
+import { WelcomePage } from './pages/WelcomePage';
 
 const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoggedIn } = useAuth();
@@ -25,21 +26,23 @@ export const App = () => {
       <Routes>
         <Route path="/" element={<AnimationPage />}></Route>
         <Route
-          path="/signup"
+          // path="/signup"
+          path="/welcome"
           element={
             <GuestRoute>
-              <LoginPage isRegister={true} />
+              {/* <LoginPage isRegister={true} /> */}
+              <WelcomePage />
             </GuestRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/login"
           element={
             <GuestRoute>
               <LoginPage isRegister={false} />
             </GuestRoute>
           }
-        />
+        /> */}
         <Route path="/me" element={<MeRedirect />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
       </Routes>

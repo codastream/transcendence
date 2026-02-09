@@ -20,7 +20,7 @@ export const AnimationPage = ({ className = '' }: AnimationPageProps) => {
 
   useEffect(() => {
     if (animDone) {
-      navigate(`/login`);
+      navigate(`/welcome`);
     }
   }, [animDone, user]);
 

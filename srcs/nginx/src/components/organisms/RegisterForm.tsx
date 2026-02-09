@@ -112,8 +112,7 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
     return nextState;
   }
 }
-
-export const RegisterForm = () => {
+export const RegisterForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(signupAction, null);
   const navigate = useNavigate();
@@ -167,11 +166,9 @@ export const RegisterForm = () => {
 
       <div className="text-xs text-gray-500 mt-5">
         {t('auth.hasAccount')}{' '}
-        <span>
-          <Link className="hover:text-blue-400" to={`/login`}>
-            {t('auth.login')}
-          </Link>
-        </span>
+        <button type="button" onClick={onToggleForm} className="hover:text-blue-400 underline">
+          {t('auth.login')}
+        </button>
       </div>
     </form>
   );
