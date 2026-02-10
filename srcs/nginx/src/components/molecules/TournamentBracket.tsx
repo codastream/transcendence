@@ -1,40 +1,71 @@
 import { Player } from '../../types/types';
-import { BracketLines } from '../atoms/BracketLines';
+import { BracketConnection, BracketLines } from '../atoms/BracketLines';
 import { PlayerCapsule } from '../atoms/PlayerCapsule';
 import { MatchNode } from '../atoms/MatchNode';
+import { useRef } from 'react';
 
 interface TournamentBracketProps {
   players: [Player, Player, Player, Player];
 }
-import Avatar from '../atoms/Avatar';
 
 export function TournamentBracket({ players }: TournamentBracketProps) {
   const [p1, p2, p3, p4] = players;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const p1Ref = useRef<HTMLDivElement>(null);
+  const p2Ref = useRef<HTMLDivElement>(null);
+  const p3Ref = useRef<HTMLDivElement>(null);
+  const p4Ref = useRef<HTMLDivElement>(null);
 
+  const semiLeftRef = useRef<HTMLDivElement>(null);
+  const semiRightRef = useRef<HTMLDivElement>(null);
+  const finalRef = useRef<HTMLDivElement>(null);
+
+  const connections: BracketConnection[] = [
+    { from: p1Ref, to: semiLeftRef },
+    { from: p2Ref, to: semiLeftRef },
+    { from: p3Ref, to: semiRightRef },
+    { from: p4Ref, to: semiRightRef },
+    { from: semiLeftRef, to: finalRef },
+    { from: semiRightRef, to: finalRef },
+  ];
   return (
-    <div className="relative w-full max-w-6xl mx-auto py-12">
-      {/* SVG LINES */}
-      <BracketLines />
+    <div ref={containerRef} className="relative w-full max-w-6xl mx-auto py-12">
+      <BracketLines containerRef={containerRef} connections={connections} />
 
-      {/* CONTENT */}
-      <div className="relative flex flex-col lg:flex-row justify-between items-center gap-20">
+      <div className="relative flex flex-col lg:flex-row justify-between items-center gap-24">
         {/* LEFT */}
         <div className="flex flex-col gap-16">
-          <PlayerCapsule player={p1} />
-          <PlayerCapsule player={p2} />
+          <div ref={p1Ref}>
+            <PlayerCapsule player={p1} />
+          </div>
+          <div ref={p2Ref}>
+            <PlayerCapsule player={p2} />
+          </div>
         </div>
 
         {/* CENTER */}
-        <div className="flex flex-col items-center gap-10">
-          <MatchNode label="Demi-finale" />
-          <MatchNode label="Finale" highlight />
-          <MatchNode label="Petite finale" />
+        <div className="flex flex-col items-center gap-14">
+          <div ref={semiLeftRef}>
+            <MatchNode label="Demi-finale" />
+          </div>
+
+          <div ref={finalRef}>
+            <MatchNode label="Finale" highlight />
+          </div>
+
+          <div ref={semiRightRef}>
+            <MatchNode label="Demi-finale" />
+          </div>
         </div>
 
         {/* RIGHT */}
         <div className="flex flex-col gap-16">
-          <PlayerCapsule player={p3} />
-          <PlayerCapsule player={p4} />
+          <div ref={p3Ref}>
+            <PlayerCapsule player={p3} />
+          </div>
+          <div ref={p4Ref}>
+            <PlayerCapsule player={p4} />
+          </div>
         </div>
       </div>
     </div>

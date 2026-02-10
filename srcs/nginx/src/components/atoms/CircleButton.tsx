@@ -21,8 +21,9 @@ export const CircleButton = ({ children }: CircleButtonProps) => (
       rounded-full
       bg-slate-100/80
       flex items-center justify-center
-      font-quantico
-      z-50 ${dropdownStyle}
+      font-quantico border border-cyan-300 
+      text-gray-700
+      ${dropdownStyle}
                   `}
   >
     <p className="text-2xl text-center whitespace-nowrap">{children}</p>

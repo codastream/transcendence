@@ -2,9 +2,16 @@ import { CircleButton } from '../components/atoms/CircleButton';
 import { Page } from '../components/organisms/PageContainer';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState } from 'react';
-import { TournamentList, Tournament } from '../components/atoms/TournamentList';
+import {
+  TournamentTableDesktop,
+  TournamentListMobile,
+  Tournament,
+} from '../components/atoms/TournamentList';
 import { TournamentBracket } from '../components/molecules/TournamentBracket';
 import { Player } from '../types/types';
+import Background from '../components/atoms/Background';
+import Circle from '../components/atoms/Circle';
+import { NavBar } from '../components/molecules/NavBar';
 
 const MOCK_TOURNAMENTS: Tournament[] = [
   {
@@ -36,6 +43,10 @@ const MOCK_PLAYERS: [Player, Player, Player, Player] = [
 ] as const;
 
 // const login = async () => {};
+const colors = {
+  start: '#00ff9f',
+  end: '#0088ff',
+};
 
 export const TournamentPage = () => {
   // const [currentUser, formAction, isPending] = useActionState(login, {});
@@ -44,18 +55,45 @@ export const TournamentPage = () => {
   const participate = t('game.participate');
   const create = t('game.create');
   return (
-    <Page className="flex flex-col min-h-screen" title={title}>
-      <div className=" flex flex-1 items-center justify-center">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <CircleButton>{participate}</CircleButton>
-          <CircleButton>{create}</CircleButton>
+    <div className={`w-full relative flex flex-col flex min-h-screen`}>
+      <Background
+        grainIntensity={4}
+        baseFrequency={0.28}
+        colorStart={colors.start}
+        colorEnd={colors.end}
+      >
+        {
+          <div className="sticky top-0 z-20">
+            <NavBar></NavBar>
+          </div>
+        }
+        <div className=" flex flex-1 items-center justify-center">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <CircleButton>{participate}</CircleButton>
+            <CircleButton>{create}</CircleButton>
+          </div>
         </div>
-      </div>
-      <TournamentList
-        tournaments={MOCK_TOURNAMENTS}
-        onJoin={(id) => console.log('Join tournament', id)}
-      />
-      <TournamentBracket players={MOCK_PLAYERS} />
-    </Page>
+        {/* <TournamentList */}
+        {/*   tournaments={MOCK_TOURNAMENTS} */}
+        {/*   onJoin={(id) => console.log('Join tournament', id)} */}
+        {/* /> */}
+        <TournamentBracket players={MOCK_PLAYERS} />
+        {/* Desktop */}
+        <div className="hidden md:block">
+          <TournamentTableDesktop
+            tournaments={MOCK_TOURNAMENTS}
+            onJoin={(id) => console.log('Join tournament', id)}
+          />
+        </div>
+
+        {/* Mobile */}
+        <div className="md:hidden space-y-4">
+          <TournamentListMobile
+            tournaments={MOCK_TOURNAMENTS}
+            onJoin={(id) => console.log('Join tournament', id)}
+          />
+        </div>
+      </Background>
+    </div>
   );
 };
