@@ -1,10 +1,66 @@
 {
   "tagline": "Ce jeu va vous retourner",
+  "auth": {
+    "hasAccount": "Déjà enregistré ?",
+    "noAccount": "Pas encore enregistré ?",
+    "signup": "Créer un compte",
+    "login": "S'identifier"
+  },
+  "fieldtype": {
+    "email": "courriel",
+    "username": "pseudo",
+    "password": "mot de passe",
+    "username-email": "pseudo ou email",
+    "username-choose": "choisissez un pseudo",
+    "password-choose": "choisissez un mot de passe sécurisé"
+  },
+  "form": {
+    "processing": "traitement..."
+  },
+  "global": {
+    "loading": "Chargement...",
+    "not_found": "Non trouvé",
+    "disabled": "désactivé"
+  },
+  "zod_errors": {
+    "invalid_format": "Vérifiez le format demandé",
+    "too_small": "La valeur doit être plus longue",
+    "too_big": "La valeur doit être plus courte"
+  },
+  "errors": {
+    "validation_mandatory": "Ce champ est obligatoire.",
+    "validation_error": "Format invalide. Veuillez vérifier les champs soumis et réessayer.",
+    "unauthorized": "Authentification requise. Veuillez vous connecter pour accéder à cette ressource",
+    "invalid_credentials": "Identifiants invalides. Vérifiez votre email/nom d'utilisateur et mot de passe et réessayez.",
+    "forbidden": "Accès refusé. Vous n'avez pas les permissions nécessaires pour cette action.",
+    "not_found": "Ressource introuvable. Vérifiez l'ID ou l'URL et réessayez.",
+    "conflict": "Cette ressource existe déjà. Utilisez un identifiant unique.",
+    "rate_limit_exceeded": "Limite de requêtes dépassée. Réessayez dans quelques minutes.",
+    "mfa_required": "Authentification à deux facteurs requise. Veuillez configurer ou saisir votre code MFA.",
+    "invalid_mfa_code": "Code MFA invalide. Vérifiez le code et réessayez.",
+    "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard."
+  },
   "navbar": {
     "home": "Accueil",
     "about": "A propos",
     "play": "Jouer",
-    "stats": "Stats"
+    "play_friend": "Jouer contre un ami",
+    "play_ai": "Jouer contre l'IA",
+    "play_tournament": "Tournoi",
+    "stats": "Stats",
+    "stats_history": "Historique",
+    "profile": "Profil",
+    "profile_logout": "Se déconnecter"
+  },
+  "profile": {
+    "profile": "Profil",
+    "2fa": "2FA",
+    "update_avatar": "Changer d'avatar"
+  },
+  "file_uploader": {
+    "file_choose": "Choisir un fichier",
+    "drop": "Déposer",
+    "drag": "Ou le faire glisser jusqu'ici"
   },
   "footer": {
     "copyright": "© 2026 Tous droits réservés.",

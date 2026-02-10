@@ -2,11 +2,12 @@ import { useParams } from 'react-router-dom';
 import Toggle from '../components/atoms/Toggle';
 import FileUploader from '../components/molecules/FileUploader';
 import { Page } from '../components/organisms/PageContainer';
-import { useAuth } from '../components/helpers/AuthProvider';
 import Avatar from '../components/atoms/Avatar';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../api/profile-api';
 import { useState } from 'react';
+import { useAuth } from '../providers/AuthProvider';
+import { useTranslation } from 'react-i18next';
 
 const toggle2FA = () => {};
 
@@ -16,7 +17,7 @@ const toggle2FA = () => {};
 export const ProfilePage = () => {
   const params = useParams();
   const queryClient = useQueryClient();
-  const username = params.username || 'Toto';
+  const username = params.username || '';
   const { user: authUser, updateUser } = useAuth();
   const {
     data: displayedUser,
@@ -34,19 +35,20 @@ export const ProfilePage = () => {
   const isOwner = authUser && authUser.username === username;
   const [progress, setProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const { t } = useTranslation();
 
   if (isLoading) {
     return (
       <Page>
-        <div>Loading...</div>
+        <div>{t('global.loading')}</div>
       </Page>
     );
   }
 
-  if (isError || !displayedUser) {
+  if (isError || !displayedUser || username == '') {
     return (
       <Page>
-        <div>404 not found</div>
+        <div>{t('global.not_found')}</div>
       </Page>
     );
   }
@@ -76,7 +78,9 @@ export const ProfilePage = () => {
       <div className="flex flex-col gap-4">
         {/* Public section */}
         <div className="mb-3">
-          <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">Profile</h1>
+          <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">
+            {t('profile.profile')}
+          </h1>
           <div className="flex flex-col items-center">
             <Avatar src={displayedUser.avatarUrl} size="lg"></Avatar>
             <h2 className="mt-2 ts-form-title">{displayedUser.username}</h2>
@@ -87,17 +91,21 @@ export const ProfilePage = () => {
         {isOwner && (
           <>
             <div className="mb-3">
-              <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">2FA</h1>
+              <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">
+                {t('profile.2fa')}
+              </h1>
               <div className="flex flex-row justify-center">
                 <Toggle onToggle={toggle2FA} className="mr-3"></Toggle>
                 <label htmlFor="Toggle" className="text-gray-600">
-                  disabled
+                  {t('global.disabled')}
                 </label>
               </div>
             </div>
 
             <div className="mb-3">
-              <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">Update avatar</h1>
+              <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">
+                {t('profile.update_avatar')}
+              </h1>
               <div className="flex flex-row justify-center">
                 <FileUploader onFileSelect={handleUpload}></FileUploader>
               </div>

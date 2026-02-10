@@ -4,7 +4,7 @@ import {
   ERR_DEFS,
   AppError,
   type ProfileCreateInDTO,
-  type ProfileDTO,
+  type ProfileSimpleDTO,
   LOG_RESOURCES,
   LOG_EVENTS,
   LOG_REASONS,
@@ -42,36 +42,29 @@ export class ProfileRepository {
     }
   }
 
-  async findProfileByUsername(username: string): Promise<ProfileDTO | null> {
+  async findProfileByUsername(username: string): Promise<UserProfile | null> {
     const found = await prisma.userProfile.findUnique({
       where: { username },
-      select: {
-        authId: true,
-        username: true,
-        avatarUrl: true,
-      },
     });
     logger.info({ msg: 'found profile in data', found: found });
     return found;
   }
 
-  async findProfileById(id: number): Promise<ProfileDTO | null> {
+  async findProfileById(id: number): Promise<ProfileSimpleDTO | null> {
     return await prisma.userProfile.findUnique({
       where: { authId: id },
       select: {
-        authId: true,
         username: true,
         avatarUrl: true,
       },
     });
   }
 
-  async updateProfileAvatar(id: number, newAvatarUrl: string): Promise<ProfileDTO> {
+  async updateProfileAvatar(id: number, newAvatarUrl: string): Promise<ProfileSimpleDTO> {
     return await prisma.userProfile.update({
       where: { authId: id },
       data: { avatarUrl: newAvatarUrl },
       select: {
-        authId: true,
         username: true,
         avatarUrl: true,
       },
@@ -108,9 +101,10 @@ export class ProfileRepository {
     }
   }
 
-  async deleteProfile(id: number): Promise<ProfileDTO> {
+  async deleteProfile(id: number): Promise<ProfileSimpleDTO> {
     return await prisma.userProfile.delete({
       where: { authId: id },
+      select: { username: true, avatarUrl: true },
     });
   }
 }

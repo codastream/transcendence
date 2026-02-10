@@ -1,8 +1,9 @@
 import { logger } from '../../index.js';
 import { CreateProfileDTO, UserProfileDTO } from '../../types/dto.js';
 import { ServiceError } from '../../types/errors.js';
-import { ERROR_CODES, EVENTS, REASONS, UM_SERVICE_URL } from '../../utils/constants.js';
+import { EVENTS, REASONS, UM_SERVICE_URL } from '../../utils/constants.js';
 import { APP_ERRORS } from '../../utils/error-catalog.js';
+import { ERROR_CODES } from '@transcendence/core';
 import { mtlsAgent } from '../../utils/mtlsAgent.js';
 import { MTLSRequestInit } from '../../types/https.js';
 

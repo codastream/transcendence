@@ -51,7 +51,7 @@ export async function healthByNameHandler(req: FastifyRequest, reply: FastifyRep
   }
 }
 
-export async function healthAllHandler(req: FastifyRequest, reply: FastifyReply) {
+export async function healthAllHandler(req: FastifyRequest) {
   const results: Record<string, string> = {};
 
   await Promise.all(

@@ -1,11 +1,17 @@
 interface CircleProps {
   children: React.ReactNode;
   className?: string;
+  size?: number;
 }
 
-const Circle = ({ children, className = '' }: CircleProps) => {
+const Circle = ({ children, className = '', size = 120 }: CircleProps) => {
   return (
     <div
+      style={
+        {
+          '--circle-size': `${size}vh`,
+        } as React.CSSProperties
+      }
       className={`
       bg-white/80
       lg-bg-teal-100/10
@@ -27,8 +33,8 @@ const Circle = ({ children, className = '' }: CircleProps) => {
       lg:left-1/2
       lg:-translate-x-1/2
       lg:-translate-y-1/2
-      lg:w-[120vh]
-      lg:h-[120vh]
+      lg:h-(--circle-size) 
+      lg:w-(--circle-size) 
       lg:rounded-full
       ${className}`}
     >

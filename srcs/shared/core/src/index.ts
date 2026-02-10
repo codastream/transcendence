@@ -12,15 +12,26 @@
 // Constants
 // ============================================================================
 
-export { RequestStatus, CONFIG } from './constants/index.js';
+export { RequestStatus, CONFIG, HTTP_STATUS } from './constants/index.js';
 
 // ============================================================================
 // Errors
 // ============================================================================
 
 export { ERR_DEFS } from './errors/error-catalog.js';
+export { ERROR_CODES } from './errors/error-codes.js';
 
-export { AppError, type ErrorDefinition, type ErrorCode } from './errors/error-types.js';
+export {
+  AppError,
+  FrontendError,
+  type FrontendReasonValue,
+  type ErrorDetail,
+  type ErrorDefinition,
+  type ErrorCode,
+  type HttpStatus,
+  mapZodIssuesToErrorDetails,
+  mapToFrontendError,
+} from './errors/error-types.js';
 
 // ============================================================================
 // Logging
@@ -34,11 +45,18 @@ export { type LogContext, type EventValue, type ReasonValue } from './logging/lo
 // Zod Schemas
 // ============================================================================
 
-export { idSchema, usernameSchema, IdSchema, roleShema } from './schemas/base.schema.js';
+export {
+  idSchema,
+  usernameSchema,
+  emailSchema,
+  passwordSchema,
+  IdSchema,
+  roleShema,
+} from './schemas/base.schema.js';
 export { UserNameSchema } from './schemas/user.schema.js';
 export { UserSchema, UserLoginSchema, UserRegisterSchema } from './schemas/auth.schema.js';
 export {
-  ProfileSchema,
+  // ProfileSchema,
   ProfileSimpleSchema,
   ProfileCreateInSchema,
 } from './schemas/profile.schema.js';
@@ -61,6 +79,7 @@ export {
 export type {
   idDTO,
   usernameDTO,
+  emailDTO,
   IdDTO,
   RoleDTO,
   TargetUserIdDTO as targetUserIdDTO,
@@ -79,8 +98,8 @@ export type {
 export type {
   ProfileDTO,
   ProfileSimpleDTO,
-  ProfileAuthDTO,
+  // ProfileAuthDTO,
   ProfileDataDTO,
-  ProfileStoredDTO,
+  // ProfileStoredDTO,
   ProfileCreateInDTO,
 } from './schemas/profile.schema.js';

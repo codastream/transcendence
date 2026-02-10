@@ -312,31 +312,31 @@ export const REASONS = {
 /**
  * Standardized errors, defining what will be displayed to end user
  */
-export const ERROR_CODES = {
-  // 400 Validation
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
+// export const ERROR_CODES = {
+//   // 400 Validation
+//   VALIDATION_ERROR: 'VALIDATION_ERROR',
 
-  // 401 Authentication
-  UNAUTHORIZED: 'UNAUTHORIZED',
-  INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+//   // 401 Authentication
+//   UNAUTHORIZED: 'UNAUTHORIZED',
+//   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
 
-  // 403 Access
-  FORBIDDEN: 'FORBIDDEN', // if admin role is required
+//   // 403 Access
+//   FORBIDDEN: 'FORBIDDEN', // if admin role is required
 
-  // 404 - 409 Resources
-  NOT_FOUND: 'NOT_FOUND',
-  CONFLICT: 'CONFLICT',
+//   // 404 - 409 Resources
+//   NOT_FOUND: 'NOT_FOUND',
+//   CONFLICT: 'CONFLICT',
 
-  // 429 Limits
-  RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
+//   // 429 Limits
+//   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
 
-  // specific
-  MFA_REQUIRED: 'MFA_REQUIRED',
-  MFA_INVALID: 'INVALID_MFA_CODE',
+//   // specific
+//   MFA_REQUIRED: 'MFA_REQUIRED',
+//   MFA_INVALID: 'INVALID_MFA_CODE',
 
-  // 500 for all server errors - no details needed for end user
-  INTERNAL_ERROR: 'INTERNAL_ERROR',
-} as const;
+//   // 500 for all server errors - no details needed for end user
+//   INTERNAL_ERROR: 'INTERNAL_ERROR',
+// } as const;
 
 /**
  * Error codes for data layer only

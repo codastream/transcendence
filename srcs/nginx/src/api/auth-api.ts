@@ -1,41 +1,61 @@
 import {
-  idDTO,
+  ERROR_CODES,
+  ErrorDetail,
+  FrontendError,
+  HTTP_STATUS,
+  LOG_REASONS,
   UserDTO,
   UserLoginDTO,
   UserLoginSchema,
   usernameDTO,
-  usernameSchema,
   UserRegisterDTO,
   UserRegisterSchema,
+  FrontendReasonValue,
 } from '@transcendence/core';
 import api from './api-client';
+import i18next from 'i18next';
 
 export const authApi = {
-  register: async (payload: UserRegisterDTO): Promise<idDTO> => {
-    UserRegisterSchema.parse(payload);
+  register: async (payload: UserRegisterDTO): Promise<usernameDTO> => {
+    const validation = UserRegisterSchema.safeParse(payload);
+    if (!validation.success) {
+      const details: ErrorDetail[] = validation.error.issues.map((issue) => ({
+        field: issue.path[0]?.toString() || 'form',
+        message: issue.message,
+        reason: (issue?.code as FrontendReasonValue) || LOG_REASONS.UNKNOWN,
+      }));
+      throw new FrontendError(
+        i18next.t(`errors.${ERROR_CODES.VALIDATION_ERROR}`),
+        HTTP_STATUS.BAD_REQUEST,
+        ERROR_CODES.VALIDATION_ERROR,
+        details,
+      );
+    }
     const { data } = await api.post(`/auth/register`, payload);
-    return data.result.id;
+    return data.user?.username;
   },
 
   login: async (payload: UserLoginDTO): Promise<usernameDTO> => {
-    // console.log(`POST /auth/login with payload ${payload}`);
-    UserLoginSchema.parse(payload);
+    const validation = UserLoginSchema.safeParse(payload);
+    if (!validation.success) {
+      const details: ErrorDetail[] = validation.error.issues.map((issue) => ({
+        field: issue.path[0]?.toString() || 'form',
+        message: issue.message,
+        reason: (issue?.code as FrontendReasonValue) || LOG_REASONS.UNKNOWN,
+      }));
+      throw new FrontendError(
+        i18next.t(`errors.${ERROR_CODES.VALIDATION_ERROR}`),
+        HTTP_STATUS.BAD_REQUEST,
+        ERROR_CODES.VALIDATION_ERROR,
+        details,
+      );
+    }
     const { data } = await api.post(`/auth/login`, payload);
-    // console.log(`reply from POST /auth/login ${data}`);
     return data?.user?.username;
   },
 
-  me: async (username: usernameDTO): Promise<UserDTO> => {
-    usernameSchema.parse(username);
-    // const response = await api.get(`/auth/me/${username}`);
-    const response = {
-      data: {
-        authId: 1,
-        email: 'toto@mail.com',
-        username: 'Toto',
-      },
-      message: 'OK',
-    };
+  me: async (): Promise<UserDTO> => {
+    const response = await api.get(`/auth/me/`);
     return response.data;
   },
 };

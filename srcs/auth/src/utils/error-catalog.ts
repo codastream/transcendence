@@ -1,5 +1,6 @@
 import { ErrorCode, ErrorDefinition, ReasonValue } from '../types/errors.js';
-import { ERROR_CODES, EVENTS, REASONS } from './constants.js';
+import { EVENTS, REASONS } from './constants.js';
+import { ERROR_CODES } from '@transcendence/core';
 
 // Factory pattern to centralize error generation
 

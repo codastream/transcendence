@@ -1,18 +1,18 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as authService from '../services/auth.service.js';
 import { ValidationSchemas } from '../utils/validation.js';
-import {
-  AUTH_CONFIG,
-  HTTP_STATUS,
-  ERROR_MESSAGES,
-  ERROR_RESPONSE_CODES,
-} from '../utils/constants.js';
-import { ServiceError } from '../types/errors.js';
+import { AUTH_CONFIG, ERROR_MESSAGES, UserRole } from '../utils/constants.js';
 import * as totpService from '../services/totp.service.js';
 import * as onlineService from '../services/online.service.js';
 import { logger } from '../index.js';
 import { generateJWT } from '../services/jwt.service.js';
-
+import {
+  AppError,
+  ERROR_CODES,
+  HTTP_STATUS,
+  mapToFrontendError,
+  mapZodIssuesToErrorDetails,
+} from '@transcendence/core';
 /**
  * Configuration des cookies avec security enforcée en production
  */
@@ -66,8 +66,8 @@ export async function registerHandler(
       return reply.code(HTTP_STATUS.CONFLICT).send({
         error: {
           message: 'Username is already taken',
-          code: 'USERNAME_EXISTS',
-          field: 'username',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'username' }],
         },
       });
     }
@@ -76,8 +76,8 @@ export async function registerHandler(
       return reply.code(HTTP_STATUS.CONFLICT).send({
         error: {
           message: 'Email is already taken',
-          code: 'EMAIL_EXISTS',
-          field: 'email',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'email' }],
         },
       });
     }
@@ -92,7 +92,9 @@ export async function registerHandler(
       return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
         error: {
           message: "Erreur lors de la vérification du nom d'utilisateur. Veuillez réessayer.",
-          code: 'DB_FIND_USER_BY_USERNAME_ERROR',
+          // code: 'DB_FIND_USER_BY_USERNAME_ERROR',
+          code: ERROR_CODES.INTERNAL_ERROR,
+          details: [{ field: 'username' }],
         },
       });
     }
@@ -100,7 +102,9 @@ export async function registerHandler(
       return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
         error: {
           message: "Erreur lors de la vérification de l'email. Veuillez réessayer.",
-          code: 'DB_FIND_USER_BY_EMAIL_ERROR',
+          // code: 'DB_FIND_USER_BY_EMAIL_ERROR',
+          code: ERROR_CODES.INTERNAL_ERROR,
+          details: [{ field: 'email' }],
         },
       });
     }
@@ -122,14 +126,9 @@ export async function registerHandler(
     });
   } catch (err: any) {
     req.log.error({ event: 'register_error', username, email, err: err?.message || err });
-    if (err instanceof ServiceError) {
-      return reply.code(err.statusCode || 502).send({
-        error: {
-          message: err.message,
-          code: err.context?.event,
-          reason: err.context?.reason,
-          upstream: err.context?.originalError,
-        },
+    if (err instanceof AppError) {
+      return reply.code(err.statusCode).send({
+        error: mapToFrontendError(err),
       });
     }
     // Add errors handling
@@ -137,8 +136,8 @@ export async function registerHandler(
       return reply.code(HTTP_STATUS.CONFLICT).send({
         error: {
           message: err.message || 'Username is already taken',
-          code: 'USERNAME_EXISTS',
-          field: 'username',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'username' }],
         },
       });
     }
@@ -146,8 +145,8 @@ export async function registerHandler(
       return reply.code(HTTP_STATUS.CONFLICT).send({
         error: {
           message: err.message || 'Email is already taken',
-          code: 'EMAIL_EXISTS',
-          field: 'email',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'email' }],
         },
       });
     }
@@ -155,7 +154,7 @@ export async function registerHandler(
       return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
         error: {
           message: 'Impossible de créer votre compte pour le moment. Veuillez réessayer.',
-          code: 'DB_CREATE_USER_ERROR',
+          code: ERROR_CODES.INTERNAL_ERROR,
         },
       });
     }
@@ -164,7 +163,7 @@ export async function registerHandler(
         error: {
           message:
             "Ces informations sont déjà utilisées. Veuillez vérifier votre nom d'utilisateur et email.",
-          code: 'UNIQUE_VIOLATION',
+          code: ERROR_CODES.CONFLICT,
         },
       });
     }
@@ -172,7 +171,7 @@ export async function registerHandler(
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: {
         message: "Une erreur s'est produite lors de la création du compte. Veuillez réessayer.",
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -188,20 +187,10 @@ export async function loginHandler(
   if (!validation.success) {
     this.log.warn({ event: 'login_validation_failed', errors: validation.error.issues });
 
-    // Formater les erreurs de validation
-    const fieldErrors: Record<string, string[]> = {};
-    validation.error.issues.forEach((issue: any) => {
-      const field = (issue.path[0] as string) || 'general';
-      if (!fieldErrors[field]) fieldErrors[field] = [];
-      fieldErrors[field].push(issue.message);
-    });
-
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
       error: {
-        message: "Veuillez fournir un nom d'utilisateur (ou email) et un mot de passe valides.",
-        code: 'VALIDATION_ERROR',
-        details: validation.error.issues,
-        fields: fieldErrors,
+        code: ERROR_CODES.VALIDATION_ERROR,
+        details: mapZodIssuesToErrorDetails(validation.error.issues),
       },
     });
   }
@@ -212,20 +201,22 @@ export async function loginHandler(
   // TypeScript safety check
   if (!identifier) {
     logger.warn({ event: 'login_failed', reason: 'missing_identifier' });
-    return reply.code(HTTP_STATUS.BAD_REQUEST).send({
+    return reply.code(400).send({
       error: {
         message: "Veuillez entrer votre nom d'utilisateur ou votre adresse email.",
-        code: 'MISSING_IDENTIFIER',
+        code: ERROR_CODES.VALIDATION_MANDATORY,
+        details: [{ field: 'identifier' }],
       },
     });
   }
 
   if (!password) {
     logger.warn({ event: 'login_failed', reason: 'missing_password' });
-    return reply.code(HTTP_STATUS.BAD_REQUEST).send({
+    return reply.code(400).send({
       error: {
         message: 'Veuillez entrer votre mot de passe.',
-        code: 'MISSING_PASSWORD',
+        code: ERROR_CODES.VALIDATION_MANDATORY,
+        details: [{ field: 'password' }],
       },
     });
   }
@@ -233,27 +224,25 @@ export async function loginHandler(
   req.log.info({ event: 'login_attempt', identifier });
 
   try {
-    const user = authService.findUser(identifier);
+    const user = authService.findUser(identifier!);
 
     if (!user) {
       logger.warn({ event: 'login_failed', identifier, reason: 'user_not_found' });
       return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
         error: {
-          message: "Nom d'utilisateur ou mot de passe incorrect. Veuillez réessayer.",
-          code: 'INVALID_CREDENTIALS',
-          hint: 'Vérifiez que vous avez bien saisi vos identifiants.',
+          code: ERROR_CODES.INVALID_CREDENTIALS,
+          details: [{ field: 'identifier' }],
         },
       });
     }
 
-    const valid = authService.validateUser(identifier, password);
+    const valid = authService.validateUser(identifier!, password);
     if (!valid) {
       logger.warn({ event: 'login_failed', identifier, reason: 'invalid_password' });
       return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
         error: {
-          message: 'Mot de passe incorrect. Veuillez réessayer.',
-          code: 'INVALID_CREDENTIALS',
-          hint: 'Mot de passe oublié ? Contactez un administrateur.',
+          code: ERROR_CODES.INVALID_CREDENTIALS,
+          details: [{ field: 'password' }],
         },
       });
     }
@@ -308,15 +297,14 @@ export async function loginHandler(
     if (err && err.code === 'DB_FIND_USER_BY_IDENTIFIER_ERROR') {
       return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
         error: {
-          message: 'Erreur lors de la recherche de votre compte. Veuillez réessayer.',
-          code: 'DB_FIND_USER_BY_IDENTIFIER_ERROR',
+          message: 'Error recovering account',
+          code: ERROR_CODES.INTERNAL_ERROR,
         },
       });
     }
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: {
-        message: "Une erreur s'est produite lors de la connexion. Veuillez réessayer.",
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -345,7 +333,7 @@ export async function verifyHandler(
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: {
         message: 'No token provided',
-        code: 'TOKEN_MISSING',
+        code: ERROR_CODES.UNAUTHORIZED,
       },
     });
   }
@@ -361,7 +349,7 @@ export async function verifyHandler(
       return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
         error: {
           message: 'User not found',
-          code: 'USER_NOT_FOUND',
+          code: ERROR_CODES.INVALID_TOKEN,
         },
       });
     }
@@ -379,7 +367,7 @@ export async function verifyHandler(
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: {
         message: 'Invalid or expired token',
-        code: 'INVALID_TOKEN',
+        code: ERROR_CODES.INVALID_TOKEN,
       },
     });
   }
@@ -398,7 +386,7 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: {
         message: 'Authentication required',
-        code: 'UNAUTHORIZED',
+        code: ERROR_CODES.UNAUTHORIZED,
       },
     });
   }
@@ -412,7 +400,7 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
       return reply.code(HTTP_STATUS.NOT_FOUND).send({
         error: {
           message: 'User not found',
-          code: 'USER_NOT_FOUND',
+          code: ERROR_CODES.UNAUTHORIZED,
         },
       });
     }
@@ -434,10 +422,10 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
     });
   } catch (err: any) {
     logger.error({ event: 'me_request_error', user: username, id, err: err?.message || err });
-    return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+    return reply.code(500).send({
       error: {
         message: 'Internal server error',
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -459,7 +447,7 @@ export async function notFoundHandler(
   return reply.code(HTTP_STATUS.NOT_FOUND).send({
     error: {
       message: `Route not found: ${request.method} ${request.url}`,
-      code: 'ROUTE_NOT_FOUND',
+      code: ERROR_CODES.NOT_FOUND,
     },
   });
 }
@@ -866,7 +854,7 @@ export async function heartbeatHandler(
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: {
         message: ERROR_MESSAGES.UNAUTHORIZED,
-        code: ERROR_RESPONSE_CODES.UNAUTHORIZED,
+        code: ERROR_CODES.UNAUTHORIZED,
       },
     });
   }
@@ -889,7 +877,7 @@ export async function heartbeatHandler(
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: {
         message: ERROR_MESSAGES.FAILED_HEARTBEAT,
-        code: ERROR_RESPONSE_CODES.HEARTBEAT_ERROR,
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -923,7 +911,8 @@ export async function isUserOnlineHandler(
       return reply.code(HTTP_STATUS.NOT_FOUND).send({
         error: {
           message: ERROR_MESSAGES.USER_NOT_FOUND,
-          code: ERROR_RESPONSE_CODES.USER_NOT_FOUND,
+          code: ERROR_CODES.NOT_FOUND,
+          details: [{ field: 'user' }],
         },
       });
     }
@@ -944,7 +933,7 @@ export async function isUserOnlineHandler(
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: {
         message: ERROR_MESSAGES.FAILED_CHECK_USER_ONLINE,
-        code: ERROR_RESPONSE_CODES.CHECK_USER_ONLINE_ERROR,
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }

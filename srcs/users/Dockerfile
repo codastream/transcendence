@@ -63,12 +63,12 @@ COPY --from=builder /app/srcs/users/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/srcs/users/src/config ./src/config
 
 # Entry point
-COPY --from=builder /app/srcs/users/entrypoint.sh ./entrypoint.sh
+COPY srcs/users/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
+# RUN apk add --no-cache openssl
 
 # Runtime dirs
 RUN mkdir -p /app/data /app/uploads
 
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["node", "dist/index.js"]
-

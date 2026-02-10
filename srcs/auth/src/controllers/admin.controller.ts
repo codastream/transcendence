@@ -6,6 +6,7 @@ import { UserRole, HTTP_STATUS, ERROR_MESSAGES, ERROR_RESPONSE_CODES } from '../
 import { ServiceError } from '../types/errors.js';
 import { logger } from '../index.js';
 import { DBUser } from '../types/models.js';
+import { ERROR_CODES } from '@transcendence/core';
 
 /**
  * ADMIN ONLY - Liste tous les utilisateurs avec leurs informations complètes
@@ -130,7 +131,7 @@ export async function updateUserHandler(
     });
 
     if (err instanceof ServiceError) {
-      if (err.definition.code === 'CONFLICT') {
+      if (err.definition.code === ERROR_CODES.CONFLICT) {
         // C'est probablement une erreur d'email ou username existant
         if (err.message.toLowerCase().includes('email')) {
           return reply.code(HTTP_STATUS.CONFLICT).send({
