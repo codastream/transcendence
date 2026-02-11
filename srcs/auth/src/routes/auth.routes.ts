@@ -13,6 +13,7 @@ import {
   disable2FAHandler,
   heartbeatHandler,
   isUserOnlineHandler,
+  deleteUserHandler,
 } from '../controllers/auth.controller.js';
 import { AUTH_CONFIG } from '../utils/constants.js';
 
@@ -121,6 +122,20 @@ export async function authRoutes(app: FastifyInstance) {
   );
 
   app.post('/2fa/disable', disable2FAHandler);
+
+  // Suppression du compte utilisateur
+  app.delete(
+    '/user/delete',
+    {
+      config: {
+        rateLimit: {
+          max: AUTH_CONFIG.RATE_LIMIT.DELETE_USER.max,
+          timeWindow: AUTH_CONFIG.RATE_LIMIT.DELETE_USER.timeWindow,
+        },
+      },
+    },
+    deleteUserHandler,
+  );
 
   app.get(
     '/is-online/:name',

@@ -93,6 +93,10 @@ export const AUTH_CONFIG = {
       max: isTestOrDev ? 1000 : 2000,
       timeWindow: '1 minute',
     },
+    DELETE_USER: {
+      max: isTestOrDev ? 100 : 5,
+      timeWindow: '1 minute',
+    },
   },
 } as const;
 

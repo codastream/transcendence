@@ -73,6 +73,20 @@ const deleteProfileSchema = {
   },
 } as const;
 
+const deleteProfileByIdSchema = {
+  tags: ['users'],
+  summary: 'Delete a profile by user ID',
+  description: 'Delete a profile by user ID (internal service use)',
+  params: z.object({
+    userId: z.coerce.number(),
+  }),
+  response: {
+    204: z.void(),
+    400: ValidationErrorSchema,
+    404: DetailedErrorSchema,
+  },
+} as const;
+
 export const umRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get(
     '/health',
@@ -103,5 +117,11 @@ export const umRoutes: FastifyPluginAsyncZod = async (app) => {
     '/username/:username',
     { schema: deleteProfileSchema },
     profileController.deleteProfile,
+  );
+
+  app.delete(
+    '/users/:userId',
+    { schema: deleteProfileByIdSchema },
+    profileController.deleteProfileById,
   );
 };

@@ -214,7 +214,7 @@ export async function deleteUserHandler(
     }
 
     const targetUsername = targetUser.username;
-    authService.deleteUserAsAdmin(targetUserId);
+    await authService.deleteUser(targetUserId);
 
     logger.info({
       event: 'admin_delete_user_success',

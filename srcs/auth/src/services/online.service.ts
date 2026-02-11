@@ -244,3 +244,32 @@ export async function closeRedis(): Promise<void> {
     logger.info({ event: 'redis_connection_closed' });
   }
 }
+
+/**
+ * Supprime toutes les données Redis d'un utilisateur
+ */
+export async function removeUserFromRedis(userId: number): Promise<void> {
+  try {
+    const client = getRedisClient();
+    const userKey = `${ONLINE_KEY_PREFIX}${userId}`;
+
+    // Supp user online key
+    await client.del(userKey);
+
+    // Supp user du set des utilisateurs en ligne
+    await client.srem(ONLINE_USERS_SET, userId.toString());
+
+    logger.info({
+      event: 'user_redis_cleanup',
+      userId,
+      message: 'User data removed from Redis',
+    });
+  } catch (error) {
+    logger.error({
+      event: 'user_redis_cleanup_error',
+      userId,
+      error: (error as Error)?.message,
+    });
+    throw error;
+  }
+}

@@ -938,3 +938,71 @@ export async function isUserOnlineHandler(
     });
   }
 }
+
+/**
+ * Suppression du compte utilisateur
+ * Permet à un utilisateur de supprimer définitivement son compte
+ */
+export async function deleteUserHandler(
+  this: FastifyInstance,
+  req: FastifyRequest,
+  reply: FastifyReply,
+) {
+  try {
+    // ID utilisateur headers
+    const idHeader = (req.headers as any)['x-user-id'];
+    const userId = idHeader ? Number(idHeader) : null;
+    const username = (req.headers as any)['x-user-name'] || null;
+
+    if (!userId) {
+      this.log.warn({
+        event: 'delete_user_unauthorized',
+        username,
+      });
+      return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
+        error: {
+          message: ERROR_MESSAGES.UNAUTHORIZED,
+          code: ERROR_CODES.UNAUTHORIZED,
+        },
+      });
+    }
+
+    this.log.info({
+      event: 'delete_user_request',
+      userId,
+      username,
+    });
+
+    await authService.deleteUser(userId);
+
+    this.log.info({
+      event: 'delete_user_success',
+      userId,
+      username,
+    });
+
+    return reply.code(HTTP_STATUS.NO_CONTENT).send();
+  } catch (error: unknown) {
+    this.log.error({
+      event: 'delete_user_error',
+      error: (error as Error)?.message || error,
+    });
+
+    if (error instanceof AppError) {
+      const frontendError = mapToFrontendError(error);
+      return reply.code(frontendError.statusCode).send({
+        error: {
+          message: frontendError.message,
+          code: frontendError.code,
+        },
+      });
+    }
+
+    return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+      error: {
+        message: 'Internal server error',
+        code: ERROR_CODES.INTERNAL_ERROR,
+      },
+    });
+  }
+}
