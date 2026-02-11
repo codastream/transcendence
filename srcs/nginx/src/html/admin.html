@@ -893,7 +893,7 @@
 
 				// Check admin role
 				if (currentUser.role !== 'admin' && currentUser.role !== 'moderator') {
-					showAlert('Accès refusé. Vous devez être administrateur.', 'error');
+					showAlert('Accès refusé. Permissions insuffisantes.', 'error');
 					setTimeout(() => window.location.href = '/', 3000);
 					return;
 				}
