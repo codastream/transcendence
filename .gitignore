@@ -175,3 +175,5 @@ output.css
 **/src/SmartContract/dump.rdb
 make/scripts/certs/certs
 .venv
+*.ai
+docs/welcomPage.jpg
