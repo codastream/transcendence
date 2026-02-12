@@ -171,15 +171,15 @@ export async function deleteUserHandler(
   req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  // Récupérer les informations admin déjà validées par verifyAdminRole
-  const adminUserId = (req as any).adminUserId;
-  const adminUsername = (req as any).adminUsername;
+  // Récupérer les informations verifyAdminRole
+  const authUser = (req as any).authUser;
   const targetUserId = Number((req.params as any).id);
 
   logger.info({
     event: 'admin_delete_user_attempt',
-    admin: adminUsername,
-    adminUserId,
+    actor: authUser.username,
+    actorId: authUser.id,
+    actorRole: authUser.role,
     targetUserId,
   });
 
@@ -193,7 +193,7 @@ export async function deleteUserHandler(
   }
 
   // Empêcher l'auto-suppression
-  if (targetUserId === adminUserId) {
+  if (targetUserId === authUser.id) {
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
       error: {
         message: ERROR_MESSAGES.SELF_DELETION_FORBIDDEN,
@@ -219,7 +219,8 @@ export async function deleteUserHandler(
 
     logger.info({
       event: 'admin_delete_user_success',
-      admin: adminUsername,
+      actor: authUser.username,
+      actorRole: authUser.role,
       targetUserId,
       targetUsername,
     });
@@ -230,7 +231,7 @@ export async function deleteUserHandler(
   } catch (err: any) {
     logger.error({
       event: 'admin_delete_user_error',
-      admin: adminUsername,
+      actor: authUser.username,
       targetUserId,
       err: err?.message || err,
     });
@@ -245,22 +246,22 @@ export async function deleteUserHandler(
 }
 
 /**
- * ADMIN ONLY - Désactiver la 2FA d'un utilisateur
+ * MODERATOR or ADMIN - Désactiver la 2FA d'un utilisateur
  */
 export async function adminDisable2FAHandler(
   this: FastifyInstance,
   req: FastifyRequest,
   reply: FastifyReply,
 ) {
-  // Récupérer les informations admin déjà validées par verifyAdminRole
-  const adminUserId = (req as any).adminUserId;
-  const adminUsername = (req as any).adminUsername;
+  // Récupérer les informations verifyModeratorRole
+  const authUser = (req as any).authUser;
   const targetUserId = Number((req.params as any).id);
 
   logger.info({
     event: 'admin_disable_2fa_attempt',
-    admin: adminUsername,
-    adminUserId,
+    actor: authUser.username,
+    actorId: authUser.id,
+    actorRole: authUser.role,
     targetUserId,
   });
 
@@ -300,7 +301,8 @@ export async function adminDisable2FAHandler(
 
     logger.info({
       event: 'admin_disable_2fa_success',
-      admin: adminUsername,
+      actor: authUser.username,
+      actorRole: authUser.role,
       targetUserId,
       targetUsername: targetUser.username,
     });
@@ -311,7 +313,7 @@ export async function adminDisable2FAHandler(
   } catch (err: any) {
     logger.error({
       event: 'admin_disable_2fa_error',
-      admin: adminUsername,
+      actor: authUser.username,
       targetUserId,
       err: err?.message || err,
     });

@@ -84,7 +84,6 @@ export const LOG_REASONS = {
     MFA_TOTP_SECRET: 'mfa_totp_secret',
     RATE_LIMIT_REACHED: 'rate_limit_reached',
     ROLE_ADMIN_REQUIRED: 'role_admin_required',
-    ROLE_MODERATOR_REQUIRED: 'role_moderator_required',
   },
   VALIDATION: {
     MISSING_FIELD: 'missing_field',

@@ -99,8 +99,8 @@ export const AUTH_CONFIG = {
 /**
  * Rôles utilisateur pour RBAC (Role-Based Access Control)
  * USER: utilisateur standard
- * MODERATOR: peut désactiver la 2FA des utilisateurs
- * ADMIN: contrôle total (update, delete, disable 2FA)
+ * MODERATOR: peut consulter la liste des utilisateurs et désactiver la 2FA
+ * ADMIN: contrôle total (view, update, delete users, disable 2FA)
  */
 export enum UserRole {
   USER = 'user',

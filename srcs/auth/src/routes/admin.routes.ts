@@ -10,7 +10,7 @@ import { UserRole, HTTP_STATUS, ERROR_MESSAGES, ERROR_RESPONSE_CODES } from '../
 
 /**
  * Pré-handler pour vérifier si l'utilisateur est administrateur
- * Ajoute adminUserId et adminUsername a la requête
+ * Ajoute authUser (id, username, role) à la requête
  */
 export async function verifyAdminRole(req: FastifyRequest, reply: FastifyReply) {
   const idHeader = (req.headers as any)['x-user-id'];
@@ -31,14 +31,17 @@ export async function verifyAdminRole(req: FastifyRequest, reply: FastifyReply) 
     });
   }
 
-  (req as any).adminUserId = userId;
-  (req as any).adminUsername = username;
+  (req as any).authUser = {
+    id: userId,
+    username,
+    role: authService.getUserRole(userId),
+  };
 }
 
 /**
  * Pré-handler pour vérifier si l'utilisateur est modérateur ou administrateur
- * Permet aux modérateurs de désactiver la 2FA uniquement
- * Ajoute adminUserId et adminUsername a la requête
+ * Permet aux modérateurs de désactiver la 2FA et lister les utilisateurs
+ * Ajoute authUser (id, username, role) à la requête
  */
 export async function verifyModeratorRole(req: FastifyRequest, reply: FastifyReply) {
   const idHeader = (req.headers as any)['x-user-id'];
@@ -59,8 +62,11 @@ export async function verifyModeratorRole(req: FastifyRequest, reply: FastifyRep
     });
   }
 
-  (req as any).adminUserId = userId;
-  (req as any).adminUsername = username;
+  (req as any).authUser = {
+    id: userId,
+    username,
+    role: authService.getUserRole(userId),
+  };
 }
 
 /**

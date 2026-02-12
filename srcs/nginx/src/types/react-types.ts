@@ -11,9 +11,9 @@ export enum MenuActions {
 }
 
 export enum Roles {
-  USER = 'USER',
-  MODERATOR = 'MODERATOR',
-  ADMIN = 'ADMIN',
+  USER = 'user',
+  MODERATOR = 'moderator',
+  ADMIN = 'admin',
 }
 
 export interface AuthContextType {
