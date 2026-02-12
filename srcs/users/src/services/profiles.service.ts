@@ -82,6 +82,20 @@ export class ProfileService {
     const deletedProfile = await profileRepository.deleteProfile(profile.authId);
     return deletedProfile;
   }
+
+  @Trace
+  async deleteById(authId: number): Promise<void> {
+    const profile = await profileRepository.findProfileById(authId);
+    if (!profile) {
+      throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
+        details: {
+          resource: LOG_RESOURCES.PROFILE,
+          id: authId,
+        },
+      });
+    }
+    await profileRepository.deleteProfile(authId);
+  }
 }
 
 export const profileService = new ProfileService();

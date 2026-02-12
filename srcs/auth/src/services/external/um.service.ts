@@ -55,3 +55,52 @@ export async function createUserProfile(payload: CreateProfileDTO): Promise<User
     throw new ServiceError(APP_ERRORS.SERVICE_UNAVAILABLE, { originalError: error });
   }
 }
+
+/**
+ * Supprime un profil utilisateur via le service users
+ */
+export async function deleteUserProfile(userId: number): Promise<void> {
+  try {
+    logger.info({ msg: `calling DELETE ${UM_SERVICE_URL}/users/${userId}` });
+
+    // Configuration de la requête avec l'agent mTLS
+    const init: MTLSRequestInit = {
+      method: 'DELETE',
+      headers: {
+        'x-user-id': String(userId),
+      },
+      dispatcher: mtlsAgent,
+    };
+
+    const response = await fetch(`${UM_SERVICE_URL}/users/${userId}`, init);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      let parsedMessage = 'Failed to delete user profile';
+      try {
+        const parsed = JSON.parse(errorText);
+        parsedMessage = parsed?.message || parsedMessage;
+      } catch {
+        // keep fallback
+      }
+
+      throw new ServiceError(
+        {
+          code: ERROR_CODES.INTERNAL_ERROR,
+          event: EVENTS.DEPENDENCY.FAIL,
+          statusCode: response.status,
+          reason: REASONS.NETWORK.UPSTREAM_ERROR,
+          message: parsedMessage,
+        },
+        { originalError: { status: response.status, body: errorText } },
+      );
+    }
+
+    logger.info({ msg: `user profile deleted successfully`, userId });
+  } catch (error) {
+    logger.error({ msg: `error DELETE ${UM_SERVICE_URL}/users/${userId}`, error: error });
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError(APP_ERRORS.SERVICE_UNAVAILABLE, { originalError: error });
+  }
+}
