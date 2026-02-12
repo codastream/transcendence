@@ -3,6 +3,7 @@ import { RegisterForm } from '../organisms/RegisterForm';
 import { LoginForm } from '../organisms/LoginForm';
 import Circle from '../atoms/Circle';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../providers/AuthProvider';
 
 interface HaloProps {
   isRegister: boolean;
@@ -12,6 +13,7 @@ interface HaloProps {
 }
 const Halo = ({ className = '', size = 80, isRegister, onToggleForm }: HaloProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
   const title = isRegister ? t('auth.signup') : t('auth.login');
 
@@ -21,9 +23,9 @@ const Halo = ({ className = '', size = 80, isRegister, onToggleForm }: HaloProps
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <Circle size={isHovered ? size : 30} className="cursor-pointer p-8">
+      <Circle size={isHovered ? (isLoggedIn ? 40 : size) : 30} className="cursor-pointer p-8">
         {/* PLAY text */}
-        <span className={`text-2xl font-bold ${isHovered ? 'hidden' : 'block'}`}>PLAY</span>
+        <span className={`text-5xl font-bold ${isHovered ? 'hidden' : 'block'}`}>PLAY</span>
 
         {/* Forms */}
         <div className={`min-h-[100px] ${isHovered ? 'block' : 'hidden'}`}>

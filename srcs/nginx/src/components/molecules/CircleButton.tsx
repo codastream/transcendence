@@ -13,12 +13,13 @@ export const CircleButton = ({ children }: CircleButtonProps) => (
     transition={{ duration: 0.3 }}
     className={`
       basis-50
-      h-56 m-10 p-6    
+      h-50 w-50 m-10 p-6    
       aspect-square
       rounded-full
       bg-slate-100/80
       flex items-center justify-center
-      font-quantico border border-cyan-300 
+      font-quantico border border-cyan-300
+      text-2xl 
       text-gray-700
       ${dropdownStyle}
                   `}

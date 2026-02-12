@@ -9,6 +9,7 @@ import { useState } from 'react';
 import Circle from '../components/atoms/Circle';
 import { CircleButton } from '../components/molecules/CircleButton';
 import { useAuth } from '../providers/AuthProvider';
+import Scrollable from '../components/atoms/Scrollable';
 
 const colors = {
   start: '#00ff9f',
@@ -46,46 +47,21 @@ export const WelcomePage = () => {
         )}
         {/* Logged in - show 3 game options */}
         {isLoggedIn && (
-          <div className=" flex flex-1 items-center justify-center">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/game/pong-ai">
-                <CircleButton>{ai}</CircleButton>
-              </Link>
+          <Scrollable>
+            <Link to="/game/pong-ai">
+              <CircleButton>{ai}</CircleButton>
+            </Link>
 
-              <Link to="/game/simple-game">
-                <CircleButton>{friends}</CircleButton>
-              </Link>
+            <Link to="/game/simple-game">
+              <CircleButton>{friends}</CircleButton>
+            </Link>
 
-              <Link to="/game/tournament">
-                <CircleButton>{tournament}</CircleButton>
-              </Link>
-            </div>
-          </div>
+            <Link to="/game/tournament">
+              <CircleButton>{tournament}</CircleButton>
+            </Link>
+          </Scrollable>
         )}
       </Background>
     </div>
   );
 };
-// export const WelcomePage = () => {
-//   const { t } = useTranslation();
-//   const [isRegister, setIsRegister] = useState(false);
-//   const title = isRegister ? t('auth.signup') : t('auth.login');
-//   return (
-//     <div className={`w-full h-full relative`}>
-//       <Background
-//         grainIntensity={4}
-//         baseFrequency={0.28}
-//         colorStart={colors.start}
-//         colorEnd={colors.end}
-//       >
-//         <NavBar />
-//         <Halo
-//           size={200}
-//           isRegister={isRegister}
-//           onToggleForm={() => setIsRegister(!isRegister)}
-//           className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-//         />
-//       </Background>
-//     </div>
-//   );
-// };

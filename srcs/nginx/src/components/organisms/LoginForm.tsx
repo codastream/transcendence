@@ -89,11 +89,11 @@ export const LoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
       const username = state.fields.username;
       login({ username: username, avatarUrl: null });
       // navigate(`/profile/${username}`, { replace: true });
-      navigate(`/welcome`, { replace: true });
+      navigate(`/`, { replace: true });
     }
     if (user?.username) {
       // navigate(`/profile/${username}`, { replace: true });
-      navigate(`/welcome`, { replace: true });
+      navigate(`/`, { replace: true });
     }
   }, [state?.success, state?.fields?.username, user, navigate, login]);
   return (
