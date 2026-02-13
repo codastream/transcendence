@@ -202,10 +202,11 @@ export function hasRole(userId: number, requiredRole: UserRole): boolean {
   try {
     const userRole = getUserRole(userId);
 
-    // Hiérarchie des rôles : user < admin
+    // Hiérarchie des rôles : user < moderator < admin
     const roleHierarchy = {
       [UserRole.USER]: 0,
-      [UserRole.ADMIN]: 1,
+      [UserRole.MODERATOR]: 1,
+      [UserRole.ADMIN]: 2,
     };
 
     const userRoleLevel = roleHierarchy[userRole as UserRole] ?? 0;

@@ -30,7 +30,7 @@ export const passwordSchema = z
   .regex(/^(?=.*\d)/, 'Password must contain at least one number')
   .regex(/^(?=.*[!@#$%^&*])/, 'Password must contain at least one special character (!@#$%^&*)');
 
-export const roleShema = z.enum(['GUEST', 'USER', 'ADMIN']);
+export const roleSchema = z.enum(['user', 'moderator', 'admin']);
 
 export const emailSchema = z.email();
 
@@ -52,5 +52,5 @@ export type emailDTO = z.output<typeof emailSchema>;
 export type idDTO = z.output<typeof idSchema>;
 
 export type IdDTO = z.output<typeof IdSchema>;
-export type RoleDTO = z.output<typeof roleShema>;
+export type RoleDTO = z.output<typeof roleSchema>;
 export type TargetUserIdDTO = z.output<typeof TargetUserIdSchema>;

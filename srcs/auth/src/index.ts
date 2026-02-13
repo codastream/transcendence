@@ -3,7 +3,7 @@ import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
 import { authRoutes } from './routes/auth.routes.js';
-import { adminRoutes } from './routes/admin.routes.js';
+import { adminRoutes, moderatorRoutes } from './routes/admin.routes.js';
 import { initAdminUser, initInviteUser } from './utils/init-users.js';
 import * as totpService from './services/totp.service.js';
 import * as onlineService from './services/online.service.js';
@@ -141,6 +141,7 @@ app.register(fastifyRateLimit, {
 
 app.register(authRoutes, { prefix: '/' });
 app.register(adminRoutes, { prefix: '/admin' });
+app.register(moderatorRoutes, { prefix: '/admin' });
 
 (async () => {
   try {

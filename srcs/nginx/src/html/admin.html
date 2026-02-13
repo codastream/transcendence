@@ -49,6 +49,11 @@
 			color: #92400e;
 		}
 
+		.badge.moderator {
+			background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+			color: #5b21b6;
+		}
+
 		.badge.user {
 			background: linear-gradient(135deg, #e5e7eb, #d1d5db);
 			color: #374151;
@@ -403,7 +408,7 @@
 		</div>
 
 		<!-- Stats Cards -->
-		<div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
 			<div class="stats-card">
 				<div class="flex items-center">
 					<div class="p-3 bg-blue-100 rounded-full">
@@ -451,6 +456,21 @@
 			</div>
 			<div class="stats-card">
 				<div class="flex items-center">
+					<div class="p-3 bg-purple-100 rounded-full">
+						<svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+							</path>
+						</svg>
+					</div>
+					<div class="ml-4">
+						<p class="text-sm font-medium text-gray-600">Modérateurs</p>
+						<p id="moderator-count" class="text-3xl font-bold text-gray-900">-</p>
+					</div>
+				</div>
+			</div>
+			<div class="stats-card">
+				<div class="flex items-center">
 					<div class="p-3 bg-indigo-100 rounded-full">
 						<svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -465,8 +485,8 @@
 			</div>
 			<div class="stats-card">
 				<div class="flex items-center">
-					<div class="p-3 bg-purple-100 rounded-full">
-						<svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<div class="p-3 bg-slate-100 rounded-full">
+						<svg class="w-8 h-8 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
 								d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
 						</svg>
@@ -506,6 +526,7 @@
 					<select id="role-filter" class="form-input" style="max-width: 200px;">
 						<option value="">Tous les rôles</option>
 						<option value="admin">Administrateurs</option>
+						<option value="moderator">Modérateurs</option>
 						<option value="user">Utilisateurs</option>
 					</select>
 					<select id="2fa-filter" class="form-input" style="max-width: 200px;">
@@ -571,7 +592,8 @@
 					<div class="flex items-center gap-2">
 						<button id="prev-page-btn" onclick="previousPage()" class="btn btn-secondary btn-sm" disabled>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+									d="M15 19l-7-7 7-7"></path>
 							</svg>
 							Précédent
 						</button>
@@ -579,7 +601,8 @@
 						<button id="next-page-btn" onclick="nextPage()" class="btn btn-secondary btn-sm" disabled>
 							Suivant
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7">
+								</path>
 							</svg>
 						</button>
 					</div>
@@ -633,9 +656,13 @@
 						</label>
 						<select id="edit-role" required class="form-input">
 							<option value="user">Utilisateur</option>
+							<option value="moderator">Modérateur</option>
 							<option value="admin">Administrateur</option>
 						</select>
 						<div id="edit-role-error" class="field-error" style="display: none;"></div>
+						<p class="text-xs text-gray-500 mt-1">
+							<strong>Modérateur:</strong> Peut désactiver la 2FA des utilisateurs uniquement
+						</p>
 					</div>
 					<div>
 						<label class="block text-sm font-semibold text-gray-700 mb-3">
@@ -651,7 +678,7 @@
 									class="btn btn-danger btn-sm" style="display: none;">
 									<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-											d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18 18M5.636 5.636L6 6">
+											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
 										</path>
 									</svg>
 									Désactiver 2FA
@@ -865,8 +892,8 @@
 				currentUser = data.user;
 
 				// Check admin role
-				if (currentUser.role !== 'admin') {
-					showAlert('Accès refusé. Vous devez être administrateur.', 'error');
+				if (currentUser.role !== 'admin' && currentUser.role !== 'moderator') {
+					showAlert('Accès refusé. Permissions insuffisantes.', 'error');
 					setTimeout(() => window.location.href = '/', 3000);
 					return;
 				}
@@ -922,6 +949,7 @@
 		function updateStats() {
 			const totalUsers = users.length;
 			const adminCount = users.filter(user => user.role === 'admin').length;
+			const moderatorCount = users.filter(user => user.role === 'moderator').length;
 			const userCount = users.filter(user => user.role === 'user').length;
 			const twoFaCount = users.filter(user => user.is2FAEnabled).length;
 			const onlineCount = users.filter(user => user.online).length;
@@ -929,6 +957,7 @@
 			document.getElementById('total-users').textContent = totalUsers;
 			document.getElementById('online-count').textContent = onlineCount;
 			document.getElementById('admin-count').textContent = adminCount;
+			document.getElementById('moderator-count').textContent = moderatorCount;
 			document.getElementById('user-count').textContent = userCount;
 			document.getElementById('2fa-count').textContent = twoFaCount;
 		}
@@ -974,8 +1003,19 @@
 
 			tbody.innerHTML = paginatedUsers.map(user => {
 				const isProtected = isProtectedAccount(user.username);
-				const canDelete = user.id !== currentUser.id && !isProtected;
-				const canModify = !isProtected;
+				// Permissions basées sur le rôle
+				const canDelete = canDeleteUsers() && user.id !== currentUser.id && !isProtected;
+				const canModify = canModifyUsers() && !isProtected;
+				const showModifyButton = canModifyUsers(); // Admin seulement
+				const showDeleteButton = canDeleteUsers(); // Admin seulement
+
+				// Traduction des rôles
+				const roleLabels = {
+					'user': 'Utilisateur',
+					'moderator': 'Modérateur',
+					'admin': 'Administrateur'
+				};
+				const roleLabel = roleLabels[user.role] || user.role;
 
 				return `
                 <tr class="hover:bg-gray-50">
@@ -988,7 +1028,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.email}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="badge ${user.role}">${user.role}</span>
+                        <span class="badge ${user.role}">${roleLabel}</span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="badge ${user.is2FAEnabled ? 'enabled' : 'disabled'}">
@@ -1002,7 +1042,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div class="table-actions">
-                            ${canModify ? `
+                            ${showModifyButton ? (canModify ? `
                                 <button onclick="editUser(${user.id})"
                                         class="btn btn-primary btn-sm"
                                         title="Modifier l'utilisateur">
@@ -1011,13 +1051,13 @@
                                     </svg>
                                 </button>
                             ` : `
-                                <button class="btn btn-secondary btn-sm" disabled title="Modification non autorisée">
+                                <button class="btn btn-secondary btn-sm" disabled title="Compte protégé">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                     </svg>
                                 </button>
-                            `}
-                            ${canDelete ? `
+                            `) : ''}
+                            ${showDeleteButton ? (canDelete ? `
                                 <button onclick="deleteUser(${user.id}, '${user.username}')"
                                         class="btn btn-danger btn-sm"
                                         title="Supprimer l'utilisateur">
@@ -1026,12 +1066,23 @@
                                     </svg>
                                 </button>
                             ` : `
-                                <button class="btn btn-secondary btn-sm" disabled title="Suppression non autorisée">
+                                <button class="btn btn-secondary btn-sm" disabled title="${user.id === currentUser.id ? 'Impossible de se supprimer soi-même' : 'Compte protégé'}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                     </svg>
                                 </button>
-                            `}
+                            `) : ''}
+                            ${user.is2FAEnabled && canDisable2FA() ? `
+                                <button onclick="quickDisable2FA(${user.id}, '${user.username}')"
+                                        class="btn btn-danger btn-sm"
+                                        title="Désactiver la 2FA">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                                        </path>
+                                    </svg>
+                                </button>
+                            ` : ''}
                         </div>
                     </td>
                 </tr>
@@ -1054,25 +1105,56 @@
 
 
 		async function editUser(userId) {
+			// Seuls les admins peuvent modifier
+			if (!canModifyUsers()) {
+				showAlert('Vous n\'avez pas les permissions pour modifier les utilisateurs', 'error');
+				return;
+			}
+
 			const user = users.find(u => u.id === userId);
 			if (!user) return;
+
+			const isProtected = isProtectedAccount(user.username);
 
 			document.getElementById('edit-user-id').value = user.id;
 			document.getElementById('edit-username').value = user.username;
 			document.getElementById('edit-email').value = user.email;
 			document.getElementById('edit-role').value = user.role;
 
+			// Désactiver les champs pour les comptes protégés
+			const usernameField = document.getElementById('edit-username');
+			const emailField = document.getElementById('edit-email');
+			const roleField = document.getElementById('edit-role');
+			const submitBtn = document.getElementById('edit-user-btn');
+
+			if (isProtected) {
+				usernameField.disabled = true;
+				emailField.disabled = true;
+				roleField.disabled = true;
+				submitBtn.disabled = true;
+				showAlert('Ce compte est protégé et ne peut pas être modifié', 'warning');
+			} else {
+				usernameField.disabled = false;
+				emailField.disabled = false;
+				roleField.disabled = false;
+				submitBtn.disabled = false;
+			}
+
 			// Update 2FA status
 			const twoFaStatus = document.getElementById('2fa-status');
 			const disable2FABtn = document.getElementById('disable-2fa-btn');
 
-			if (user.is2FAEnabled) {
+			if (user.is2FAEnabled && canDisable2FA()) {
 				twoFaStatus.textContent = '2FA activée';
-				twoFaStatus.className = 'text-sm text-green-600';
-				disable2FABtn.style.display = 'inline-block';
+				twoFaStatus.className = 'badge enabled';
+				disable2FABtn.style.display = 'inline-flex';
+			} else if (user.is2FAEnabled) {
+				twoFaStatus.textContent = '2FA activée';
+				twoFaStatus.className = 'badge enabled';
+				disable2FABtn.style.display = 'none';
 			} else {
 				twoFaStatus.textContent = '2FA désactivée';
-				twoFaStatus.className = 'text-sm text-gray-600';
+				twoFaStatus.className = 'badge disabled';
 				disable2FABtn.style.display = 'none';
 			}
 
@@ -1081,6 +1163,12 @@
 
 		async function updateUser(event) {
 			event.preventDefault();
+
+			// Vérifier les permissions
+			if (!canModifyUsers()) {
+				showAlert('Vous n\'avez pas les permissions pour modifier les utilisateurs', 'error');
+				return;
+			}
 
 			const userId = parseInt(document.getElementById('edit-user-id').value);
 			const username = document.getElementById('edit-username').value.trim();
@@ -1091,6 +1179,12 @@
 			// Find current user being edited
 			const currentEditUser = users.find(u => u.id === userId);
 			const isProtected = currentEditUser && isProtectedAccount(currentEditUser.username);
+
+			// Bloquer la modification des comptes protégés
+			if (isProtected) {
+				showAlert('Les comptes protégés ne peuvent pas être modifiés', 'error');
+				return;
+			}
 
 			// Validate form
 			if (!validateEditForm()) {
@@ -1130,6 +1224,12 @@
 		}
 
 		async function deleteUser(userId, username) {
+			// Vérifier les permissions
+			if (!canDeleteUsers()) {
+				showAlert('Vous n\'avez pas les permissions pour supprimer les utilisateurs', 'error');
+				return;
+			}
+
 			// Check if it's the current user
 			if (userId === currentUser.id) {
 				showAlert('Vous ne pouvez pas supprimer votre propre compte', 'error');
@@ -1166,6 +1266,11 @@
 		}
 
 		async function disable2FA() {
+			if (!canDisable2FA()) {
+				showAlert('Vous n\'avez pas les permissions pour désactiver la 2FA', 'error');
+				return;
+			}
+
 			const userId = document.getElementById('edit-user-id').value;
 
 			if (!confirm('Êtes-vous sûr de vouloir désactiver la 2FA pour cet utilisateur ?')) {
@@ -1189,6 +1294,38 @@
 			} catch (error) {
 				console.error('Disable 2FA error:', error);
 				showAlert(error.message, 'error');
+			}
+		}
+
+		/**
+		 * Désactive la 2FA rapidement depuis la table (sans ouvrir le modal)
+		 */
+		async function quickDisable2FA(userId, username) {
+			if (!canDisable2FA()) {
+				showAlert('Vous n\'avez pas les permissions pour désactiver la 2FA', 'error');
+				return;
+			}
+
+			if (!confirm(`Êtes-vous sûr de vouloir désactiver la 2FA pour ${username} ?`)) {
+				return;
+			}
+
+			try {
+				const response = await fetch(`/api/auth/admin/users/${userId}/disable-2fa`, {
+					method: 'POST',
+					credentials: 'include'
+				});
+
+				if (!response.ok) {
+					const data = await response.json();
+					throw new Error(data.error?.message || 'Erreur lors de la désactivation de la 2FA');
+				}
+
+				showAlert(`2FA désactivée avec succès pour ${username}`, 'success');
+				await loadUsers();
+			} catch (error) {
+				console.error('Disable 2FA error:', error);
+				showAlert(error.message || 'Erreur lors de la désactivation de la 2FA', 'error');
 			}
 		}
 
@@ -1292,6 +1429,27 @@
 		function isProtectedAccount(username) {
 			const protectedAccounts = ['admin', 'invite'];
 			return protectedAccounts.includes(username.toLowerCase());
+		}
+
+		// Role-based permission checks
+		function isAdmin() {
+			return currentUser && currentUser.role === 'admin';
+		}
+
+		function isModerator() {
+			return currentUser && currentUser.role === 'moderator';
+		}
+
+		function canModifyUsers() {
+			return isAdmin();
+		}
+
+		function canDeleteUsers() {
+			return isAdmin();
+		}
+
+		function canDisable2FA() {
+			return isAdmin() || isModerator();
 		}
 
 

@@ -51,7 +51,7 @@ export {
   emailSchema,
   passwordSchema,
   IdSchema,
-  roleShema,
+  roleSchema,
 } from './schemas/base.schema.js';
 export { UserNameSchema } from './schemas/user.schema.js';
 export { UserSchema, UserLoginSchema, UserRegisterSchema } from './schemas/auth.schema.js';

@@ -734,11 +734,12 @@
                     if (data.user) {
                         const user = data.user
                         const isAdmin = user.role === 'admin'
+                        const isModerator = user.role === 'moderator'
                         const has2FA = user.isTwoFactorAuthEnabled || user.is2FAEnabled
 
                         // En-tête avec avatar et nom
                         html += '<div class="flex items-start space-x-4 mb-6">'
-                        html += `<div class="flex-shrink-0 w-16 h-16 ${isAdmin ? 'bg-gradient-to-br from-purple-500 to-purple-600' : 'bg-gradient-to-br from-blue-500 to-blue-600'} text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">`
+                        html += `<div class="flex-shrink-0 w-16 h-16 ${isAdmin ? 'bg-gradient-to-br from-purple-500 to-purple-600' : isModerator ? 'bg-gradient-to-br from-indigo-500 to-indigo-600' : 'bg-gradient-to-br from-blue-500 to-blue-600'} text-white rounded-full flex items-center justify-center text-2xl font-bold shadow-lg">`
                         html += `${(user.username || 'U').charAt(0).toUpperCase()}`
                         html += `</div>`
                         html += '<div class="flex-1">'
@@ -750,6 +751,9 @@
                         if (isAdmin) {
                             html += `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">`
                             html += `👑 Administrateur`
+                        } else if (isModerator) {
+                            html += `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">`
+                            html += `🔧 Modérateur`
                         } else {
                             html += `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800 border border-gray-200">`
                             html += `👤 Utilisateur`
@@ -815,8 +819,8 @@
                         html += `</svg>`
                         html += '<span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rôle</span>'
                         html += '</div>'
-                        html += `<p class="mt-1 text-sm font-medium ${isAdmin ? 'text-purple-700' : 'text-gray-900'}">`
-                        html += `${isAdmin ? '👑 Administrateur' : '👤 Utilisateur'}`
+                        html += `<p class="mt-1 text-sm font-medium ${isAdmin ? 'text-purple-700' : isModerator ? 'text-indigo-700' : 'text-gray-900'}">`
+                        html += `${isAdmin ? '👑 Administrateur' : isModerator ? '🔧 Modérateur' : '👤 Utilisateur'}`
                         html += `</p>`
                         html += '</div>'
 
@@ -837,7 +841,7 @@
                         html += '</div>'
 
                         // Lien admin si applicable
-                        if (isAdmin) {
+                        if (isAdmin || isModerator) {
                             html += `<div class="mt-6 pt-4 border-t border-gray-200">`
                             html += `<a href="/admin" class="inline-flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white text-sm font-semibold rounded-lg transition-all shadow-md hover:shadow-lg">`
                             html += `<svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">`
