@@ -117,3 +117,8 @@ export async function webSocketConnect(
   // }
   handleClientMessage.call(this, socket, sessionId);
 }
+
+export async function newTournament() {
+  // const tournament_id = createTournament();
+  // return reply.code(200).send(tournament_id);
+}
