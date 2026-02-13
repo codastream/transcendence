@@ -5,6 +5,7 @@ import {
   newGameSession,
   healthCheck,
   gameSettings,
+  newTournament,
 } from '../controllers/game.controller.js';
 
 export async function gameRoutes(app: FastifyInstance) {
@@ -13,4 +14,5 @@ export async function gameRoutes(app: FastifyInstance) {
   app.post('/create-session', newGameSession);
   app.get('/health', healthCheck);
   app.get('/:sessionId', { websocket: true }, webSocketConnect);
+  app.get('/create-tournament', newTournament);
 }
