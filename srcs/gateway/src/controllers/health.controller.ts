@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyRequest, FastifyReply } from 'fastify';
 import { logger } from '../utils/logger.js';
 import { fetchOptions } from '../utils/mtlsAgent.js';
 
@@ -9,7 +9,7 @@ const SERVICES: Record<string, { host: string; port: number }> = {
   blockchain: { host: 'blockchain-service', port: 3005 },
 };
 
-export async function healthHandler(request: FastifyRequest) {
+export async function healthHandler() {
   return { status: 'healthy' };
 }
 
