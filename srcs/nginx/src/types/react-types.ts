@@ -13,6 +13,7 @@ export enum UserActions {
   PLAY = 'play',
   ADD = 'add',
   REMOVE = 'remove',
+  CHANGE = 'change',
 }
 
 export enum MenuActions {
