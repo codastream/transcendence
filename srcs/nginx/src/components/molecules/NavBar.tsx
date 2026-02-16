@@ -1,4 +1,3 @@
-// import { UserRow } from './UserRow';
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
 import { Link } from 'react-router-dom';
@@ -56,7 +55,6 @@ export const NavBar = () => {
             style={{ textDecoration: 'non', color: 'inherit' }}
           >
             <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
-            {/* <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow> */}
           </Link>
         )}
         <Locale className="flex items-center" />

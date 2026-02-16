@@ -57,6 +57,12 @@
     "2fa": "2FA",
     "update_avatar": "Update avatar"
   },
+  "friends": {
+    "friends": "Friends",
+    "add": "add to friends",
+    "remove": "remove from friends",
+    "play": "play"
+  },
   "file_uploader": {
     "file_choose": "Choose a file",
     "drop": "Drop it",

@@ -3,6 +3,18 @@ import { ReactNode } from 'react';
 
 export type AvatarSize = 'sm' | 'md' | 'lg';
 
+export interface UserAction {
+  label: string;
+  color?: string;
+  icon: string;
+}
+
+export enum UserActions {
+  PLAY = 'play',
+  ADD = 'add',
+  REMOVE = 'remove',
+}
+
 export enum MenuActions {
   HOME = 'home',
   PLAY = 'play',

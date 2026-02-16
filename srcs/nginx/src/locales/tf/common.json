@@ -57,6 +57,12 @@
     "2fa": "Double contrôle",
     "update_avatar": "Se faire retirer le portrait"
   },
+  "friends": {
+    "friends": "Friends",
+    "add": "add to friends",
+    "remove": "remove from friends",
+    "play": "play"
+  },
   "file_uploader": {
     "file_choose": "Fais ton choix mon gars",
     "drop": "Allez, lâche le bouton !",
