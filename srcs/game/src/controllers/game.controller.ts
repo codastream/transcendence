@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { randomUUID } from 'crypto';
 import { gameSessions } from '../core/game.state.js';
 import { getGame as getSessionData } from '../service/game.init.js';
@@ -6,6 +6,7 @@ import { handleClientMessage } from '../service/game.communication.js';
 import { GameSettings } from '../core/game.types.js';
 import { WebSocket } from 'ws';
 import { WS_CLOSE } from '../core/game.state.js';
+import * as db from '../core/game.database.js';
 
 // Controller - get sessionId from body
 export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
@@ -118,7 +119,7 @@ export async function webSocketConnect(
   handleClientMessage.call(this, socket, sessionId);
 }
 
-export async function newTournament() {
-  // const tournament_id = createTournament();
-  // return reply.code(200).send(tournament_id);
+export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tournament_id = db.createTournament(req.user.sub);
+  return reply.code(200).send(tournament_id);
 }

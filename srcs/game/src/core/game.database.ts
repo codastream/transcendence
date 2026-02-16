@@ -10,11 +10,11 @@ const DB_PATH = process.env.GAME_DB_PATH || path.join(DEFAULT_DIR, 'game.db');
 // Check dir
 try {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-} catch (err) {
-  const e: any = new Error(
-    `Failed to ensure DB directory: ${(err as any)?.message || String(err)}`,
-  );
-  throw e;
+} catch (err: unknown) {
+  const message = err instanceof Error ? err.message : String(err);
+  const error = new Error(`Failed to ensure DB directory: ${message}`) as Error & { code: string };
+  error.code = 'GAME_DB_DIRECTORY_ERROR';
+  throw error;
 }
 
 export const db = new Database(DB_PATH);
@@ -55,11 +55,11 @@ ON match(tournament_id);
 CREATE INDEX IF NOT EXISTS idx_tournament_player_tid
 ON tournament_player(tournament_id);
 `);
-} catch (err) {
-  const e: any = new Error(
-    `Failed to initialize DB schema: ${(err as any)?.message || String(err)}`,
-  );
-  throw e;
+} catch (err: unknown) {
+  const msg = err instanceof Error ? err.message : String(err);
+  const error = new Error(`Failed to initialize DB schema: ${msg}`) as Error & { code: string };
+  error.code = 'GAME_DB_INIT_FAILED';
+  throw error;
 }
 
 const addMatchStmt = db.prepare(`
@@ -96,9 +96,12 @@ export function addMatch(match: MatchDTO): number {
       match.created_at,
     );
     return Number(idmatch.lastInsertRowid);
-  } catch (err: any) {
-    const error: any = new Error(`Error during Match storage: ${err?.message || err}`);
-    error.code = 'DB_INSERT_MATCH_ERR';
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const error: any = new Error(`Error during Match storage: ${message}`) as Error & {
+      code: string;
+    };
+    error.code = 'Game_DB_INSERT_MATCH_ERR';
     throw error;
   }
 }
@@ -123,7 +126,7 @@ export function addPlayerTournament(player: number, tournament: number) {
     const error = new Error(`Add Player to a tournament failed: ${message}`) as Error & {
       code: string;
     };
-    error.code = 'DB_UPDATE_TOURNAMENT_ERROR';
+    error.code = 'GAME_DB_UPDATE_TOURNAMENT_ERROR';
     throw error;
   }
 }
@@ -134,7 +137,7 @@ export function addPlayerPositionTournament(player: number, position: number, to
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     const error = new Error(`Add player position failed: ${message}`) as Error & { code: string };
-    error.code = 'DB_UPDATE_PLAYER_POSITION';
+    error.code = 'GAME_DB_UPDATE_PLAYER_POSITION';
     throw error;
   }
 }

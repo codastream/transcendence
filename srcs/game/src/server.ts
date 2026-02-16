@@ -4,6 +4,7 @@ import { gameRoutes } from './routes/game.routes.js';
 import { gameSessions } from './core/game.state.js';
 import type { PongGame } from './core/game.engine.js';
 import fs from 'fs';
+import authPlugin from './pulgins/auth.plugin.js';
 
 const fastify = Fastify({
   https: {
@@ -17,6 +18,9 @@ const fastify = Fastify({
 
   logger: true,
 });
+
+// Prehandlher for request route
+fastify.register(authPlugin);
 
 // Register WebSocket support
 await fastify.register(fastifyWebsocket);
