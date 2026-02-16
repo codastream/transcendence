@@ -63,7 +63,7 @@ export const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
         </div>
 
         <div
-          className={`border border-amber-400
+          className={`
      hidden md:flex absolute left-full top-1/2 -translate-y-1/2 w-64 h-64 z-50 transition-all
       ${isOpen ? 'opacity-100 scale-100 pointer-events-auto' : 'opacity-0 scale-50 pointer-events-none'}
 
@@ -92,7 +92,7 @@ export const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
                 }}
               >
                 <button
-                  className={`w-12 h-12 rounded-full bg-slate-700 ${isOpen ? 'hover:bg-white' : 'hover:bg-slate-700'} flex items-center justify-center shadow-lg  transition-all`}
+                  className={`w-12 h-12 rounded-full bg-slate-700 hover:bg-white active:scale-95 flex items-center justify-center shadow-lg  transition-all`}
                 >
                   <Icon className={`${actionProp.color}`} size={22} />
                 </button>
