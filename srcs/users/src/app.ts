@@ -36,6 +36,7 @@ export async function buildApp() {
         }),
   };
   const app = fastify(options).withTypeProvider<ZodTypeProvider>();
+  await app.register(redisPlugin);
 
   app.addHook('onRequest', (request, reply, done) => {
     const socket = request.raw.socket as any;
@@ -89,7 +90,6 @@ export async function buildApp() {
       },
     });
   }
-  app.register(redisPlugin);
   app.register(umRoutes, { prefix: '' });
   app.register(friendsRoutes, { prefix: '/friends' });
 

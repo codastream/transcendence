@@ -2,10 +2,12 @@ import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
 import { MatchDTO } from '../types/game.dto.js';
+import { env } from '../config/env.js';
+import { UserEvent } from '@transcendence/core';
 
 // DB path
 const DEFAULT_DIR = path.join(process.cwd(), 'data');
-const DB_PATH = process.env.GAME_DB_PATH || path.join(DEFAULT_DIR, 'game.db');
+const DB_PATH = env.GAME_DB_PATH || path.join(DEFAULT_DIR, 'game.db');
 
 // Check dir
 try {
@@ -49,9 +51,9 @@ CREATE TABLE IF NOT EXISTS tournament_player(
     PRIMARY KEY (tournament_id, player_id)
 );
 
-CREATE TABLE player (
+CREATE TABLE IF NOT EXISTS player (
     id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
     updated_at INTEGER NOT NULL
 );
 
@@ -103,6 +105,19 @@ LEFT JOIN player p
   ON p.id = t.creator_id
 WHERE t.status IN ('PENDING', 'STARTED')
 GROUP BY t.id;
+`);
+
+const upsertUserStmt = db.prepare(`
+INSERT INTO player (id, username, updated_at)
+VALUES (?, ?, ?)
+ON CONFLICT(id)
+DO UPDATE SET
+  username = excluded.username,
+  updated_at = excluded.updated_at
+`);
+
+const deleteUserStmt = db.prepare(`
+DELETE FROM player WHERE id = ?
 `);
 
 export function addMatch(match: MatchDTO): number {
@@ -159,6 +174,28 @@ export function addPlayerPositionTournament(player: number, position: number, to
     const message = err instanceof Error ? err.message : String(err);
     const error = new Error(`Add player position failed: ${message}`) as Error & { code: string };
     error.code = 'GAME_DB_UPDATE_PLAYER_POSITION';
+    throw error;
+  }
+}
+
+export async function upsertUser(user: UserEvent) {
+  try {
+    upsertUserStmt.run(user.id, user.username, user.timestamp);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const error = new Error(`Add or Update player failed: ${message}`) as Error & { code: string };
+    error.code = 'GAME_DB_UPSERT_FAILED';
+    throw error;
+  }
+}
+
+export async function deleteUser(id: number) {
+  try {
+    deleteUserStmt.run(id);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const error = new Error(`Delete user failed: ${message}`) as Error & { code: string };
+    error.code = 'GAME_DB_DELETE_USER_FAILED';
     throw error;
   }
 }

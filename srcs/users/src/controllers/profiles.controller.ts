@@ -9,6 +9,7 @@ import {
   ProfileCreateInDTO,
   usernameDTO,
   UserNameDTO,
+  UserEventType,
 } from '@transcendence/core';
 import { MultipartFile } from '@fastify/multipart';
 
@@ -17,6 +18,17 @@ export class ProfileController {
     req.log.trace({ event: `${LOG_ACTIONS.CREATE}_${LOG_RESOURCES.PROFILE}`, payload: req.body });
 
     const profile = await profileService.createProfile(req.body as ProfileCreateInDTO);
+    await req.server.redis.xadd(
+      'user.events',
+      '*',
+      'data',
+      JSON.stringify({
+        type: UserEventType.CREATED,
+        id: profile.id,
+        username: profile.username,
+        timestamp: Date.now(),
+      }),
+    );
     const profileSimpleDTO = mappers.mapProfileToDTO(profile);
     return reply.status(201).send(profileSimpleDTO);
   }
