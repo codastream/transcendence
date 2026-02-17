@@ -49,6 +49,12 @@ CREATE TABLE IF NOT EXISTS tournament_player(
     PRIMARY KEY (tournament_id, player_id)
 );
 
+CREATE TABLE player (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_match_tournament
 ON match(tournament_id);
 
@@ -83,6 +89,21 @@ SET
   final_position = ?
 WHERE tournament_id = ? and player_id = ?
   `);
+
+const listTournamentsStmt = db.prepare(`
+SELECT 
+  t.id,
+  t.status,
+  p.username as creator_username,
+  COUNT(tp.player_id) as player_count
+FROM tournament t
+LEFT JOIN tournament_player tp 
+  ON t.id = tp.tournament_id
+LEFT JOIN player p 
+  ON p.id = t.creator_id
+WHERE t.status IN ('PENDING', 'STARTED')
+GROUP BY t.id;
+`);
 
 export function addMatch(match: MatchDTO): number {
   try {

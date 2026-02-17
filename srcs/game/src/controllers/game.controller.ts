@@ -123,3 +123,5 @@ export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
   const tournament_id = db.createTournament(req.user.sub);
   return reply.code(200).send(tournament_id);
 }
+
+export async function listTournament(req: FastifyRequest, reply: FastifyReply) {}

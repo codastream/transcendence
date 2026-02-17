@@ -15,6 +15,7 @@ import { errorHandler } from './utils/error-handler.js';
 import { appenv } from './config/env.js';
 import { friendsRoutes } from './routes/friends.routes.js';
 import { loggerConfig } from './config/logger.config.js';
+import redisPlugin from './plugins/ioredis.plugins.js';
 
 export async function buildApp() {
   const isTest = appenv.NODE_ENV === 'test';
@@ -88,7 +89,7 @@ export async function buildApp() {
       },
     });
   }
-
+  app.register(redisPlugin);
   app.register(umRoutes, { prefix: '' });
   app.register(friendsRoutes, { prefix: '/friends' });
 
