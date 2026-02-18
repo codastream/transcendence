@@ -8,10 +8,7 @@ export const usernameSchema = z
   .string()
   .min(4, 'Username must be at least 4 characters')
   .max(20, 'Username must be at most 20 characters')
-  .regex(/^[a-zA-Z0-9_]+$/, 'Username must contain only letters, numbers and underscores')
-  .refine((val: string) => !val.includes('admin'), {
-    message: "Username cannot contain 'admin'",
-  });
+  .regex(/^[a-zA-Z0-9_]+$/, 'Username must contain only letters, numbers and underscores');
 
 export const nicknameSchema = z
   .string()

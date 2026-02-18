@@ -190,17 +190,7 @@ export const ERROR_RESPONSE_CODES = {
 /**
  * Noms d'utilisateur réservés qui ne peuvent pas être enregistrés
  */
-export const RESERVED_USERNAMES: readonly string[] = [
-  'admin',
-  'root',
-  'system',
-  'administrator',
-  'superuser',
-  'guest',
-  'support',
-  'service',
-  'daemon',
-];
+export const RESERVED_USERNAMES: readonly string[] = ['admin', 'invite'];
 
 /**
  * Champs sensibles à ne jamais logger en clair
