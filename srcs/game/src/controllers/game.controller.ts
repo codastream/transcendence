@@ -5,7 +5,6 @@ import { getGame as getSessionData } from '../service/game.init.js';
 import { handleClientMessage } from '../service/game.communication.js';
 import { GameSettings } from '../core/game.types.js';
 import { WebSocket } from 'ws';
-import { WS_CLOSE } from '../core/game.state.js';
 
 // Controller - get sessionId from body
 export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {

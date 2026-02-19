@@ -1,5 +1,4 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { logger } from '../utils/logger.js';
 import { fetchOptions } from '../utils/mtlsAgent.js';
 
 const SERVICES: Record<string, { host: string; port: number }> = {
