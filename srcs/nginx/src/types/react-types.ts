@@ -11,12 +11,15 @@ export enum MenuActions {
 }
 
 export enum Roles {
-  USER = 'USER',
-  ADMIN = 'ADMIN',
+  USER = 'user',
+  MODERATOR = 'moderator',
+  ADMIN = 'admin',
 }
 
 export interface AuthContextType {
   user: ProfileSimpleDTO | null;
+  isLoggedIn: boolean;
+  isAuthChecked: boolean;
   login: (user: ProfileSimpleDTO) => void;
   logout: () => void;
   updateUser: (newUser: ProfileSimpleDTO) => void;

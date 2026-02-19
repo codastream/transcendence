@@ -93,14 +93,22 @@ export const AUTH_CONFIG = {
       max: isTestOrDev ? 1000 : 2000,
       timeWindow: '1 minute',
     },
+    DELETE_USER: {
+      max: isTestOrDev ? 100 : 5,
+      timeWindow: '1 minute',
+    },
   },
 } as const;
 
 /**
  * Rôles utilisateur pour RBAC (Role-Based Access Control)
+ * USER: utilisateur standard
+ * MODERATOR: peut consulter la liste des utilisateurs et désactiver la 2FA
+ * ADMIN: contrôle total (view, update, delete users, disable 2FA)
  */
 export enum UserRole {
   USER = 'user',
+  MODERATOR = 'moderator',
   ADMIN = 'admin',
 }
 
@@ -135,7 +143,7 @@ export const ERROR_MESSAGES = {
   INVALID_USER_ID: 'Invalid user ID',
 
   // Role errors
-  INVALID_ROLE: 'Role must be either "user" or "admin"',
+  INVALID_ROLE: 'Role must be either "user" or "admin" or "moderator"',
 
   // Field errors
   MISSING_FIELDS: 'Username, email, and role are required',

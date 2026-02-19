@@ -10,7 +10,7 @@ import { UserRole, HTTP_STATUS, ERROR_MESSAGES, ERROR_RESPONSE_CODES } from '../
 
 /**
  * Pré-handler pour vérifier si l'utilisateur est administrateur
- * Ajoute adminUserId et adminUsername a la requête
+ * Ajoute authUser (id, username, role) à la requête
  */
 export async function verifyAdminRole(req: FastifyRequest, reply: FastifyReply) {
   const idHeader = (req.headers as any)['x-user-id'];
@@ -31,8 +31,42 @@ export async function verifyAdminRole(req: FastifyRequest, reply: FastifyReply) 
     });
   }
 
-  (req as any).adminUserId = userId;
-  (req as any).adminUsername = username;
+  (req as any).authUser = {
+    id: userId,
+    username,
+    role: authService.getUserRole(userId),
+  };
+}
+
+/**
+ * Pré-handler pour vérifier si l'utilisateur est modérateur ou administrateur
+ * Permet aux modérateurs de désactiver la 2FA et lister les utilisateurs
+ * Ajoute authUser (id, username, role) à la requête
+ */
+export async function verifyModeratorRole(req: FastifyRequest, reply: FastifyReply) {
+  const idHeader = (req.headers as any)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  const username = (req.headers as any)['x-user-name'] || null;
+
+  if (!userId || !authService.hasRole(userId, UserRole.MODERATOR)) {
+    req.log.warn({
+      event: 'moderator_access_forbidden',
+      user: username,
+      userId,
+    });
+    return reply.code(HTTP_STATUS.FORBIDDEN).send({
+      error: {
+        message: ERROR_MESSAGES.FORBIDDEN,
+        code: ERROR_RESPONSE_CODES.FORBIDDEN,
+      },
+    });
+  }
+
+  (req as any).authUser = {
+    id: userId,
+    username,
+    role: authService.getUserRole(userId),
+  };
 }
 
 /**
@@ -42,20 +76,6 @@ export async function verifyAdminRole(req: FastifyRequest, reply: FastifyReply) 
 export async function adminRoutes(app: FastifyInstance) {
   // Ajout du pré-handler pour toutes les routes admin
   app.addHook('onRequest', verifyAdminRole);
-
-  // Liste tous les utilisateurs
-  app.get(
-    '/users',
-    {
-      config: {
-        rateLimit: {
-          max: 50,
-          timeWindow: '1 minute',
-        },
-      },
-    },
-    listAllUsers,
-  );
 
   // Mettre à jour un utilisateur
   app.put(
@@ -83,6 +103,29 @@ export async function adminRoutes(app: FastifyInstance) {
       },
     },
     deleteUserHandler,
+  );
+}
+
+/**
+ * Routes de modération
+ * Ces routes nécessitent un rôle modérateur ou supérieur
+ */
+export async function moderatorRoutes(app: FastifyInstance) {
+  // Ajout du pré-handler pour toutes les routes modérateur
+  app.addHook('onRequest', verifyModeratorRole);
+
+  // Liste tous les utilisateurs
+  app.get(
+    '/users',
+    {
+      config: {
+        rateLimit: {
+          max: 50,
+          timeWindow: '1 minute',
+        },
+      },
+    },
+    listAllUsers,
   );
 
   // Désactiver la 2FA d'un utilisateur

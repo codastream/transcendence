@@ -1,12 +1,13 @@
 import bcrypt from 'bcrypt';
 import * as db from './database.js';
-import { createUserProfile } from './external/um.service.js';
+import { createUserProfile, deleteUserProfile } from './external/um.service.js';
 import { DataError, ServiceError } from '../types/errors.js';
 import { APP_ERRORS } from '../utils/error-catalog.js';
 import { EVENTS, REASONS, UserRole } from '../utils/constants.js';
 import { authenv } from '../config/env.js';
 import { logger } from '../index.js';
 import { AppError, ERR_DEFS } from '@transcendence/core';
+import * as onlineService from './online.service.js';
 
 const SALT_ROUNDS = 10;
 
@@ -100,17 +101,6 @@ export function updateUserAsAdmin(
       if (err.meta?.field === 'username') {
         throw new ServiceError(APP_ERRORS.REG_USERNAME_TAKEN, { details: userData.username });
       }
-    }
-    throw err;
-  }
-}
-
-export function deleteUserAsAdmin(userId: number) {
-  try {
-    db.deleteUser(userId);
-  } catch (err: unknown) {
-    if (err instanceof DataError) {
-      throw new ServiceError(APP_ERRORS.LOGIN_USER_NOT_FOUND);
     }
     throw err;
   }
@@ -212,10 +202,11 @@ export function hasRole(userId: number, requiredRole: UserRole): boolean {
   try {
     const userRole = getUserRole(userId);
 
-    // Hiérarchie des rôles : user < admin
+    // Hiérarchie des rôles : user < moderator < admin
     const roleHierarchy = {
       [UserRole.USER]: 0,
-      [UserRole.ADMIN]: 1,
+      [UserRole.MODERATOR]: 1,
+      [UserRole.ADMIN]: 2,
     };
 
     const userRoleLevel = roleHierarchy[userRole as UserRole] ?? 0;
@@ -226,5 +217,41 @@ export function hasRole(userId: number, requiredRole: UserRole): boolean {
     // En cas d'erreur, refuser l'accès par défaut
     logger.error(err);
     return false;
+  }
+}
+
+/**
+ * Supprime un utilisateur et toutes ses données
+ * Suppression entre les services auth et users
+ */
+export async function deleteUser(userId: number): Promise<void> {
+  logger.info({ event: 'delete_user_start', userId });
+
+  try {
+    // Supp user profile UM service
+    await deleteUserProfile(userId);
+
+    // Supp user Redis online
+    await onlineService.removeUserFromRedis(userId);
+
+    // Supp user from auth DB
+    db.deleteUser(userId);
+
+    logger.info({ event: 'delete_user_completed', userId });
+  } catch (error: unknown) {
+    logger.error({ event: 'delete_user_failed', userId, error: (error as Error)?.message });
+
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    if (error instanceof DataError) {
+      throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, { userId });
+    }
+
+    throw new AppError(ERR_DEFS.SERVICE_GENERIC, {
+      userId,
+      originalError: (error as Error)?.message,
+    });
   }
 }

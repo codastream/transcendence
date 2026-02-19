@@ -62,6 +62,15 @@ export class ProfileController {
     const profileSimpleDTO = await profileService.deleteByUsername(username);
     return reply.status(200).send(profileSimpleDTO);
   }
+
+  async deleteProfileById(req: FastifyRequest, reply: FastifyReply) {
+    const { userId } = req.params as {
+      userId: number;
+    };
+    req.log.trace({ event: `${LOG_ACTIONS.DELETE}_${LOG_RESOURCES.PROFILE}`, param: userId });
+    await profileService.deleteById(userId);
+    return reply.status(204).send();
+  }
 }
 
 export const profileController = new ProfileController();
