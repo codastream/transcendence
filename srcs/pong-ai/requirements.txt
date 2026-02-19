@@ -4,7 +4,7 @@
 gymnasium==0.29.1
 stable-baselines3==2.2.1
 torch==2.2.0
-numpy==2.0.0
+numpy<2.0.0
 
 # Web Framework
 fastapi==0.109.0
