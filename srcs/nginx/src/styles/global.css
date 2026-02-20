@@ -9,3 +9,22 @@
   @apply text-gray-500 font-bold;
 }
 /* } */
+
+/* @keyframes float-random {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  33% {
+    transform: translate(var(--x-off), var(--y-off));
+  }
+  66% {
+    transform: translate(var(--x-neg), var(--y-pos));
+  }
+}
+
+.floating-child {
+  display: inline-block;
+  animation: float-random var(--duration, 3s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+} */

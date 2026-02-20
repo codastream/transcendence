@@ -68,6 +68,8 @@
     "termsOfService": "Les règles du jeu (lis ça, sinon t’es un rigolo)"
   },
   "game": {
+    "playWithAI": "No friends? Joue avec un ROBOT",
+    "playWithFriends": "Joue avec ton copaing",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
     "participate": "Tu cherches des embrouilles!",

@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Button from '../atoms/Button';
 import { Input } from '../atoms/Input';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useActionState, useEffect } from 'react';
 import { useAuth } from '../../providers/AuthProvider';
 import { emailSchema, ERROR_CODES, FrontendError, HTTP_STATUS } from '@transcendence/core';
@@ -79,7 +79,7 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
   }
 }
 
-export const LoginForm = () => {
+export const LoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const navigate = useNavigate();
@@ -88,10 +88,10 @@ export const LoginForm = () => {
     if (state?.success && state.fields?.username) {
       const username = state.fields.username;
       login({ username: username, avatarUrl: null });
-      navigate(`/profile/${username}`, { replace: true });
+      navigate(`/`, { replace: true });
     }
     if (user?.username) {
-      navigate(`/profile/${user.username}`, { replace: true });
+      navigate(`/`, { replace: true });
     }
   }, [state?.success, state?.fields?.username, user, navigate, login]);
   return (
@@ -119,11 +119,9 @@ export const LoginForm = () => {
 
       <div className="text-xs text-gray-500 mt-5">
         {t('auth.noAccount')}{' '}
-        <span>
-          <Link className="hover:text-blue-400" to={`/signup`}>
-            {t('auth.signup')}
-          </Link>
-        </span>
+        <button type="button" onClick={onToggleForm} className="hover:text-blue-400 underline">
+          {t('auth.signup')}
+        </button>
       </div>
     </form>
   );

@@ -2,8 +2,7 @@ include make/config.mk
 
 # === Global ===
 
-all : volumes certs colima build
-	npm i
+all : volumes certs colima install build
 	$(D_COMPOSE) up -d
 
 dev: volumes colima-dev build-dev
@@ -85,6 +84,9 @@ install:
 # --- Builds Images ---
 nginx:
 	$(D_COMPOSE) up -d --build $(PROXY_SERVICE_NAME)
+nginx-nc:
+	$(D_COMPOSE) build --no-cache $(PROXY_SERVICE_NAME)
+	$(D_COMPOSE) up $(PROXY_SERVICE_NAME)
 redis:
 	$(D_COMPOSE) up -d --build $(REDIS_SERVICE_NAME)
 api:
@@ -100,7 +102,7 @@ block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
 pong-ai:
 	$(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
-build:
+build: install
 	$(D_COMPOSE) build
 build-dev:
 	$(D_COMPOSE_DEV) build
@@ -155,7 +157,7 @@ redis-cli:
 	$(CONTAINER_CMD) exec -it $(REDIS_SERVICE_NAME) redis-cli
 
 
-dev-nginx: install
+dev-nginx:
 	npm run dev --workspace proxy-service
 
 # --- Shell access ---

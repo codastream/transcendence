@@ -12,7 +12,7 @@ export const AxiosInterceptor = ({ children }: { children: React.ReactNode }) =>
       (response) => response,
       (error) => {
         if (error.statusCode === HTTP_STATUS.UNAUTHORIZED) {
-          navigate('/login');
+          navigate('/welcome');
         }
         return Promise.reject(error);
       },

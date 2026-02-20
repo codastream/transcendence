@@ -31,6 +31,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     checkAuth();
   }, []);
 
+  const [hasSeenAnim, setHasSeenAnim] = useState<boolean>(() => {
+    const storedHasSeenAnim = localStorage.getItem('hasSeenAnim');
+    return storedHasSeenAnim ? JSON.parse(storedHasSeenAnim) : false;
+  });
+
   const login = (user: ProfileSimpleDTO) => {
     setUser(user);
   };
@@ -43,6 +48,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser((prev) => (prev ? { ...prev, ...newUser } : prev));
   };
 
+  const markAnimAsSeen = () => {
+    setHasSeenAnim(true);
+    localStorage.setItem('hasSeenAnim', JSON.stringify(true));
+  };
+
+  // memoize to avoid re-render
   const contextValue = useMemo(
     () => ({
       user,
@@ -51,8 +62,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       login,
       logout,
       updateUser,
+      hasSeenAnim,
+      markAnimAsSeen,
     }),
-    [user, isAuthChecked],
+    [user, hasSeenAnim, isAuthChecked],
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
