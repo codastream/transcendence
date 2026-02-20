@@ -42,7 +42,8 @@
     "rate_limit_exceeded": "T’as trop tiré sur la corde, là. Reviens dans quelques minutes, on sera plus cool.",
     "mfa_required": "Faut un double contrôle, mon gars. Sors ton code MFA ou configure-le, sinon c’est mort.",
     "invalid_mfa_code": "Ton code MFA, il est foireux. Vérifie et retente.",
-    "internal_error": "Putain, y’a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous."
+    "internal_error": "Putain, y’a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous.",
+    "friend_self_add": "Tu peux pas t'ajouter toi-meme, vieux. Choisis un autre tandem."
   },
   "navbar": {
     "home": "Le bercail",

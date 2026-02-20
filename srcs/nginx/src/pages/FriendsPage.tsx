@@ -1,4 +1,10 @@
-import { FriendshipUnifiedDTO, FrontendError, ProfileSimpleDTO } from '@transcendence/core';
+import {
+  ERROR_CODES,
+  FriendshipUnifiedDTO,
+  FrontendError,
+  HTTP_STATUS,
+  ProfileSimpleDTO,
+} from '@transcendence/core';
 import { useTranslation } from 'react-i18next';
 import UserRow from '../components/molecules/UserRow';
 import { Page } from '../components/organisms/PageContainer';
@@ -6,6 +12,7 @@ import { UserActions } from '../types/react-types';
 import UserSearchContainer from '../components/molecules/UserSearchContainer';
 import { friendApi } from '../api/friend-api';
 import { useEffect, useState } from 'react';
+import { STATUS_CODES } from 'http';
 
 export const FriendsPage = () => {
   const { t } = useTranslation();
@@ -49,7 +56,11 @@ export const FriendsPage = () => {
       }
     } catch (err: unknown) {
       if (err instanceof FrontendError) {
-        setErrorMessage(err.message);
+        if (err.statusCode === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
+          setErrorMessage(t('errors.friend_self_add'));
+        } else {
+          setErrorMessage(err.message);
+        }
       }
     }
   };
