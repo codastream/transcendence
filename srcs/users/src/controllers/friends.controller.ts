@@ -19,9 +19,15 @@ export class FriendshipController {
   }
 
   // POST /users/friends
-  async createFriend(req: FastifyRequest<{ Body: IdDTO }>, reply: FastifyReply) {
-    const { targetUsername } = req?.body as { targetUsername: string };
-    const userId = req?.user?.id;
+  async createFriend(
+    req: FastifyRequest<{ Body: { targetUsername: string } }>,
+    reply: FastifyReply,
+  ) {
+    const { targetUsername } = req?.body;
+    if (!req.user) {
+      req.log.error('User object is missing from request!');
+    }
+    const userId = req.user.id;
     const username = req?.user?.username;
     req.log.info({
       event: `${LOG_ACTIONS.CREATE}_${LOG_RESOURCES.FRIEND}`,

@@ -50,6 +50,18 @@ export async function buildApp() {
     done();
   });
 
+  app.addHook('preHandler', async (req) => {
+    const userId = req.headers['x-user-id'];
+
+    if (userId) {
+      req.user = {
+        id: Number(userId),
+        username: req.headers['x-user-name'] as string,
+        role: req.headers['x-user-role'] as string,
+      };
+    }
+  });
+
   await app.setValidatorCompiler(validatorCompiler);
   await app.setSerializerCompiler(serializerCompiler);
 

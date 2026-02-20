@@ -170,8 +170,13 @@ shell-block:
 
 # --- Logs and status ---
 
-prisma-user:
-	$(CONTAINER_CMD) exec -it $(USER_SERVICE_NAME) npx prisma studio --browser none
+USERS_DIR = ./srcs/users
+SCHEMA_PATH = $(USERS_DIR)/prisma/schema.prisma
+
+.PHONY: studio-users
+studio-users:
+	@echo "Launching Prisma Studio for Users DB..."
+	UM_DB_URL="file:../../data/database/um.db" npx prisma studio --config=$(USERS_DIR)/prisma.config.ts
 
 logs:
 	$(D_COMPOSE) logs -f
@@ -246,4 +251,4 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev
+.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev prisma-user

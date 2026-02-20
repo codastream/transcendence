@@ -52,15 +52,27 @@ const useUserSearch = (query: string) => {
 
 interface UserSearchContainerProps {
   actions: UserActions[];
+  onAction?: (action: UserActions, user: ProfileSimpleDTO) => void;
 }
 
-const UserSearchContainer = ({ actions }: UserSearchContainerProps) => {
+const UserSearchContainer = ({ actions, onAction }: UserSearchContainerProps) => {
   const [query, setQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<ProfileSimpleDTO | null>(null);
   const { results, error, isLoading } = useUserSearch(query); // Hook défini précédemment
 
   if (selectedUser) {
-    return <UserRow actions={actions} user={selectedUser} avatarSize="md" />;
+    return (
+      <UserRow
+        actions={actions}
+        user={selectedUser}
+        avatarSize="md"
+        onAction={(action, user) => {
+          onAction?.(action, user);
+          setSelectedUser(null);
+          setQuery('');
+        }}
+      />
+    );
   }
 
   return (

@@ -12,6 +12,7 @@ interface Props {
   user: ProfileSimpleDTO;
   avatarSize?: AvatarSize;
   actions: UserActions[];
+  onAction?: (action: UserActions, user: ProfileSimpleDTO) => void;
 }
 
 const actionProps: Record<UserActions, { icon: LucideIcon; color: string; labelKey: string }> = {
@@ -21,7 +22,7 @@ const actionProps: Record<UserActions, { icon: LucideIcon; color: string; labelK
   [UserActions.CHANGE]: { icon: UserRoundMinus, color: 'text-red-300', labelKey: 'friends.remove' },
 };
 
-const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
+const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
   const { t } = useTranslation();
   const xOffset = 20;
   // const baseRadius = 90;
@@ -32,6 +33,13 @@ const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
   const toggleMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsOpen(!isOpen);
+  };
+
+  const handleActionClick = (e: React.MouseEvent, action: UserActions) => {
+    console.log('clicked action');
+    e.stopPropagation();
+    onAction?.(action, user);
+    setIsOpen(false);
   };
 
   return (
@@ -73,18 +81,18 @@ const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
             const actionProp = actionProps[actionType];
             const Icon = actionProp.icon;
             const middleIndex = (actions.length - 1) / 2;
-            const distanceFromCenter = Math.abs(index - middleIndex);
-            // const translateX = xOffset - distanceFromCenter * arcIntensity;
             const relPos = index - middleIndex;
-            const translateY = relPos * verticalSpacing;
-            console.log(`middleIndex is ${middleIndex}`);
-            console.log(`distanceFromCenter is ${distanceFromCenter}`);
-            console.log(`translateY is ${translateY}`);
-            console.log(`actionProp.labelKey is ${actionProp.labelKey}`);
+            // const distanceFromCenter = Math.abs(index - middleIndex);
+            // const translateX = xOffset - distanceFromCenter * arcIntensity;
+            // const translateY = relPos * verticalSpacing;
+            // console.log(`middleIndex is ${middleIndex}`);
+            // console.log(`distanceFromCenter is ${distanceFromCenter}`);
+            // console.log(`translateY is ${translateY}`);
+            // console.log(`actionProp.labelKey is ${actionProp.labelKey}`);
             return (
               <div
                 key={actionType}
-                className={`absolute left-0 top-1/2 flex items-center gap-3 hover:cursor-pointer transition-all duration-300
+                className={`absolute left-0 top-1/2  z-60 flex items-center gap-3 hover:cursor-pointer transition-all duration-300
               `}
                 style={{
                   transform: `translate(${xOffset - Math.abs(relPos) * arcIntensity}px, calc(-50% + ${relPos * verticalSpacing}px))`,
@@ -92,6 +100,7 @@ const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
                 }}
               >
                 <button
+                  onClick={(e) => handleActionClick(e, actionType)}
                   className={`w-12 h-12 rounded-full bg-slate-700 hover:bg-white active:scale-95 flex items-center justify-center shadow-lg  transition-all`}
                 >
                   <Icon className={`${actionProp.color}`} size={22} />
@@ -113,8 +122,9 @@ const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
           const config = actionProps[actionType];
           return (
             <button
+              onClick={(e) => handleActionClick(e, actionType)}
               key={actionType}
-              className="w-14 h-14 rounded-full bg-slate-700 flex items-center justify-center shadow-lg active:scale-90 border border-slate-600"
+              className="w-14 h-14 z-60 rounded-full bg-slate-700 flex items-center justify-center shadow-lg active:scale-90 border border-slate-600"
             >
               <config.icon className={config.color} size={26} />
             </button>

@@ -11,6 +11,7 @@ import { friendshipRepository } from '../data/friends.data.js';
 import { profileService } from './profiles.service.js';
 import { Friendship } from '@prisma/client';
 import { mapFriendshipToDTO } from '../utils/mappers.js';
+import { logger } from '../utils/logger.js';
 
 export function checkFriendshipAbsence(
   friendship: Friendship | null,
@@ -77,6 +78,7 @@ export class FriendshipService {
         details: { resource: LOG_RESOURCES.FRIEND, max: CONFIG.MAX_FRIENDS },
       });
     }
+    logger.info({ userId, targetAuthId: fullTarget.authId });
 
     return await friendshipRepository.createFriendship(userId, fullTarget.authId);
   }

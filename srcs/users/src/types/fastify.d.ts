@@ -4,7 +4,7 @@ import { MultipartFile } from '@fastify/multipart';
 
 declare module 'fastify' {
   interface FastifyRequest {
-    user: UserRequest;
+    user: UserRequestDTO;
     file(): Promise<MultipartFile | undefined>;
   }
 
