@@ -4,20 +4,33 @@ import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
+import TournamentRoutes from './router/TournamentRoutes';
 
 const GuestRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoggedIn } = useAuth();
-  if (user && isLoggedIn) {
+  const { user, isLoggedIn, isAuthChecked } = useAuth();
+
+  if (!isAuthChecked) {
+    return null; // ou loader
+  }
+
+  if (isLoggedIn && user?.username) {
     return <Navigate to={`/profile/${user.username}`} replace />;
   }
+
   return children;
 };
-
 const MeRedirect = () => {
-  const { user } = useAuth();
-  // if (isLoading) return <div>Loading ...</div>;
-  if (!user) return <Navigate to="/" replace />;
-  return <Navigate to={`/profile/${user.username}`}></Navigate>;
+  const { user, isAuthChecked } = useAuth();
+
+  if (!isAuthChecked) {
+    return null; // ou loader
+  }
+
+  if (!user || !user.username) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Navigate to={`/profile/${user.username}`} replace />;
 };
 
 export const App = () => {
@@ -44,6 +57,7 @@ export const App = () => {
         <Route path="/me" element={<MeRedirect />}></Route>
         <Route path="/friends" element={<FriendsPage />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
+        <Route path="/tournaments/*" element={<TournamentRoutes />} />
       </Routes>
     </main>
   );
