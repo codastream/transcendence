@@ -40,6 +40,9 @@ ENV NODE_ENV=production
 # Runtime-only tools
 RUN apk add --no-cache wget
 
+# Necessary to compile bettersqlite (require python3, make, g++)
+COPY --from=builder /app/node_modules ./node_modules
+
 # 5) Installer UNIQUEMENT les dépendances runtime du workspace users
 COPY package-lock.json ./package-lock.json
 COPY srcs/blockchain/package.json ./package.json

@@ -37,8 +37,7 @@ export async function buildApp() {
   const app = fastify(options).withTypeProvider<ZodTypeProvider>();
 
   app.addHook('onRequest', (request, reply, done) => {
-    const socket = request.raw.socket as any;
-    // Allow local healthchecks without mTLS
+    const socket = request.raw.socket;
     if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
       return done();
     }
@@ -48,6 +47,39 @@ export async function buildApp() {
       return;
     }
     done();
+  });
+
+  app.addHook('preHandler', async (req, reply) => {
+    const userIdHeader = req.headers['x-user-id'];
+    const usernameHeader = req.headers['x-user-name'];
+    const roleHeader = req.headers['x-user-role'];
+    // If no auth headers are present, leave req.user undefined (public route or unauthenticated request)
+    if (
+      typeof userIdHeader === 'undefined' &&
+      typeof usernameHeader === 'undefined' &&
+      typeof roleHeader === 'undefined'
+    ) {
+      return;
+    }
+    // If some auth headers are present but not all required ones, treat as invalid
+    if (
+      typeof userIdHeader === 'undefined' ||
+      typeof usernameHeader === 'undefined' ||
+      typeof roleHeader === 'undefined'
+    ) {
+      reply.code(400).send({ error: 'Invalid authentication headers' });
+      return;
+    }
+    const id = Number(userIdHeader);
+    if (!Number.isFinite(id)) {
+      reply.code(400).send({ error: 'Invalid authentication headers' });
+      return;
+    }
+    req.user = {
+      id,
+      username: String(usernameHeader),
+      role: String(roleHeader),
+    };
   });
 
   await app.setValidatorCompiler(validatorCompiler);

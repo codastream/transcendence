@@ -34,9 +34,20 @@ export class ProfileService {
   }
 
   @Trace
-  async getByUsername(username: string): Promise<ProfileSimpleDTO | null> {
+  async getByUsername(username: string): Promise<ProfileSimpleDTO> {
     const profileData = await getProfileOrThrow(username);
     return mapProfileToDTO(profileData);
+  }
+
+  async getByUsernameRaw(username: string): Promise<UserProfile> {
+    const profileData = await getProfileOrThrow(username);
+    return profileData;
+  }
+
+  @Trace
+  async getByUsernameQuery(query: string): Promise<ProfileSimpleDTO[] | null> {
+    const rawProfiles = await profileRepository.findProfilesByUsernameQuery(query);
+    return rawProfiles?.map((p) => mapProfileToDTO(p));
   }
 
   @Trace

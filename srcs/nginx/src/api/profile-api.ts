@@ -14,6 +14,11 @@ export const profileApi = {
     return { ...data };
   },
 
+  getLike: async (query: string): Promise<ProfileSimpleDTO[]> => {
+    const { data } = await api.get(`/users`, { params: { query } });
+    return data;
+  },
+
   updateAvatar: async (
     username: usernameDTO,
     file: File,

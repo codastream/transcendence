@@ -3,7 +3,6 @@ import { friendshipService } from '../services/friends.service.js';
 import {
   FriendshipUpdateNicknameDTO,
   FriendshipUpdateStatusDTO,
-  IdDTO,
   LOG_ACTIONS,
   LOG_RESOURCES,
 } from '@transcendence/core';
@@ -19,45 +18,52 @@ export class FriendshipController {
   }
 
   // POST /users/friends
-  async createFriend(req: FastifyRequest<{ Body: IdDTO }>, reply: FastifyReply) {
-    const { id: targetId } = req?.body;
-    const userId = req?.user?.id;
+  async createFriend(
+    req: FastifyRequest<{ Body: { targetUsername: string } }>,
+    reply: FastifyReply,
+  ) {
+    const { targetUsername } = req?.body;
+    const userId = req.user.id;
+    const username = req.user.username;
     req.log.info({
       event: `${LOG_ACTIONS.CREATE}_${LOG_RESOURCES.FRIEND}`,
       userId,
       body: req.body,
     });
 
-    const friendship = await friendshipService.createFriend(userId, targetId);
+    const friendship = await friendshipService.createFriend(username, userId, targetUsername);
     return reply.status(201).send(friendship);
   }
 
-  // DELETE /users/friends/:id
-  async removeFriend(req: FastifyRequest<{ Params: { targetId: number } }>, reply: FastifyReply) {
-    const { targetId } = req?.params;
+  // DELETE /users/friends/:targetusername
+  async removeFriend(
+    req: FastifyRequest<{ Params: { targetUsername: string } }>,
+    reply: FastifyReply,
+  ) {
+    const { targetUsername } = req.params;
     const userId = req?.user?.id;
     req.log.info({
       event: `${LOG_ACTIONS.DELETE}_${LOG_RESOURCES.FRIEND}`,
       userId,
-      param: targetId,
+      param: targetUsername,
       body: req.body,
     });
 
-    const removedFriendship = await friendshipService.removeFriend(userId, targetId);
+    const removedFriendship = await friendshipService.removeFriend(userId, targetUsername);
     return reply.status(200).send(removedFriendship);
   }
 
-  // PATCH /users/friends/:id/status
+  // PATCH /users/friends/:targetusername/status
   async updateFriendStatus(
     req: FastifyRequest<{
-      Params: IdDTO;
+      Params: { targetUsername: string };
       Body: FriendshipUpdateStatusDTO;
     }>,
     reply: FastifyReply,
   ) {
-    const targetId = req?.params?.id;
+    const { targetUsername } = req.params;
     const userId = req?.user?.id;
-    const { status } = req?.body;
+    const { status } = req?.body as FriendshipUpdateStatusDTO;
     req.log.info({
       event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.FRIEND}`,
       userId,
@@ -67,23 +73,23 @@ export class FriendshipController {
 
     const updatedFriendship = await friendshipService.updateFriendshipStatus(
       userId,
-      targetId,
+      targetUsername,
       status,
     );
     return reply.status(200).send(updatedFriendship);
   }
 
-  // PATCH /users/friends/:id/nickname
+  // PATCH /users/friends/:targetusername/nickname
   async updateFriendNickname(
     req: FastifyRequest<{
-      Params: IdDTO;
+      Params: { targetUsername: string };
       Body: FriendshipUpdateNicknameDTO;
     }>,
     reply: FastifyReply,
   ) {
-    const targetId = req?.params?.id;
+    const { targetUsername } = req.params;
     const userId = req?.user?.id;
-    const { nickname } = req?.body;
+    const { nickname } = req?.body as FriendshipUpdateNicknameDTO;
     req.log.info({
       event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.FRIEND}`,
       userId,
@@ -93,7 +99,7 @@ export class FriendshipController {
 
     const updatedFriendship = await friendshipService.updateFriendshipNickname(
       userId,
-      targetId,
+      targetUsername,
       nickname,
     );
     return reply.status(200).send(updatedFriendship);

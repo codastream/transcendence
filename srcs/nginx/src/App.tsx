@@ -3,6 +3,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
+import { FriendsPage } from './pages/FriendsPage';
 import TournamentRoutes from './router/TournamentRoutes';
 
 const GuestRoute = ({ children }: { children: React.ReactNode }) => {
@@ -54,6 +55,7 @@ export const App = () => {
           }
         />
         <Route path="/me" element={<MeRedirect />}></Route>
+        <Route path="/friends" element={<FriendsPage />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
         <Route path="/tournaments/*" element={<TournamentRoutes />} />
       </Routes>

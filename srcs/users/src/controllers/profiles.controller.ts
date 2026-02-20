@@ -36,6 +36,12 @@ export class ProfileController {
     return reply.status(200).send(profileSimpleDTO);
   }
 
+  async getProfilesbyUsernameQuery(req: FastifyRequest, reply: FastifyReply) {
+    const { query } = req.query as { query: string };
+    const profiles = await profileService.getByUsernameQuery(query);
+    return reply.status(200).send(profiles);
+  }
+
   async updateProfileAvatar(req: FastifyRequest, reply: FastifyReply) {
     const data = (await req.file()) as MultipartFile;
     const { username } = req.params as {

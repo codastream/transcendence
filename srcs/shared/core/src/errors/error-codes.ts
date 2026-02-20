@@ -10,6 +10,7 @@ export const ERROR_CODES = {
   UNAUTHORIZED: 'unauthorized',
   INVALID_CREDENTIALS: 'invalid_credentials',
   INVALID_TOKEN: 'invalid_token',
+  INVALID_AUTH_HEADER: 'invalid_auth_header',
 
   // 403 Access
   FORBIDDEN: 'forbidden', // if admin role is required

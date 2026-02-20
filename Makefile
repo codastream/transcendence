@@ -2,7 +2,7 @@ include make/config.mk
 
 # === Global ===
 
-all : volumes certs colima build
+all : volumes certs colima install build
 	npm i
 	$(D_COMPOSE) up -d
 
@@ -91,8 +91,14 @@ api:
 	$(D_COMPOSE) up -d --build $(API_GATEWAY_NAME)
 auth:
 	$(D_COMPOSE) up -d --build $(AUTH_SERVICE_NAME)
+auth-nc:
+	$(D_COMPOSE) build --no-cache $(AUTH_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(AUTH_SERVICE_NAME)
 user:
 	$(D_COMPOSE) build $(UM_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
+user-nc:
+	$(D_COMPOSE) build --no-cache $(UM_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
 game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
@@ -182,8 +188,12 @@ shell-pong-ai:
 
 # --- Logs and status ---
 
-prisma-user:
-	$(CONTAINER_CMD) exec -it $(USER_SERVICE_NAME) npx prisma studio --browser none
+USERS_DIR = ./srcs/users
+
+.PHONY: studio-users
+studio-users:
+	@echo "Launching Prisma Studio for Users DB..."
+	UM_DB_URL="file:../../data/database/um.db" npx prisma studio --config=$(USERS_DIR)/prisma.config.ts
 
 logs:
 	$(D_COMPOSE) logs -f
@@ -260,4 +270,4 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev
+.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev studio-user

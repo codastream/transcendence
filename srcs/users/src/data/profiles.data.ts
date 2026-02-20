@@ -50,6 +50,17 @@ export class ProfileRepository {
     return found;
   }
 
+  async findProfilesByUsernameQuery(query: string): Promise<UserProfile[]> {
+    const found = await prisma.userProfile.findMany({
+      where: {
+        username: {
+          contains: query,
+        },
+      },
+    });
+    return found;
+  }
+
   async findProfileById(id: number): Promise<ProfileSimpleDTO | null> {
     return await prisma.userProfile.findUnique({
       where: { authId: id },
