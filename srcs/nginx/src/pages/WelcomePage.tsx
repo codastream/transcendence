@@ -13,9 +13,6 @@ const colors = {
   end: '#0088ff',
 };
 
-// interface LoginRegisterPageProps {
-//   isRegister: boolean;
-// }
 export const WelcomePage = () => {
   const { t } = useTranslation();
   const [isRegister, setIsRegister] = useState(false);
@@ -33,7 +30,6 @@ export const WelcomePage = () => {
         colorEnd={colors.end}
       >
         <NavBar />
-        {/* Not logged in - show login/register */}
         {!isLoggedIn && (
           <Halo
             size={80}
@@ -42,7 +38,6 @@ export const WelcomePage = () => {
             className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
           />
         )}
-        {/* Logged in - show 3 game options */}
         {isLoggedIn && (
           <Scrollable isAnimated={true}>
             <Link to="/game/pong-ai">
