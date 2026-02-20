@@ -2,7 +2,7 @@ include make/config.mk
 
 # === Global ===
 
-all : volumes certs colima build
+all : volumes certs colima install build
 	$(D_COMPOSE) up -d
 
 dev: volumes colima-dev build-dev
