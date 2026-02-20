@@ -54,7 +54,8 @@
     "stats": "Stats",
     "stats_history": "History",
     "profile": "Profile",
-    "profile_logout": "Logout"
+    "profile_logout": "Logout",
+    "profile_login": "Login"
   },
   "profile": {
     "profile": "Profile",
