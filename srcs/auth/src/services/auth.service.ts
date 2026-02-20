@@ -49,8 +49,6 @@ export async function createUser(user: {
     throw err;
   }
 
-  if ([authenv.ADMIN_USERNAME, authenv.INVITE_USERNAME].includes(user.username)) return userId;
-
   logger.info('created in auth DB');
   try {
     await createUserProfile({

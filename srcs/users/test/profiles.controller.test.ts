@@ -136,16 +136,6 @@ describe('Profile Controller unit tests', () => {
       expect(JSON.parse(response.payload)).toEqual(mockProfileDTO);
     });
 
-    test('Should return 400 and reject admin as username', async () => {
-      const response = await app.inject({
-        method: 'GET',
-        url: '/username/admin',
-        headers: authHeaders,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
     test('Should return 404 if not found', async () => {
       vi.spyOn(profileService, 'getByUsername').mockRejectedValue(
         new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
