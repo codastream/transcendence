@@ -17,6 +17,7 @@ export function initRedisSubscriber(fastify: FastifyInstance) {
           type: 'USER_CREATED',
           id: profile.authId,
           username: profile.username,
+          avatar: profile.avatar,
           timestamp: Date.now(),
         }),
       );

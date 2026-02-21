@@ -199,3 +199,9 @@ export async function getGameState(this: FastifyInstance, req: FastifyRequest) {
   }
   return { status: 'success', state: sessionData.game.getState() };
 }
+
+export async function showTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tourId = Number((req.params as any).id);
+  const result = db.showTournament(tourId);
+  return reply.code(200).send(result);
+}

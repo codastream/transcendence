@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS tournament_player(
 CREATE TABLE IF NOT EXISTS player (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
+    avatar TEXT,
     updated_at INTEGER NOT NULL
 );
 
@@ -109,14 +110,14 @@ GROUP BY t.id, t.status, p.username;
 `);
 
 const countPlayerTournamentStmt = db.prepare(`
-SELECT COUNT(*)
+SELECT COUNT(*) as nbPlayer
 FROM tournament_player
 WHERE tournament_id = ?;
 `);
 
 const upsertUserStmt = db.prepare(`
-INSERT INTO player (id, username, updated_at)
-VALUES (?, ?, ?)
+INSERT INTO player (id, username, avartar, updated_at)
+VALUES (?, ?, ?, ?)
 ON CONFLICT(id)
 DO UPDATE SET
   username = excluded.username,
@@ -131,6 +132,14 @@ const changeStatusTournamentStmt = db.prepare(`
 UPDATE tournament
 SET status = ?
 WHERE id = ?
+`);
+
+const listPlayersTournamentStmt = db.prepare(`
+SELECT tp.player_id, p.username
+FROM tournament_player tp
+LEFT JOIN player p
+ON  tp.player_id = p.id
+WHERE tournament_id = ?
 `);
 
 export function addMatch(match: MatchDTO): number {
@@ -196,7 +205,7 @@ export function addPlayerPositionTournament(player: number, position: number, to
 
 export async function upsertUser(user: UserEvent) {
   try {
-    upsertUserStmt.run(user.id, user.username, user.timestamp);
+    upsertUserStmt.run(user.id, user.username, user.avatar, user.timestamp);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     const error = new Error(`Add or Update player failed: ${message}`) as Error & { code: string };
@@ -230,8 +239,8 @@ export function listTournaments(): TournamentDTO[] {
 
 export function joinTournament(player_id: number, tournament_id: number) {
   try {
-    const result = countPlayerTournamentStmt.get(tournament_id) as { 'COUNT(*)': number };
-    const nbPlayers = result['COUNT(*)'];
+    const result = countPlayerTournamentStmt.get(tournament_id) as { nbPlayer: number };
+    const nbPlayers = result['nbPlayer'];
     if (nbPlayers >= 4) {
       const fullError = new Error('The Tournament is full') as Error & { code: string };
       fullError.code = 'TOURNAMENT_FULL';
@@ -249,5 +258,16 @@ export function joinTournament(player_id: number, tournament_id: number) {
     const error = new Error(`Join tournament failed: ${message}`) as Error & { code: string };
     error.code = 'GAME_DB_JOIN_TOURNAMENT_ERR';
     throw error;
+  }
+}
+
+export function showTournament(tournament_id: number) {
+  try {
+    const result = listPlayersTournamentStmt.all(tournament_id);
+    return result;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const error = new Error(`This tournament don't exist: ${message}`) as Error & { code: string };
+    error.code = 'GAME_DB_TOURNAMENT_NOT_FOUND';
   }
 }

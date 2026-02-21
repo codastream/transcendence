@@ -8,6 +8,7 @@ import {
   newTournament,
   listTournament,
   joinTournament,
+  showTournament,
 } from '../controllers/game.controller.js';
 
 export async function gameRoutes(app: FastifyInstance) {
@@ -19,4 +20,5 @@ export async function gameRoutes(app: FastifyInstance) {
   app.post('/create-tournament', { preHandler: app.authenticate }, newTournament);
   app.get('/tournaments', listTournament);
   app.post('/tournaments/:id', { preHandler: app.authenticate }, joinTournament);
+  app.get('/tournaments/:id', { preHandler: app.authenticate }, showTournament);
 }

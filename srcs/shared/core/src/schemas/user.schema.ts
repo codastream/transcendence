@@ -24,5 +24,6 @@ export interface UserEvent {
   type: USER_EVENT;
   id: number;
   username: string;
+  avatar?: string;
   timestamp: number;
 }

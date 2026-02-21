@@ -7,3 +7,9 @@ export interface TournamentDTO {
   status: string;
   player_count: number;
 }
+
+export interface PlayerDTO {
+  player_id: number;
+  username: string;
+  avatar: string | null;
+}
