@@ -51,11 +51,12 @@ describe('Profile Controller unit tests', () => {
     await app.ready();
   });
 
+  // Augmentation du timeout à 30 secondes pour l'environnement CI
   afterAll(async () => {
     if (app) {
       await app.close();
     }
-  });
+  }, 30000); // <--- Ajoute ce paramètre ici
 
   afterEach(() => {
     vi.clearAllMocks();

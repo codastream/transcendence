@@ -1,6 +1,11 @@
 import { useTranslation } from 'react-i18next';
 import { TournamentBracket } from '../components/molecules/TournamentBracket';
 import { Player } from '../types/types';
+import { useState, useEffect } from 'react';
+import { PlayerDTO, ProfileSimpleDTO } from '@transcendence/core';
+import { profileApi } from '../api/profile-api';
+import api from '../api/api-client';
+import { useParams } from 'react-router-dom';
 
 /* The principle of the tournament page:
  * The creator is displayed first, then the players join sequentially.
@@ -18,13 +23,49 @@ export function createWaitingPlayer(label: string): Player {
   };
 }
 
+async function mapPlayerDTO(dto: PlayerDTO): Promise<Player> {
+  return {
+    id: dto.player_id.toString(),
+    name: dto.username,
+    avatar: dto.avatar,
+    online: true,
+    status: 'connected',
+  };
+}
+
 export default function TournamentPage() {
   const { t } = useTranslation();
+  function fillSlotPlayer(players: Player[]): [Player, Player, Player, Player] {
+    const nbSlots = 4;
+    const filledPlayers = players.slice(0, nbSlots);
+    const nbSlotFree = nbSlots - filledPlayers.length;
+
+    for (let i = 0; i < nbSlotFree; i++) {
+      filledPlayers.push(createWaitingPlayer(t('game.waiting')));
+    }
+    return filledPlayers as [Player, Player, Player, Player];
+  }
+  const { id } = useParams<{ id: string }>();
+  const [players, setPlayers] = useState<Player[]>([]);
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const { data } = await api.get<PlayerDTO[]>(`/game/tournaments/${id}`);
+        const playersMapped = await Promise.all(data.map((dto) => mapPlayerDTO(dto)));
+        setPlayers(playersMapped);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchPlayers();
+    const interval = setInterval(fetchPlayers, 10000);
+    return () => clearInterval(interval);
+  }, []);
   const MOCK_PLAYERS: [Player, Player, Player, Player] = [
     { id: '1', name: 'johnny', avatar: null, online: true, status: 'connected' },
     { id: '2', name: 'eddy', avatar: null, online: false, status: 'connected' },
     { id: '3', name: 'khaled', avatar: null, online: true, status: 'connected' },
     createWaitingPlayer(t('game.waitiing')),
   ] as const;
-  return <TournamentBracket players={MOCK_PLAYERS} />;
+  return <TournamentBracket players={fillSlotPlayer(players)} />;
 }

@@ -89,6 +89,7 @@
     "start": "Start",
     "friends": "Friends",
     "waitiing": "Waiting...",
-    "creating": "Creating tournament..."
+    "creating": "Creating tournament...",
+    "tournament_full": "This tournament is full(maximum 4 players)."
   }
 }

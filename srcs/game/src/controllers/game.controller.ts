@@ -1,10 +1,11 @@
-import { FastifyInstance, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { randomUUID } from 'crypto';
 import { gameSessions } from '../core/game.state.js';
 import { getGame as getSessionData } from '../service/game.init.js';
 import { handleClientMessage } from '../service/game.communication.js';
 import { GameSettings } from '../core/game.types.js';
 import { WebSocket } from 'ws';
+import * as db from '../core/game.database.js';
 
 // Controller - get sessionId from body
 export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
@@ -117,6 +118,22 @@ export async function webSocketConnect(
   handleClientMessage.call(this, socket, sessionId);
 }
 
+export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tournament_id = db.createTournament(req.user.sub);
+  return reply.code(200).send(tournament_id);
+}
+
+export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tournaments = db.listTournaments();
+  return reply.code(200).send(tournaments);
+}
+
+export async function joinTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tourId = Number((req.params as any).id);
+  db.joinTournament(req.user.sub, tourId);
+  return reply.code(200).send({ joining: tourId });
+}
+
 // RL API: Reset game session
 export async function resetGame(this: FastifyInstance, req: FastifyRequest) {
   const body = req.body as { sessionId?: string };
@@ -181,4 +198,10 @@ export async function getGameState(this: FastifyInstance, req: FastifyRequest) {
     return { status: 'failure', message: `Session ${sessionId} not found` };
   }
   return { status: 'success', state: sessionData.game.getState() };
+}
+
+export async function showTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tourId = Number((req.params as any).id);
+  const result = db.showTournament(tourId);
+  return reply.code(200).send(result);
 }

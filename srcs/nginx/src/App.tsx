@@ -56,6 +56,7 @@ export const App = () => {
         <Route path="/me" element={<MeRedirect />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
         <Route path="/tournaments/*" element={<TournamentRoutes />} />
+        <Route path="*" element={<TournamentRoutes />} />
       </Routes>
     </main>
   );

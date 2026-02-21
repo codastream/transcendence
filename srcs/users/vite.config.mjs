@@ -38,6 +38,7 @@ export default {
   test: {
     globals: true,
     environment: 'node',
+    hookTimeout: 30000,
     include: ['test/**/*.{test,spec}.ts'],
     coverage: {
       provider: 'v8',

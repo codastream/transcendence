@@ -1,7 +1,8 @@
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { InputHTMLAttributes, useId } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
+import { useState } from 'react';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -30,18 +31,15 @@ export const Input = ({
   const inputId = id || generatedId;
   const errorId = `${inputId}-error`;
   const hasError = Boolean(errorMessage);
+  const isPassword = customType === 'password';
   const Icon = customType ? ICON_MAP[customType] : null;
-  let type = 'text';
-  switch (customType) {
-    case 'password':
-      type = 'password';
-      break;
-    case 'email':
-      type = 'email';
-      break;
-    default:
-      type = 'text';
-  }
+  const [showPassword, setShowPassword] = useState(false);
+
+  const inputType = isPassword ? (showPassword ? 'text' : 'password') : (customType ?? 'text');
+
+  const handleToggle = () => {
+    setShowPassword((prev) => !prev);
+  };
   const borderClass = hasError
     ? 'border-red-400 focus:ring-red-400'
     : 'border-gray-300 focus:ring-blue-300';
@@ -63,7 +61,7 @@ export const Input = ({
         <input
           {...props}
           id={inputId}
-          type={type}
+          type={inputType}
           aria-invalid={hasError ? 'true' : 'false'}
           aria-describedby={hasError ? errorId : undefined}
           className={cn(
@@ -73,6 +71,11 @@ export const Input = ({
             borderClass,
           )}
         />
+        {isPassword && (
+          <button type="button" onClick={handleToggle} className="absolute right-3 text-gray-500">
+            {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+          </button>
+        )}
       </div>
 
       {hasError && (

@@ -103,3 +103,12 @@ export type {
   // ProfileStoredDTO,
   ProfileCreateInDTO,
 } from './schemas/profile.schema.js';
+
+//=================================
+// Enum and Interface
+// ================================
+
+export type { UserEvent } from './schemas/user.schema.js';
+export { USER_EVENT } from './schemas/user.schema.js';
+export type { TournamentDTO } from './schemas/game.schema.js';
+export type { PlayerDTO } from './schemas/game.schema.js';

@@ -52,7 +52,7 @@ export function TournamentTableDesktop({ tournaments, onJoin }: tournamentsProps
             <tbody>
               {tournaments.map((tour) => (
                 <tr key={tour.id} className="hover:bg-white/20 transition-colors">
-                  <td className="py-4 px-4 font-medium text-gray-700">{tour.name}</td>
+                  <td className="py-4 px-4 font-bold text-gray-700">{tour.name}</td>
 
                   <td className="py-4 px-4 text-gray-600">
                     {tour.players} / {tour.maxPlayers}

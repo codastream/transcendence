@@ -15,6 +15,8 @@ import { errorHandler } from './utils/error-handler.js';
 import { appenv } from './config/env.js';
 import { friendsRoutes } from './routes/friends.routes.js';
 import { loggerConfig } from './config/logger.config.js';
+import redisPlugin from './plugins/ioredis.plugins.js';
+import { initRedisSubscriber } from './events/redis.subscriber.js';
 
 export async function buildApp() {
   const isTest = appenv.NODE_ENV === 'test';
@@ -35,6 +37,7 @@ export async function buildApp() {
         }),
   };
   const app = fastify(options).withTypeProvider<ZodTypeProvider>();
+  await app.register(redisPlugin);
 
   app.addHook('onRequest', (request, reply, done) => {
     const socket = request.raw.socket as any;
@@ -88,9 +91,11 @@ export async function buildApp() {
       },
     });
   }
-
   app.register(umRoutes, { prefix: '' });
   app.register(friendsRoutes, { prefix: '/friends' });
+  app.ready(() => {
+    initRedisSubscriber(app);
+  });
 
   return app;
 }

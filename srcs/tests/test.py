@@ -10,6 +10,7 @@ from pathlib import Path
 TEST_FILES = [
     "test_auth.py",
     "test_gateway.py",
+    "test_tournament.py",
 ]
 
 
