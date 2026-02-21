@@ -129,8 +129,9 @@ export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
 }
 
 export async function joinTournament(req: FastifyRequest, reply: FastifyReply) {
-  db.joinTournament(req.user.sub, Number((req.params as any).id));
-  return reply.code(200).send(req.id);
+  const tourId = Number((req.params as any).id);
+  db.joinTournament(req.user.sub, tourId);
+  return reply.code(200).send({ joining: tourId });
 }
 
 // RL API: Reset game session
