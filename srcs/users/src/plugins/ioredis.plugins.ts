@@ -32,7 +32,7 @@ export default fp(async (app) => {
 
   app.decorate('redis', redis);
 
-  app.addHook('onClose', async (instance) => {
+  app.addHook('onClose', async () => {
     app.log.info('Closing Redis connection...');
     try {
       await Promise.race([
@@ -41,7 +41,7 @@ export default fp(async (app) => {
       ]);
     } catch (err) {
       app.log.error('Forcing Redis disconnect');
-      await redis.disconnect();
+      redis.disconnect();
     }
   });
 });

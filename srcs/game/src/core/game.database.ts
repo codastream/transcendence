@@ -20,6 +20,7 @@ try {
 }
 
 export const db = new Database(DB_PATH);
+db.pragma('foreign_keys = ON');
 console.log('Using SQLite file:', DB_PATH);
 
 // Create table
@@ -107,6 +108,12 @@ WHERE t.status IN ('PENDING', 'STARTED')
 GROUP BY t.id, t.status, p.username;
 `);
 
+const countPlayerTournamentStmt = db.prepare(`
+SELECT COUNT(*)
+FROM tournament_player
+WHERE tournament_id = ?;
+`);
+
 const upsertUserStmt = db.prepare(`
 INSERT INTO player (id, username, updated_at)
 VALUES (?, ?, ?)
@@ -118,6 +125,12 @@ DO UPDATE SET
 
 const deleteUserStmt = db.prepare(`
 DELETE FROM player WHERE id = ?
+`);
+
+const changeStatusTournamentStmt = db.prepare(`
+UPDATE tournament
+SET status = ?
+WHERE id = ?
 `);
 
 export function addMatch(match: MatchDTO): number {
@@ -150,7 +163,7 @@ export function createTournament(player_id: number): number {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     const error = new Error(`Tournament creation failed: ${message}`) as Error & { code: string };
-    error.code = 'DB_INSERT_TOURNAMENT_ERR';
+    error.code = 'GAME_DB_INSERT_TOURNAMENT_ERR';
     throw error;
   }
 }
@@ -211,6 +224,30 @@ export function listTournaments(): TournamentDTO[] {
     const message = err instanceof Error ? err.message : String(err);
     const error = new Error(`Failed to list tournaments: ${message}`) as Error & { code: string };
     error.code = 'GAME_DB_TOURNAMENT_LIST_ERROR';
+    throw error;
+  }
+}
+
+export function joinTournament(player_id: number, tournament_id: number) {
+  try {
+    const result = countPlayerTournamentStmt.get(tournament_id) as { 'COUNT(*)': number };
+    const nbPlayers = result['COUNT(*)'];
+    if (nbPlayers >= 4) {
+      const fullError = new Error('The Tournament is full') as Error & { code: string };
+      fullError.code = 'TOURNAMENT_FULL';
+      throw fullError;
+    }
+    addPlayerTournament(player_id, tournament_id);
+    if (nbPlayers === 3) {
+      changeStatusTournamentStmt.run('STARTED', tournament_id);
+    }
+  } catch (err: unknown) {
+    if (err instanceof Error && (err as any).code === 'TOURNAMENT_FULL') {
+      throw err;
+    }
+    const message = err instanceof Error ? err.message : String(err);
+    const error = new Error(`Join tournament failed: ${message}`) as Error & { code: string };
+    error.code = 'GAME_DB_JOIN_TOURNAMENT_ERR';
     throw error;
   }
 }

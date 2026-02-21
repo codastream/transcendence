@@ -89,6 +89,7 @@
     "start": "Jouer",
     "friends": "Amis",
     "waitiing": "Attente...",
-    "creating": "Création du tournoi..."
+    "creating": "Création du tournoi...",
+    "tournament_full": "Ce tournoi est déjà complet (maximum 4 joueurs)."
   }
 }
