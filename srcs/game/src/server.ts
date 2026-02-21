@@ -19,6 +19,7 @@ const fastify = Fastify({
 });
 
 // Register WebSocket support
+// @ts-ignore - Fastify WebSocket plugin types are incompatible with Fastify v5 but work at runtime
 await fastify.register(fastifyWebsocket);
 
 // WebSocket game endpoint
