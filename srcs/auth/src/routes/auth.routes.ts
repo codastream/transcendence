@@ -14,6 +14,7 @@ import {
   heartbeatHandler,
   isUserOnlineHandler,
   deleteUserHandler,
+  oauthCallbackHandler,
 } from '../controllers/auth.controller.js';
 import { AUTH_CONFIG } from '../utils/constants.js';
 
@@ -148,6 +149,20 @@ export async function authRoutes(app: FastifyInstance) {
       },
     },
     isUserOnlineHandler,
+  );
+
+  // Callback OAuth pour Google et 42 School (POST: le frontend envoie { code, state })
+  app.post(
+    '/oauth/:provider/callback',
+    {
+      config: {
+        rateLimit: {
+          max: AUTH_CONFIG.OAUTH.CALLBACK_RATE_LIMIT.max,
+          timeWindow: AUTH_CONFIG.OAUTH.CALLBACK_RATE_LIMIT.timeWindow,
+        },
+      },
+    },
+    oauthCallbackHandler,
   );
 
   // Gestion des routes inconnues (doit être en dernier)
