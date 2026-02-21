@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as authService from '../services/auth.service.js';
 import { ValidationSchemas } from '../utils/validation.js';
-import { AUTH_CONFIG, ERROR_MESSAGES, UserRole } from '../utils/constants.js';
+import { AUTH_CONFIG, ERROR_MESSAGES } from '../utils/constants.js';
 import * as totpService from '../services/totp.service.js';
 import * as onlineService from '../services/online.service.js';
 import { logger } from '../index.js';

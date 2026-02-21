@@ -18,6 +18,7 @@ export async function createUserProfile(payload: CreateProfileDTO): Promise<User
         'Content-Type': 'application/json',
         'x-user-id': String(payload.authId) || '',
         'x-user-name': (payload.username as string) || '',
+        'x-user-role': 'USER',
       },
       body: JSON.stringify(payload),
       dispatcher: mtlsAgent,
