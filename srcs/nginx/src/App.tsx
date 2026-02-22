@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProfilePage } from './pages/ProfilePage';
+import { GamePage } from './pages/GamePage';
 import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
@@ -54,6 +55,7 @@ export const App = () => {
           }
         />
         <Route path="/me" element={<MeRedirect />}></Route>
+        <Route path="/simple-game" element={<GamePage sessionId={null} />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
         <Route path="/tournaments/*" element={<TournamentRoutes />} />
       </Routes>

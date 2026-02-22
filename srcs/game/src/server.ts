@@ -39,7 +39,7 @@ const start = async () => {
   try {
     await fastify.listen({ port: 3003, host: '0.0.0.0' });
     fastify.log.info('WebSocket Pong server running on port 3003');
-    fastify.log.info('Connect to: ws://localhost:3003/game/{sessionId}');
+    fastify.log.info('Connect to: wss://localhost:3003/game/{sessionId}');
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

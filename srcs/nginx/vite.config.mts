@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const NGINX_HTTPS_URL = 'https://localhost:4430';
+const GAME_HTTPS_URL = 'https://localhost:4430/api/game';
 
 /** @type {import('vite').UserConfig} */
 export default {
@@ -17,6 +18,7 @@ export default {
         target: NGINX_HTTPS_URL,
         secure: false,
         changeOrigin: true,
+        ws: true,
       },
       '/uploads': {
         target: NGINX_HTTPS_URL,
