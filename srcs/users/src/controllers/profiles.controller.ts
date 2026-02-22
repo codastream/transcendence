@@ -65,6 +65,7 @@ export class ProfileController {
       param: username,
     });
     const profileSimpleDTO = await profileService.updateAvatar(username, data);
+    userBus.emit(USER_EVENT.UPDATED, profileSimpleDTO);
     return reply.status(200).send(profileSimpleDTO);
   }
 

@@ -116,11 +116,12 @@ WHERE tournament_id = ?;
 `);
 
 const upsertUserStmt = db.prepare(`
-INSERT INTO player (id, username, avartar, updated_at)
+INSERT INTO player (id, username, avatar, updated_at)
 VALUES (?, ?, ?, ?)
 ON CONFLICT(id)
 DO UPDATE SET
   username = excluded.username,
+  avatar = excluded.avatar,
   updated_at = excluded.updated_at
 `);
 

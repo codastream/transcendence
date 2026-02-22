@@ -17,7 +17,26 @@ export function initRedisSubscriber(fastify: FastifyInstance) {
           type: 'USER_CREATED',
           id: profile.authId,
           username: profile.username,
-          avatar: profile.avatar,
+          timestamp: Date.now(),
+        }),
+      );
+      fastify.log.debug(`Event streamed to Redis for user ${profile.id}`);
+    } catch (err) {
+      fastify.log.error(err, 'Failed to stream user event to Redis');
+    }
+  });
+  userBus.on(USER_EVENT.UPDATED, async (profile) => {
+    try {
+      // On utilise l'instance redis partagée par Fastify
+      await fastify.redis.xadd(
+        'user.events',
+        '*',
+        'data',
+        JSON.stringify({
+          type: 'USER_CREATED',
+          id: profile.authId,
+          username: profile.username,
+          avatar: profile.avatarUrl,
           timestamp: Date.now(),
         }),
       );
