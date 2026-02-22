@@ -15,7 +15,7 @@ Implémentation complète de l'authentification OAuth 2.0 pour Google et 42 Scho
 
 ### 1. Backend (Service Auth)
 
-Ajouter dans `.env.auth`:
+Ajouter dans `.env.oauth`:
 
 ```bash
 # Google OAuth 2.0

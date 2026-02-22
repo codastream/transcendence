@@ -15,6 +15,8 @@ import { googleService } from './providers/google.service.js';
 import { school42Service } from './providers/school42.service.js';
 import { logger } from '../index.js';
 import { EVENTS } from '../utils/constants.js';
+import { DataError } from '../types/errors.js';
+import { AppError, ERR_DEFS } from '@transcendence/core';
 import type { OAuthProfile } from '../types/dto.js';
 import type { DBUser } from '../types/models.js';
 import bcrypt from 'bcrypt';
@@ -61,7 +63,7 @@ export async function handleOAuthCallback(
     // Chercher un utilisateur existant avec cet ID OAuth
     const existingUser = findUserByOAuthId(provider, profile.id);
 
-    if (existingUser) {
+    if (existingUser !== null) {
       logger.info({
         event: EVENTS.LIFECYCLE.OAUTH_LOGIN_SUCCESS,
         provider,
@@ -145,6 +147,11 @@ async function createNewOAuthUser(
   while (db.findUserByUsername(username)) {
     username = `${baseUsername}${counter}`;
     counter++;
+    if (counter > 100) {
+      throw new AppError(ERR_DEFS.RESOURCE_CONFLICT, {
+        field: 'username',
+      });
+    }
   }
 
   logger.info({
@@ -159,15 +166,31 @@ async function createNewOAuthUser(
   const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
   // Créer l'utilisateur
-  const userId = db.createOAuthUser({
-    username,
-    email: profile.email,
-    password: hashedPassword,
-    googleId: provider === 'google' ? profile.id : null,
-    school42Id: provider === 'school42' ? profile.id : null,
-    oauthEmail: profile.email,
-    avatarUrl: profile.avatarUrl || null,
-  });
+  let userId: number;
+  try {
+    userId = db.createOAuthUser({
+      username,
+      email: profile.email,
+      password: hashedPassword,
+      googleId: provider === 'google' ? profile.id : null,
+      school42Id: provider === 'school42' ? profile.id : null,
+      oauthEmail: profile.email,
+      avatarUrl: profile.avatarUrl || null,
+    });
+  } catch (err: unknown) {
+    if (err instanceof DataError) {
+      // Race condition : l'ID OAuth a été inséré entre le findUserByOAuthId et le createOAuthUser
+      logger.warn({
+        event: 'oauth_create_user_conflict',
+        provider,
+        field: err.meta?.field,
+      });
+      throw new AppError(ERR_DEFS.RESOURCE_CONFLICT, {
+        field: err.meta?.field,
+      });
+    }
+    throw err;
+  }
 
   // Créer le profil dans le service UM
   try {

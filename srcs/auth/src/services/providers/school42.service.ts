@@ -8,9 +8,10 @@
 import { logger } from '../../index.js';
 import type { OAuthProfile } from '../../types/dto.js';
 import { authenv } from '../../config/env.js';
+import { AUTH_CONFIG } from '../../utils/constants.js';
 
-const SCHOOL42_TOKEN_URL = 'https://api.intra.42.fr/oauth/token';
-const SCHOOL42_PROFILE_URL = 'https://api.intra.42.fr/v2/me';
+const SCHOOL42_TOKEN_URL = AUTH_CONFIG.OAUTH.SCHOOL42.TOKEN_URL;
+const SCHOOL42_PROFILE_URL = AUTH_CONFIG.OAUTH.SCHOOL42.USER_INFO_URL;
 
 /**
  * Interfaces pour les APIs 42
@@ -62,7 +63,7 @@ function parseSchool42Error(errorResponse: School42ErrorResponse): School42OAuth
     case 'invalid_grant':
       return new School42OAuthError(
         'INVALID_GRANT',
-        'Authorization code is invalid or expired. Please try logging in again. (Code may have been: expired after ~10min, already used, or redirect_uri mismatch)',
+        'Authorization code is invalid or expired. Please try logging in again.',
         400,
       );
 
@@ -115,9 +116,16 @@ export const school42Service = {
       // Step 1: Échanger code contre access_token
       logger.info({ event: 'school42_token_exchange_start' });
 
+      const tokenAbort = new AbortController();
+      const tokenTimeout = setTimeout(
+        () => tokenAbort.abort(),
+        AUTH_CONFIG.OAUTH.TOKEN_EXCHANGE_TIMEOUT_MS,
+      );
+
       const tokenResponse = await fetch(SCHOOL42_TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        signal: tokenAbort.signal,
         body: new URLSearchParams({
           grant_type: 'authorization_code',
           code,
@@ -126,6 +134,7 @@ export const school42Service = {
           redirect_uri: `${authenv.OAUTH_BASE_URL}/auth/oauth/school42/callback`,
         }).toString(),
       });
+      clearTimeout(tokenTimeout);
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
@@ -163,12 +172,20 @@ export const school42Service = {
       // Step 2: Récupérer le profil utilisateur
       logger.info({ event: 'school42_profile_fetch_start' });
 
+      const profileAbort = new AbortController();
+      const profileTimeout = setTimeout(
+        () => profileAbort.abort(),
+        AUTH_CONFIG.OAUTH.USER_PROFILE_TIMEOUT_MS,
+      );
+
       const profileResponse = await fetch(SCHOOL42_PROFILE_URL, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
         },
+        signal: profileAbort.signal,
       });
+      clearTimeout(profileTimeout);
 
       if (!profileResponse.ok) {
         const errorText = await profileResponse.text();

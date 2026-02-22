@@ -8,9 +8,10 @@
 import { logger } from '../../index.js';
 import type { OAuthProfile } from '../../types/dto.js';
 import { authenv } from '../../config/env.js';
+import { AUTH_CONFIG } from '../../utils/constants.js';
 
-const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const GOOGLE_PROFILE_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
+const GOOGLE_TOKEN_URL = AUTH_CONFIG.OAUTH.GOOGLE.TOKEN_URL;
+const GOOGLE_PROFILE_URL = AUTH_CONFIG.OAUTH.GOOGLE.USER_INFO_URL;
 
 /**
  * Interfaces pour les APIs Google
@@ -60,7 +61,7 @@ function parseGoogleError(errorResponse: GoogleErrorResponse): GoogleOAuthError 
     case 'invalid_grant':
       return new GoogleOAuthError(
         'INVALID_GRANT',
-        'Authorization code is invalid or expired. Please try logging in again. (Code may have been: expired after ~10min, already used, or redirect_uri mismatch)',
+        'Authorization code is invalid or expired. Please try logging in again.',
         400,
       );
 
@@ -113,9 +114,16 @@ export const googleService = {
       // Step 1: Échanger code contre access_token
       logger.info({ event: 'google_token_exchange_start' });
 
+      const tokenAbort = new AbortController();
+      const tokenTimeout = setTimeout(
+        () => tokenAbort.abort(),
+        AUTH_CONFIG.OAUTH.TOKEN_EXCHANGE_TIMEOUT_MS,
+      );
+
       const tokenResponse = await fetch(GOOGLE_TOKEN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        signal: tokenAbort.signal,
         body: new URLSearchParams({
           code,
           client_id: authenv.GOOGLE_CLIENT_ID,
@@ -124,6 +132,7 @@ export const googleService = {
           grant_type: 'authorization_code',
         }).toString(),
       });
+      clearTimeout(tokenTimeout);
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
@@ -161,12 +170,20 @@ export const googleService = {
       // Step 2: Récupérer le profil utilisateur
       logger.info({ event: 'google_profile_fetch_start' });
 
+      const profileAbort = new AbortController();
+      const profileTimeout = setTimeout(
+        () => profileAbort.abort(),
+        AUTH_CONFIG.OAUTH.USER_PROFILE_TIMEOUT_MS,
+      );
+
       const profileResponse = await fetch(GOOGLE_PROFILE_URL, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${tokenData.access_token}`,
         },
+        signal: profileAbort.signal,
       });
+      clearTimeout(profileTimeout);
 
       if (!profileResponse.ok) {
         const errorText = await profileResponse.text();

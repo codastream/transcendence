@@ -100,7 +100,7 @@ export const authenv = cleanEnv(process.env, {
 
   // OAuth 2.0 General Configuration
   OAUTH_BASE_URL: str({
-    default: 'http://localhost:4430',
+    default: 'https://localhost:4430',
     desc: 'Base URL for OAuth callback redirects (frontend URL)',
   }),
 });

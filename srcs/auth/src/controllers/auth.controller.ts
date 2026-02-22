@@ -265,7 +265,20 @@ export async function loginHandler(
         getCookieOptions(AUTH_CONFIG.COOKIE_2FA_MAX_AGE_SECONDS),
       );
 
-      await onlineService.updateOnlineStatus(user.id || 0, true);
+      // Marquer l'utilisateur comme en ligne
+      try {
+        await onlineService.updateOnlineStatus(user.id || 0, true);
+      } catch (onlineStatusError) {
+        logger.error({
+          event: 'update_online_status_error',
+          userId: user.id,
+          error:
+            onlineStatusError instanceof Error
+              ? onlineStatusError.message
+              : String(onlineStatusError),
+        });
+        // Ne pas relancer l'erreur : le statut en ligne est non critique
+      }
 
       return reply.code(HTTP_STATUS.OK).send({
         result: {
@@ -1070,7 +1083,20 @@ export async function oauthCallbackHandler(
     });
 
     // Marquer l'utilisateur comme en ligne
-    await onlineService.updateOnlineStatus(result.userId, true);
+    try {
+      await onlineService.updateOnlineStatus(result.userId, true);
+    } catch (onlineStatusError) {
+      logger.error({
+        event: 'oauth_online_status_update_failed',
+        provider,
+        userId: result.userId,
+        error:
+          onlineStatusError instanceof Error
+            ? onlineStatusError.message
+            : String(onlineStatusError),
+      });
+      // Ne pas relancer l'erreur : le statut en ligne est non critique
+    }
 
     // Générer le JWT et le poser en cookie (identique au login classique)
     const userRole = authService.getUserRole(result.userId);
