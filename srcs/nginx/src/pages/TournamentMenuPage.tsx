@@ -8,8 +8,12 @@ export default function TournamentMenuPage() {
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
-      <CircleButton onClick={() => navigate('list')}>{t('game.participate')}</CircleButton>
-      <CircleButton onClick={() => navigate('create')}>{t('game.create')}</CircleButton>
+      <CircleButton isMoving={false} onClick={() => navigate('list')}>
+        {t('game.participate')}
+      </CircleButton>
+      <CircleButton isMoving={false} onClick={() => navigate('create')}>
+        {t('game.create')}
+      </CircleButton>
     </div>
   );
 }
