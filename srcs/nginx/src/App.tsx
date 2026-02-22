@@ -1,28 +1,15 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProfilePage } from './pages/ProfilePage';
-import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
+import { WelcomePage } from './pages/WelcomePage';
 import TournamentRoutes from './router/TournamentRoutes';
 
-const GuestRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoggedIn, isAuthChecked } = useAuth();
-
-  if (!isAuthChecked) {
-    return null; // ou loader
-  }
-
-  if (isLoggedIn && user?.username) {
-    return <Navigate to={`/profile/${user.username}`} replace />;
-  }
-
-  return children;
-};
 const MeRedirect = () => {
   const { user, isAuthChecked } = useAuth();
 
   if (!isAuthChecked) {
-    return null; // ou loader
+    return null;
   }
 
   if (!user || !user.username) {
@@ -37,22 +24,8 @@ export const App = () => {
     <main className="h-screen bd-slate-950 text-slate-100">
       <Routes>
         <Route path="/" element={<AnimationPage />}></Route>
-        <Route
-          path="/signup"
-          element={
-            <GuestRoute>
-              <LoginPage isRegister={true} />
-            </GuestRoute>
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            <GuestRoute>
-              <LoginPage isRegister={false} />
-            </GuestRoute>
-          }
-        />
+
+        <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/me" element={<MeRedirect />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
         <Route path="/tournaments/*" element={<TournamentRoutes />} />

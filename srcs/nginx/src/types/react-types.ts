@@ -23,6 +23,8 @@ export interface AuthContextType {
   login: (user: ProfileSimpleDTO) => void;
   logout: () => void;
   updateUser: (newUser: ProfileSimpleDTO) => void;
+  markAnimAsSeen: () => void;
+  hasSeenAnim: boolean;
 }
 
 export interface AuthProviderProps {

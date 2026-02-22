@@ -68,6 +68,8 @@
     "termsOfService": "Terms of Service"
   },
   "game": {
+    "playWithAI": "Play with AI",
+    "playWithFriends": "Play with Friends",
     "tournament": "Tournament",
     "game": "Game",
     "participate": "Participate",

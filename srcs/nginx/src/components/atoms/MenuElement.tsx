@@ -82,7 +82,7 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
       onMouseLeave={() => setIsHovered(false)}
       {...props}
     >
-      <div className="relative w-20 h-20 flex items-center justify-center">
+      <div className="relative lg:w-20 lg:h-20 w-15 h-15 flex items-center justify-center">
         <motion.div
           animate={{
             opacity: isHovered ? 0 : 0.5,
@@ -119,7 +119,7 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
       <motion.span
         animate={{}}
         transition={fadeTransition}
-        className="text-white text-xs font-semibold mt-1 uppercase tracking-widest"
+        className="text-white text-center text-xs font-semibold mt-1 uppercase tracking-wide"
       >
         {title}
       </motion.span>
