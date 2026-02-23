@@ -51,7 +51,7 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
   );
 
   // Auto-start the game once both players are in
-  if (isSecondPlayer) {
+  if (players.size === 2) {
     const game = currentSession.game;
     if (game && game.status === 'waiting') {
       game.start();
