@@ -18,8 +18,8 @@
     "processing": "traitement..."
   },
   "search": {
-    "no_results": "no results",
-    "user": "Search for a user"
+    "no_results": "pas de résulytat",
+    "user": "Cherchez un utilisateur"
   },
   "global": {
     "loading": "Chargement...",
@@ -44,7 +44,7 @@
     "invalid_mfa_code": "Code MFA invalide. Vérifiez le code et réessayez.",
     "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard.",
     "friend_self_add": "Choisissez un autre utilisateur que vous-même",
-    "friend_already": "You are already friends"
+    "friend_already": "Vous êtes déjà amis"
   },
   "navbar": {
     "home": "Accueil",
@@ -65,10 +65,10 @@
     "update_avatar": "Changer d'avatar"
   },
   "friends": {
-    "friends": "Friends",
-    "add": "add to friends",
-    "remove": "remove from friends",
-    "play": "play"
+    "friends": "Amis",
+    "add": "ajouter aux amis",
+    "remove": "supprimer des amis",
+    "play": "jouer"
   },
   "file_uploader": {
     "file_choose": "Choisir un fichier",

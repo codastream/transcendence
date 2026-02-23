@@ -14,8 +14,8 @@ interface SearchProps {
 const UserSearchInput = ({
   value,
   onChange,
-  suggestions,
   error,
+  suggestions,
   onSelect,
   isLoading = false,
 }: SearchProps) => {

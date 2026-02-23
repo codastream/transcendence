@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import UserRow from './UserRow';
 import { ERROR_CODES, FrontendError, ProfileSimpleDTO } from '@transcendence/core';
 import UserSearchInput from './UserSearchInput';
 import { profileApi } from '../../api/profile-api';
 import { useTranslation } from 'react-i18next';
 import { UserActions } from '../../types/react-types';
-
-// export interface ProfileSuggestion extends ProfileSimpleDTO {
-//   id: string; // Utile pour la sélection unique
-// }
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 
 const useUserSearch = (query: string) => {
   const [results, setResults] = useState<ProfileSimpleDTO[]>([]);
@@ -16,13 +13,13 @@ const useUserSearch = (query: string) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { t } = useTranslation();
-
   useEffect(() => {
     let isMounted = true;
+    setError(null);
     const fetchProfiles = async () => {
       if (query.length < 2) {
         setResults([]);
-        setError(null);
+        setIsLoading(false);
         return;
       }
       setIsLoading(true);
@@ -63,30 +60,48 @@ const UserSearchContainer = ({ isSearch, actions, onAction }: UserSearchContaine
   const [selectedUser, setSelectedUser] = useState<ProfileSimpleDTO | null>(null);
   const { results, error, isLoading } = useUserSearch(query); // Hook défini précédemment
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const resetSearch = () => {
+    setSelectedUser(null);
+    setQuery('');
+  };
+  useOutsideClick(containerRef, () => {
+    console.log('outside click');
+    if (selectedUser) {
+      resetSearch();
+    }
+  });
   if (selectedUser || !isSearch) {
     return (
-      <UserRow
-        actions={actions}
-        user={selectedUser}
-        avatarSize="md"
-        onAction={(action, user) => {
-          onAction?.(action, user);
-          setSelectedUser(null);
-          setQuery('');
-        }}
-      />
+      <div ref={containerRef}>
+        <UserRow
+          actions={actions}
+          user={selectedUser}
+          avatarSize="md"
+          onAction={(action, user) => {
+            onAction?.(action, user);
+            setSelectedUser(null);
+            setQuery('');
+          }}
+        />
+      </div>
     );
   }
 
   return (
-    <UserSearchInput
-      isLoading={isLoading}
-      value={query}
-      onChange={setQuery}
-      suggestions={results}
-      error={error}
-      onSelect={setSelectedUser}
-    />
+    <>
+      <UserSearchInput
+        isLoading={isLoading}
+        value={query}
+        error={error}
+        onChange={(val) => {
+          setQuery(val);
+        }}
+        suggestions={results}
+        onSelect={setSelectedUser}
+      />
+    </>
   );
 };
 

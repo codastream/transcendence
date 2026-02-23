@@ -79,11 +79,11 @@ export const FriendsPage = () => {
           onAction={handleUserAction}
         ></UserSearchContainer>
       </div>
+      {errorMessage && <p className="text-red-500 mb-2">{errorMessage}</p>}
       <div className="border-b border-b-gray-300 mb-1">
         <h2 className=" font-quantico text-gray-500 mb-1">Existing friends</h2>
       </div>
       <div className="flex flex-col gap-2">
-        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
         {isLoading && <p>Loading..</p>}
         {friends.length === 0 && <p className="text-gray-400 italic">{t('search.no_results')}</p>}
         {friends.map((f) => (

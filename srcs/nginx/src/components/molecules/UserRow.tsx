@@ -86,13 +86,6 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
             const Icon = actionProp.icon;
             const middleIndex = (actions.length - 1) / 2;
             const relPos = index - middleIndex;
-            // const distanceFromCenter = Math.abs(index - middleIndex);
-            // const translateX = xOffset - distanceFromCenter * arcIntensity;
-            // const translateY = relPos * verticalSpacing;
-            // console.log(`middleIndex is ${middleIndex}`);
-            // console.log(`distanceFromCenter is ${distanceFromCenter}`);
-            // console.log(`translateY is ${translateY}`);
-            // console.log(`actionProp.labelKey is ${actionProp.labelKey}`);
             return (
               <div
                 key={actionType}

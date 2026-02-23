@@ -106,6 +106,9 @@ game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
 block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
+block-nc:
+	$(D_COMPOSE) build --no-cache $(BK_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(BK_SERVICE_NAME)
 pong-ai:
 	$(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
 build: install

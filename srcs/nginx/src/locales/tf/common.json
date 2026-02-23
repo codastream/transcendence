@@ -18,8 +18,8 @@
     "processing": "On gère ça, mon pote…"
   },
   "search": {
-    "no_results": "no results",
-    "user": "Search for a user"
+    "no_results": "nada",
+    "user": "voir les gars qui trainent"
   },
   "global": {
     "loading": "Laisse nous gérer ça...",
@@ -44,7 +44,7 @@
     "invalid_mfa_code": "Ton code MFA, il est foireux. Vérifie et retente.",
     "internal_error": "Putain, y’a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous.",
     "friend_self_add": "Tu peux pas t'ajouter toi-meme, vieux. Choisis un autre tandem.",
-    "friend_already": "You are already friends"
+    "friend_already": "T'es déjà pote, mon vieux !"
   },
   "navbar": {
     "home": "Le bercail",
@@ -65,10 +65,10 @@
     "update_avatar": "Se faire retirer le portrait"
   },
   "friends": {
-    "friends": "Friends",
-    "add": "add to friends",
-    "remove": "remove from friends",
-    "play": "play"
+    "friends": "Les potes",
+    "add": "ajoute-le",
+    "remove": "vire-le",
+    "play": "on s'amuse"
   },
   "file_uploader": {
     "file_choose": "Fais ton choix mon gars",
@@ -81,14 +81,14 @@
     "termsOfService": "Les règles du jeu (lis ça, sinon t’es un rigolo)"
   },
   "game": {
-    "playWithAI": "No friends? Joue avec un ROBOT",
-    "playWithFriends": "Joue avec ton copaing",
+    "playWithAI": "Défie le machin",
+    "playWithFriends": "Joue avec tes potes",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
     "participate": "Tu cherches des embrouilles!",
     "create": "Je vous mets au défi!",
     "tournament_available": "Vendetta disponibles",
-    "name": "Blaz",
+    "name": "Blase",
     "players": "Nb truands",
     "status": "Statut",
     "action": "Action",

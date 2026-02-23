@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 // from https://dev.to/joodi/useauth-hook-in-react-1bp3
 import { authApi } from '../api/auth-api';
+import { profileApi } from '../api/profile-api';
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -21,11 +22,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const checkAuth = async () => {
       try {
         const me = await authApi.me();
-        const profile: ProfileSimpleDTO = {
+        const profile = await profileApi.getMe(me.username);
+        const userProfile: ProfileSimpleDTO = {
           username: me.username,
-          avatarUrl: null, // ou me.avatarUrl si dispo plus tard
+          avatarUrl: profile.avatarUrl,
         };
-        setUser(profile);
+        setUser(userProfile);
       } catch {
         setUser(null);
       } finally {
