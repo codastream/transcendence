@@ -3,91 +3,30 @@ import { createAiSession, joinAiToSession } from '../api/game-api';
 import Background from '../components/atoms/Background';
 import { NavBar } from '../components/molecules/NavBar';
 import Button from '../components/atoms/Button';
-
-// ─── Canvas constants ─────────────────────────────────────────────────────────
-const CW = 800;
-const CH = 600;
-const PADDLE_W = 10;
-const LEFT_X = 20;
-const RIGHT_X = CW - 30;
+import Arena from '../components/organisms/Arena';
+import GameStatusBar from '../components/organisms/GameStatusBar';
+import GameControl from '../components/organisms/GameControl';
+import { useGameWebSocket } from '../hooks/GameWebSocket';
+import { useGameState } from '../hooks/GameState';
+import type { GameState } from '../hooks/GameState';
 
 type Phase = 'idle' | 'loading' | 'playing' | 'gameOver' | 'error';
 
-interface GameState {
-  ball: { x: number; y: number; radius: number };
-  paddles: {
-    left:  { y: number; height: number };
-    right: { y: number; height: number };
-  };
-  scores: { left: number; right: number };
-}
-
-// ─── Pure canvas draw — zero React involvement ───────────────────────────────
-function drawFrame(ctx: CanvasRenderingContext2D, state: GameState) {
-  ctx.fillStyle = '#020617';
-  ctx.fillRect(0, 0, CW, CH);
-
-  ctx.save();
-  ctx.setLineDash([12, 10]);
-  ctx.strokeStyle = '#1e293b';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(CW / 2, 0);
-  ctx.lineTo(CW / 2, CH);
-  ctx.stroke();
-  ctx.restore();
-
-  const paddleGlow = (x: number, y: number, h: number, color: string) => {
-    ctx.save();
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 18;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.roundRect(x, y, PADDLE_W, h, 4);
-    ctx.fill();
-    ctx.restore();
-  };
-
-  paddleGlow(LEFT_X,  state.paddles.left.y,  state.paddles.left.height,  '#38bdf8');
-  paddleGlow(RIGHT_X, state.paddles.right.y, state.paddles.right.height, '#fb7185');
-
-  ctx.save();
-  ctx.shadowColor = '#e0f2fe';
-  ctx.shadowBlur = 20;
-  ctx.fillStyle = '#f0f9ff';
-  ctx.beginPath();
-  ctx.arc(state.ball.x, state.ball.y, state.ball.radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-
-  ctx.fillStyle = '#475569';
-  ctx.font = 'bold 48px "Courier New", monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText(String(state.scores.left),  CW / 2 - 80, 60);
-  ctx.fillText(String(state.scores.right), CW / 2 + 80, 60);
-}
-
-// ─── Component ────────────────────────────────────────────────────────────────
 export const PlayAiPage = () => {
-  const [phase,  setPhase]  = useState<Phase>('idle');
-  const [error,  setError]  = useState<string | null>(null);
+  const [phase, setPhase] = useState<Phase>('idle');
+  const [error, setError] = useState<string | null>(null);
   const [winner, setWinner] = useState<'you' | 'ai' | null>(null);
-  const scoresRef = useRef({ left: 0, right: 0 });
   const [displayScores, setDisplayScores] = useState({ left: 0, right: 0 });
 
-  const wsRef       = useRef<WebSocket | null>(null);
-  const canvasRef   = useRef<HTMLCanvasElement | null>(null);
-  const ctxRef      = useRef<CanvasRenderingContext2D | null>(null);
-  const myPaddleRef = useRef<'left' | 'right'>('left');
-  const phaseRef    = useRef<Phase>('idle');
-  const timeoutRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const phaseRef      = useRef<Phase>('idle');
+  const myPaddleRef   = useRef<'left' | 'right'>('left');
+  const timeoutRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionIdRef  = useRef<string | null>(null);
+
+  const { openWebSocket, closeWebSocket } = useGameWebSocket();
+  const { gameStateRef, updateGameState } = useGameState();
 
   useEffect(() => { phaseRef.current = phase; }, [phase]);
-
-  const setCanvasRef = useCallback((el: HTMLCanvasElement | null) => {
-    canvasRef.current = el;
-    ctxRef.current = el ? el.getContext('2d') : null;
-  }, []);
 
   const clearSetupTimeout = useCallback(() => {
     if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
@@ -97,12 +36,11 @@ export const PlayAiPage = () => {
     setPhase('loading');
     setError(null);
     setWinner(null);
-    scoresRef.current = { left: 0, right: 0 };
     setDisplayScores({ left: 0, right: 0 });
 
     timeoutRef.current = setTimeout(() => {
       if (phaseRef.current === 'loading' || phaseRef.current === 'playing') {
-        wsRef.current?.close();
+        closeWebSocket();
         setError('Game did not start within 10s. Is the AI service running and is models/best_model.zip present?');
         setPhase('error');
       }
@@ -110,22 +48,9 @@ export const PlayAiPage = () => {
 
     try {
       const { sessionId } = await createAiSession();
-      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const ws = new WebSocket(`${proto}://${window.location.host}/api/game/${sessionId}`);
-      wsRef.current = ws;
+      sessionIdRef.current = sessionId;
 
-      ws.onopen = () => {
-        joinAiToSession(sessionId).catch((e: any) => {
-          clearSetupTimeout();
-          setError('AI service error: ' + (e?.response?.data?.detail ?? e?.message ?? 'unknown'));
-          setPhase('error');
-          ws.close();
-        });
-      };
-
-      ws.onmessage = (event) => {
-        const msg = JSON.parse(event.data);
-
+      await openWebSocket(sessionId, (msg: any) => {
         if (msg.type === 'connected') {
           myPaddleRef.current = msg.message === 'Player A' ? 'left' : 'right';
 
@@ -134,18 +59,18 @@ export const PlayAiPage = () => {
             clearSetupTimeout();
             setPhase('playing');
           }
-          if (ctxRef.current) drawFrame(ctxRef.current, msg.data);
+          updateGameState(msg.data as GameState);
           const s = msg.data.scores;
-          if (s.left !== scoresRef.current.left || s.right !== scoresRef.current.right) {
-            scoresRef.current = { left: s.left, right: s.right };
-            setDisplayScores({ left: s.left, right: s.right });
-          }
+          setDisplayScores(prev =>
+            prev.left !== s.left || prev.right !== s.right
+              ? { left: s.left, right: s.right }
+              : prev
+          );
 
         } else if (msg.type === 'gameOver' && msg.data) {
           clearSetupTimeout();
-          if (ctxRef.current) drawFrame(ctxRef.current, msg.data);
+          updateGameState(msg.data as GameState);
           const s = msg.data.scores;
-          scoresRef.current = { left: s.left, right: s.right };
           setDisplayScores({ left: s.left, right: s.right });
           const myPaddle = myPaddleRef.current;
           const iWon =
@@ -159,6 +84,138 @@ export const PlayAiPage = () => {
           setError('Game error: ' + (msg.message ?? 'unknown'));
           setPhase('error');
         }
+      });
+
+      // After WS open, tell the AI service to join as Player B
+      joinAiToSession(sessionId).catch((e: any) => {
+        clearSetupTimeout();
+        setError('AI service error: ' + (e?.response?.data?.detail ?? e?.message ?? 'unknown'));
+        setPhase('error');
+        closeWebSocket();
+      });
+
+    } catch (e: any) {
+      clearSetupTimeout();
+      setError(e?.message ?? 'Failed to start game');
+      setPhase('error');
+    }
+  }, [clearSetupTimeout, openWebSocket, closeWebSocket, updateGameState]);
+
+  // Keyboard controls
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const pressed = new Set<string>();
+    const send = (dir: 'up' | 'down' | 'stop') => {
+      const ws = (openWebSocket as any).__ws__; // fallback — use sendDir below
+    };
+    // We rely on the GameWebSocket ref indirectly — expose sendDir via ref trick
+    const wsContainer = { send: (dir: 'up' | 'down' | 'stop') => {} };
+
+    const sendDir = (dir: 'up' | 'down' | 'stop') => {
+      // We reach into the hook via a re-open trick — instead reuse the existing ws
+      // The cleanest approach: keep a direct ws ref alongside the hook
+      const sessionId = sessionIdRef.current;
+      if (!sessionId) return;
+      // We cannot get the raw WS out of the hook, so we open a second connection
+      // Instead: store ws manually alongside openWebSocket call
+    };
+
+    // We use the wsRef stored in the hook indirectly by exposing a sendDir callback
+    // from the hook. Since GameWebSocket doesn't expose send(), we keep our own ref:
+    const onDown = (e: KeyboardEvent) => {
+      if (pressed.has(e.key)) return;
+      pressed.add(e.key);
+      if (e.key === 'ArrowUp')   { e.preventDefault(); sendPaddleDir('up');   }
+      if (e.key === 'ArrowDown') { e.preventDefault(); sendPaddleDir('down'); }
+    };
+    const onUp = (e: KeyboardEvent) => {
+      pressed.delete(e.key);
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') sendPaddleDir('stop');
+    };
+    window.addEventListener('keydown', onDown);
+    window.addEventListener('keyup',   onUp);
+    return () => {
+      window.removeEventListener('keydown', onDown);
+      window.removeEventListener('keyup',   onUp);
+    };
+  }, [phase]);
+
+  // Direct WS ref for sending paddle moves — stored alongside hook
+  const rawWsRef = useRef<WebSocket | null>(null);
+
+  const sendPaddleDir = useCallback((dir: 'up' | 'down' | 'stop') => {
+    rawWsRef.current?.send(
+      JSON.stringify({ type: 'paddle', paddle: myPaddleRef.current, direction: dir })
+    );
+  }, []);
+
+  // Override startGame to also store raw ws ref
+  const startGameWithRef = useCallback(async () => {
+    setPhase('loading');
+    setError(null);
+    setWinner(null);
+    setDisplayScores({ left: 0, right: 0 });
+
+    timeoutRef.current = setTimeout(() => {
+      if (phaseRef.current === 'loading' || phaseRef.current === 'playing') {
+        rawWsRef.current?.close();
+        setError('Game did not start within 10s. Is the AI service running?');
+        setPhase('error');
+      }
+    }, 10000);
+
+    try {
+      const { sessionId } = await createAiSession();
+      sessionIdRef.current = sessionId;
+
+      const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const ws = new WebSocket(`${proto}://${window.location.host}/api/game/${sessionId}`);
+      rawWsRef.current = ws;
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+
+        if (msg.type === 'connected') {
+          myPaddleRef.current = msg.message === 'Player A' ? 'left' : 'right';
+
+        } else if (msg.type === 'state' && msg.data) {
+          if (phaseRef.current !== 'playing') {
+            clearSetupTimeout();
+            setPhase('playing');
+          }
+          updateGameState(msg.data as GameState);
+          const s = msg.data.scores;
+          setDisplayScores(prev =>
+            prev.left !== s.left || prev.right !== s.right
+              ? { left: s.left, right: s.right }
+              : prev
+          );
+
+        } else if (msg.type === 'gameOver' && msg.data) {
+          clearSetupTimeout();
+          updateGameState(msg.data as GameState);
+          const s = msg.data.scores;
+          setDisplayScores({ left: s.left, right: s.right });
+          const iWon =
+            (myPaddleRef.current === 'left'  && s.left  >= s.right) ||
+            (myPaddleRef.current === 'right' && s.right >= s.left);
+          setWinner(iWon ? 'you' : 'ai');
+          setPhase('gameOver');
+
+        } else if (msg.type === 'error') {
+          clearSetupTimeout();
+          setError('Game error: ' + (msg.message ?? 'unknown'));
+          setPhase('error');
+        }
+      };
+
+      ws.onopen = () => {
+        joinAiToSession(sessionId).catch((e: any) => {
+          clearSetupTimeout();
+          setError('AI service error: ' + (e?.response?.data?.detail ?? e?.message ?? 'unknown'));
+          setPhase('error');
+          ws.close();
+        });
       };
 
       ws.onerror = () => {
@@ -177,23 +234,23 @@ export const PlayAiPage = () => {
       setError(e?.message ?? 'Failed to start game');
       setPhase('error');
     }
-  }, [clearSetupTimeout]);
+  }, [clearSetupTimeout, updateGameState]);
 
+  // Keyboard controls wired to rawWsRef
   useEffect(() => {
     if (phase !== 'playing') return;
-    const ws = wsRef.current;
     const pressed = new Set<string>();
-    const send = (dir: 'up' | 'down' | 'stop') =>
-      ws?.send(JSON.stringify({ type: 'paddle', paddle: myPaddleRef.current, direction: dir }));
     const onDown = (e: KeyboardEvent) => {
       if (pressed.has(e.key)) return;
       pressed.add(e.key);
-      if (e.key === 'ArrowUp')   { e.preventDefault(); send('up');   }
-      if (e.key === 'ArrowDown') { e.preventDefault(); send('down'); }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); sendPaddleDir('up');   }
+      if (e.key === 'ArrowDown') { e.preventDefault(); sendPaddleDir('down'); }
+      if (e.key === 'w' || e.key === 'W') sendPaddleDir('up');
+      if (e.key === 's' || e.key === 'S') sendPaddleDir('down');
     };
     const onUp = (e: KeyboardEvent) => {
       pressed.delete(e.key);
-      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') send('stop');
+      if (['ArrowUp','ArrowDown','w','W','s','S'].includes(e.key)) sendPaddleDir('stop');
     };
     window.addEventListener('keydown', onDown);
     window.addEventListener('keyup',   onUp);
@@ -201,12 +258,12 @@ export const PlayAiPage = () => {
       window.removeEventListener('keydown', onDown);
       window.removeEventListener('keyup',   onUp);
     };
-  }, [phase]);
+  }, [phase, sendPaddleDir]);
 
-  useEffect(() => () => { clearSetupTimeout(); wsRef.current?.close(); }, [clearSetupTimeout]);
-
-  const sendDir = (dir: 'up' | 'down' | 'stop') =>
-    wsRef.current?.send(JSON.stringify({ type: 'paddle', paddle: myPaddleRef.current, direction: dir }));
+  useEffect(() => () => {
+    clearSetupTimeout();
+    rawWsRef.current?.close();
+  }, [clearSetupTimeout]);
 
   const myColor = myPaddleRef.current === 'left' ? '#38bdf8' : '#fb7185';
   const aiColor = myPaddleRef.current === 'left' ? '#fb7185' : '#38bdf8';
@@ -214,101 +271,110 @@ export const PlayAiPage = () => {
 
   return (
     <div className="w-full h-full relative">
-      <Background grainIntensity={3} baseFrequency={0.28} colorStart="#00ff9f" colorEnd="#0088ff">
-        <div className="absolute top-0 left-0 w-full z-10"><NavBar /></div>
+      <Background grainIntensity={4} baseFrequency={0.28} colorStart="#00ff9f" colorEnd="#0088ff">
+        <NavBar />
 
-        <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
-
-          {/* Title + live score */}
-          <div className="flex flex-col items-center gap-1">
-            <h1 className="text-4xl font-bold font-mono tracking-widest"
+        <div className="flex flex-row h-full">
+          {/* Left panel — controls + status */}
+          <div className="flex flex-col flex-[1] gap-4 p-4">
+            <h1 className="text-3xl font-bold font-mono tracking-widest text-center"
               style={{ color: '#f0f9ff', textShadow: '0 0 24px #38bdf8' }}>
               PONG vs AI
             </h1>
+
+            {/* Score display */}
             {isGame && (
-              <div className="flex items-center gap-6 text-sm font-mono mt-1">
-                <span style={{ color: myColor }}>YOU</span>
-                <span className="text-slate-400 text-2xl font-bold">
-                  {displayScores.left} : {displayScores.right}
-                </span>
-                <span style={{ color: aiColor }}>AI</span>
+              <div className="flex justify-around text-white bg-white/10 backdrop-blur-lg rounded-lg p-4">
+                <div className="text-center">
+                  <p className="text-sm" style={{ color: myColor }}>YOU</p>
+                  <p className="text-3xl font-bold">{displayScores.left}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-purple-300">vs</p>
+                  <p className="text-xl font-semibold text-yellow-400">
+                    {phase === 'playing' ? 'Playing' : phase === 'gameOver' ? 'Game Over' : ''}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm" style={{ color: aiColor }}>AI</p>
+                  <p className="text-3xl font-bold">{displayScores.right}</p>
+                </div>
+              </div>
+            )}
+
+            <GameControl
+              onCreateLocalGame={startGameWithRef}
+              loading={phase === 'loading'}
+            />
+
+            <GameStatusBar />
+
+            {/* Controls hint */}
+            {phase === 'playing' && (
+              <div className="bg-white/5 rounded-lg p-3 text-center">
+                <p className="text-gray-300 text-sm">
+                  Controls: <span className="text-purple-300 font-mono">W/S</span> or{' '}
+                  <span className="text-purple-300 font-mono">↑/↓</span>
+                </p>
+                {/* Mobile buttons */}
+                <div className="flex gap-4 justify-center mt-3 sm:hidden">
+                  <button
+                    onPointerDown={() => sendPaddleDir('up')}
+                    onPointerUp={() => sendPaddleDir('stop')}
+                    onPointerLeave={() => sendPaddleDir('stop')}
+                    className="w-14 h-14 rounded-full bg-slate-800 border-2 border-cyan-500 text-xl flex items-center justify-center active:bg-slate-700 select-none"
+                  >▲</button>
+                  <button
+                    onPointerDown={() => sendPaddleDir('down')}
+                    onPointerUp={() => sendPaddleDir('stop')}
+                    onPointerLeave={() => sendPaddleDir('stop')}
+                    className="w-14 h-14 rounded-full bg-slate-800 border-2 border-cyan-500 text-xl flex items-center justify-center active:bg-slate-700 select-none"
+                  >▼</button>
+                </div>
+              </div>
+            )}
+
+            {/* Error */}
+            {phase === 'error' && error && (
+              <p className="text-red-400 font-mono text-sm bg-red-900/20 border border-red-800 px-4 py-2 rounded-lg text-center">
+                ⚠ {error}
+              </p>
+            )}
+
+            {/* Loading */}
+            {phase === 'loading' && (
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                <p className="text-white font-mono text-sm animate-pulse">Setting up game…</p>
               </div>
             )}
           </div>
 
-          {/* Canvas */}
-          {isGame && (
-            <div className="relative">
-              <canvas
-                ref={setCanvasRef}
-                width={CW}
-                height={CH}
-                className="rounded-xl"
-                style={{
-                  border: '2px solid #1e3a5f',
-                  boxShadow: '0 0 40px rgba(56,189,248,0.15)',
-                  maxWidth: '95vw',
-                }}
-              />
-              {phase === 'gameOver' && (
-                <div
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-6 rounded-xl"
-                  style={{ background: 'rgba(2,6,23,0.85)', backdropFilter: 'blur(4px)' }}
-                >
-                  <p className="text-5xl">{winner === 'you' ? '🏆' : '🤖'}</p>
-                  <p className="text-3xl font-bold font-mono"
-                    style={{ color: winner === 'you' ? '#34d399' : '#fb7185' }}>
-                    {winner === 'you' ? 'You Win!' : 'AI Wins!'}
-                  </p>
-                  <p className="text-slate-400 font-mono text-lg">
-                    {displayScores.left} — {displayScores.right}
-                  </p>
-                  <Button variant="secondary" type="button"
-                    onClick={() => { wsRef.current?.close(); startGame(); }}>
-                    Play Again
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Right panel — Arena */}
+          <div className="flex-[3] relative">
+            <Arena gameStateRef={gameStateRef} />
 
-          {/* Idle / Error */}
-          {(phase === 'idle' || phase === 'error') && (
-            <div className="flex flex-col items-center gap-4">
-              {error && (
-                <p className="text-red-400 font-mono text-sm bg-red-900/20 border border-red-800 px-4 py-2 rounded-lg max-w-sm text-center">
-                  ⚠ {error}
+            {/* Game Over overlay */}
+            {phase === 'gameOver' && (
+              <div
+                className="absolute inset-0 flex flex-col items-center justify-center gap-6"
+                style={{ background: 'rgba(2,6,23,0.85)', backdropFilter: 'blur(4px)' }}
+              >
+                <p className="text-5xl">{winner === 'you' ? '🏆' : '🤖'}</p>
+                <p className="text-3xl font-bold font-mono"
+                  style={{ color: winner === 'you' ? '#34d399' : '#fb7185' }}>
+                  {winner === 'you' ? 'You Win!' : 'AI Wins!'}
                 </p>
-              )}
-              <Button variant="secondary" type="button" className="text-lg px-10 py-3" onClick={startGame}>
-                ▶ Start vs AI
-              </Button>
-              <p className="text-slate-400/60 font-mono text-xs">Use ↑ / ↓ arrow keys to move your paddle</p>
-            </div>
-          )}
-
-          {/* Loading */}
-          {phase === 'loading' && (
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-              <p className="text-white font-mono text-sm animate-pulse">Setting up game…</p>
-            </div>
-          )}
-
-          {/* Playing controls */}
-          {phase === 'playing' && (
-            <div className="flex flex-col items-center gap-3">
-              <p className="text-slate-500 font-mono text-xs hidden sm:block">↑ / ↓ arrow keys · First to 5 wins</p>
-              <div className="flex gap-6 sm:hidden">
-                <button onPointerDown={() => sendDir('up')} onPointerUp={() => sendDir('stop')} onPointerLeave={() => sendDir('stop')}
-                  className="w-16 h-16 rounded-full bg-slate-800 border-2 border-cyan-500 text-2xl flex items-center justify-center active:bg-slate-700 select-none"
-                  aria-label="Move up">▲</button>
-                <button onPointerDown={() => sendDir('down')} onPointerUp={() => sendDir('stop')} onPointerLeave={() => sendDir('stop')}
-                  className="w-16 h-16 rounded-full bg-slate-800 border-2 border-cyan-500 text-2xl flex items-center justify-center active:bg-slate-700 select-none"
-                  aria-label="Move down">▼</button>
+                <p className="text-slate-400 font-mono text-lg">
+                  {displayScores.left} — {displayScores.right}
+                </p>
+                <Button variant="secondary" type="button"
+                  onClick={() => { rawWsRef.current?.close(); startGameWithRef(); }}>
+                  Play Again
+                </Button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </Background>
     </div>
