@@ -147,6 +147,12 @@ export const ERR_DEFS = {
     'Internal error',
     HTTP_STATUS.INTERNAL_SERVER_ERROR,
   ),
+  RESOURCE_CONFLICT: serviceError(
+    ERROR_CODES.CONFLICT,
+    LOG_REASONS.CONFLICT.UNIQUE_VIOLATION,
+    'Resource conflict',
+    HTTP_STATUS.CONFLICT,
+  ),
 
   // === RESOURCES ===
   RESOURCE_NOT_FOUND: serviceError(
