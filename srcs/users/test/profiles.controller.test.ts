@@ -7,6 +7,7 @@ import { buildApp } from '../src/app.js';
 vi.mock('../src/services/profiles.service.js', () => ({
   profileService: {
     getByUsername: vi.fn(),
+    getProfileByUsername: vi.fn(),
     createProfile: vi.fn(),
     updateAvatar: vi.fn(),
     deleteByUsername: vi.fn(),
