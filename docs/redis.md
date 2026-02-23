@@ -121,3 +121,44 @@ app.post('/tournamentspub', async (req, _reply) => {
   return { status: 'published' };
 });
 ```
+
+---
+
+## Consultation et Test des messages Redis
+
+```bash
+# lancer le container Redis
+docker exec -it redis-brocker sh
+# lancer le client Redis
+redis-cli
+
+
+# lister toutes les clés
+KEYS *
+# variante lister que les streams
+SCAN 0 TYPE stream
+
+#lister les messages du stream : user.events
+XRANGE user.events - +
+
+#voir les groups de consumer d'un stream
+XINFO GROUPS user.events
+
+# exemple de retour de la commande ici il y a un message en attente pending 1
+# 1)  1) "name"
+#     2) "game-service-group"
+#     3) "consumers"
+#     4) (integer) 1
+#     5) "pending"
+#     6) (integer) 1
+#     7) "last-delivered-id"
+#     8) "1771833993337-0"
+#     9) "entries-read"
+#    10) (integer) 4
+#    11) "lag"
+#    12) (integer) 0
+
+
+# voir les consumers d'un group
+XINFO CONSUMERS user.events game-service-group
+```

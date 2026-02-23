@@ -23,6 +23,9 @@ export function createWaitingPlayer(label: string): Player {
   };
 }
 
+/* the mappers always asign connected to the player joinning
+ * a tournament
+ */
 async function mapPlayerDTO(dto: PlayerDTO): Promise<Player> {
   return {
     id: dto.player_id.toString(),
@@ -39,7 +42,6 @@ export default function TournamentPage() {
     const nbSlots = 4;
     const filledPlayers = players.slice(0, nbSlots);
     const nbSlotFree = nbSlots - filledPlayers.length;
-
     for (let i = 0; i < nbSlotFree; i++) {
       filledPlayers.push(createWaitingPlayer(t('game.waiting')));
     }
@@ -58,14 +60,9 @@ export default function TournamentPage() {
       }
     };
     fetchPlayers();
+    // reffresh the page to show in realtime the users who joining the tournament
     const interval = setInterval(fetchPlayers, 10000);
     return () => clearInterval(interval);
   }, []);
-  const MOCK_PLAYERS: [Player, Player, Player, Player] = [
-    { id: '1', name: 'johnny', avatar: null, online: true, status: 'connected' },
-    { id: '2', name: 'eddy', avatar: null, online: false, status: 'connected' },
-    { id: '3', name: 'khaled', avatar: null, online: true, status: 'connected' },
-    createWaitingPlayer(t('game.waitiing')),
-  ] as const;
   return <TournamentBracket players={fillSlotPlayer(players)} />;
 }

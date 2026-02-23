@@ -9,25 +9,6 @@ import { TournamentDTO } from '@transcendence/core';
 import api from '../api/api-client';
 import { useTranslation } from 'react-i18next';
 
-const MOCK_TOURNAMENTS: Tournament[] = [
-  {
-    id: '1',
-    name: 'Spin Cup #42',
-    players: 2,
-    maxPlayers: 4,
-    status: 'WAITING',
-    createdAt: '2026-02-01',
-  },
-  {
-    id: '2',
-    name: 'Weekly Pong',
-    players: 4,
-    maxPlayers: 4,
-    status: 'IN_PROGRESS',
-    createdAt: '2026-02-03',
-  },
-];
-
 function mapTournamentDTO(dto: TournamentDTO): Tournament {
   return {
     id: dto.id.toString(),

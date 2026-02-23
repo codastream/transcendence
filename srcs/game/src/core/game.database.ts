@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS tournament_player(
 
 CREATE TABLE IF NOT EXISTS player (
     id INTEGER PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
+    username TEXT NOT NULL,
     avatar TEXT,
     updated_at INTEGER NOT NULL
 );
@@ -136,11 +136,17 @@ WHERE id = ?
 `);
 
 const listPlayersTournamentStmt = db.prepare(`
-SELECT tp.player_id, p.username
+SELECT tp.player_id, p.username, p.avatar
 FROM tournament_player tp
 LEFT JOIN player p
 ON  tp.player_id = p.id
 WHERE tournament_id = ?
+`);
+
+const isPlayerInTournamentStmt = db.prepare(`
+SELECT *
+FROM tournament_player
+WHERE player_id = ? and tournament_id  = ?
 `);
 
 export function addMatch(match: MatchDTO): number {
@@ -241,6 +247,8 @@ export function listTournaments(): TournamentDTO[] {
 export function joinTournament(player_id: number, tournament_id: number) {
   try {
     const result = countPlayerTournamentStmt.get(tournament_id) as { nbPlayer: number };
+    const isAlreadyInGame = isPlayerInTournamentStmt.get(player_id, tournament_id);
+    if (isAlreadyInGame) return;
     const nbPlayers = result['nbPlayer'];
     if (nbPlayers >= 4) {
       const fullError = new Error('The Tournament is full') as Error & { code: string };

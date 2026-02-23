@@ -19,17 +19,6 @@ export class ProfileController {
     req.log.trace({ event: `${LOG_ACTIONS.CREATE}_${LOG_RESOURCES.PROFILE}`, payload: req.body });
 
     const profile = await profileService.createProfile(req.body as ProfileCreateInDTO);
-    // await req.server.redis.xadd(
-    //   'user.events',
-    //   '*',
-    //   'data',
-    //   JSON.stringify({
-    //     type: USER_EVENT.CREATED,
-    //     id: profile.id,
-    //     username: profile.username,
-    //     timestamp: Date.now(),
-    //   }),
-    // );
     userBus.emit(USER_EVENT.CREATED, profile);
     const profileSimpleDTO = mappers.mapProfileToDTO(profile);
     return reply.status(201).send(profileSimpleDTO);
@@ -65,7 +54,7 @@ export class ProfileController {
       param: username,
     });
     const profileSimpleDTO = await profileService.updateAvatar(username, data);
-    userBus.emit(USER_EVENT.UPDATED, profileSimpleDTO);
+    userBus.emit(USER_EVENT.UPDATED, username);
     return reply.status(200).send(profileSimpleDTO);
   }
 
