@@ -115,7 +115,7 @@ export const AUTH_CONFIG = {
     GOOGLE: {
       AUTHORIZATION_URL: 'https://accounts.google.com/o/oauth2/v2/auth',
       TOKEN_URL: 'https://oauth2.googleapis.com/token',
-      USER_INFO_URL: 'https://www.googleapis.com/oauth2/v2/userinfo',
+      USER_INFO_URL: 'https://openidconnect.googleapis.com/v1/userinfo',
       SCOPES: ['openid', 'profile', 'email'],
     },
 
