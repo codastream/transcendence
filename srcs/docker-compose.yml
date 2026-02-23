@@ -70,6 +70,7 @@ services:
     env_file:
       - path: ./.env
       - path: ./.env.auth
+      - path: ./.env.oauth
     volumes:
       - data:/data
       - ../make/scripts/certs/certs/services/${AUTH_SERVICE_NAME}:/etc/certs:ro
@@ -199,10 +200,15 @@ services:
     build:
       context: ..
       dockerfile: srcs/nginx/Dockerfile
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_SCHOOL42_CLIENT_ID: ${VITE_SCHOOL42_CLIENT_ID:-}
     container_name: ${PROXY_SERVICE_NAME}
     ports:
       - '8080:80'
       - '4430:443'
+    env_file:
+      - path: ./.env.nginx
     volumes:
       - ../make/scripts/certs/certs/nginx:/etc/nginx/certs:ro
       - ../make/scripts/certs/certs/ca:/etc/nginx/ca:ro

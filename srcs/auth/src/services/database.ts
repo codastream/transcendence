@@ -31,7 +31,12 @@ try {
       password TEXT,
       role TEXT DEFAULT '${UserRole.USER}',
       is_2fa_enabled INTEGER DEFAULT 0,
-      totp_secret TEXT
+      totp_secret TEXT,
+      google_id TEXT UNIQUE,
+      school42_id TEXT UNIQUE,
+      oauth_email TEXT,
+      avatar_url TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
 } catch (err) {
@@ -102,6 +107,13 @@ const updateUserStmt = db.prepare(
   'UPDATE users SET username = ?, email = ?, role = ? WHERE id = ?',
 );
 const deleteUserStmt = db.prepare('DELETE FROM users WHERE id = ?');
+
+// OAuth statements
+const findUserByGoogleIdStmt = db.prepare('SELECT * FROM users WHERE google_id = ?');
+const findUserBySchool42IdStmt = db.prepare('SELECT * FROM users WHERE school42_id = ?');
+const insertOAuthUserStmt = db.prepare(
+  'INSERT INTO users (username, email, password, google_id, school42_id, oauth_email, avatar_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+);
 
 // 2FA statements
 const is2FAEnabledStmt = db.prepare('SELECT is_2fa_enabled FROM users WHERE id = ?');
@@ -190,6 +202,83 @@ export function findUserById(id: number): DBUser | null {
     );
     error.code = 'DB_FIND_USER_BY_ID_ERROR';
     throw error;
+  }
+}
+
+// ============================================
+// OAuth User Functions
+// ============================================
+
+/**
+ * Recherche un utilisateur par son Google ID
+ */
+export function findUserByGoogleId(googleId: string): DBUser | null {
+  try {
+    const user = findUserByGoogleIdStmt.get(googleId);
+    return (user as DBUser) || null;
+  } catch (err: any) {
+    throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
+  }
+}
+
+/**
+ * Recherche un utilisateur par son 42 School ID
+ */
+export function findUserBySchool42Id(school42Id: string): DBUser | null {
+  try {
+    const user = findUserBySchool42IdStmt.get(school42Id);
+    return (user as DBUser) || null;
+  } catch (err: any) {
+    throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
+  }
+}
+
+/**
+ * Crée un nouvel utilisateur OAuth avec toutes les données
+ */
+export function createOAuthUser(user: {
+  username: string;
+  email?: string | null;
+  password: string; // Sera un hash généré aléatoirement
+  googleId?: string | null;
+  school42Id?: string | null;
+  oauthEmail?: string | null;
+  avatarUrl?: string | null;
+}) {
+  try {
+    const info = insertOAuthUserStmt.run(
+      user.username,
+      user.email || null,
+      user.password,
+      user.googleId || null,
+      user.school42Id || null,
+      user.oauthEmail || null,
+      user.avatarUrl || null,
+    );
+    return info.lastInsertRowid as number;
+  } catch (err: any) {
+    // Contraintes d'unicité
+    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+      if (err.message.includes('username')) {
+        throw new DataError(DATA_ERROR.ALREADY_EXISTS, `Username exists`, err, {
+          field: 'username',
+        });
+      }
+      if (err.message.includes('email')) {
+        throw new DataError(DATA_ERROR.ALREADY_EXISTS, `Email exists`, err, { field: 'email' });
+      }
+      if (err.message.includes('google_id')) {
+        throw new DataError(DATA_ERROR.ALREADY_EXISTS, `Google account already linked`, err, {
+          field: 'google_id',
+        });
+      }
+      if (err.message.includes('school42_id')) {
+        throw new DataError(DATA_ERROR.ALREADY_EXISTS, `42 School account already linked`, err, {
+          field: 'school42_id',
+        });
+      }
+    }
+    throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
   }
 }
 

@@ -67,6 +67,7 @@ services:
     env_file:
       - path: ./.env
       - path: ./.env.auth
+      - path: ./.env.oauth
     volumes:
       - data:/data
     networks:
@@ -192,10 +193,15 @@ services:
     build:
       context: ./nginx
       dockerfile: Dockerfile.dev
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
+        VITE_SCHOOL42_CLIENT_ID: ${VITE_SCHOOL42_CLIENT_ID:-}
     container_name: '${PROXY_SERVICE_NAME}-dev'
     ports:
       - '8080:80'
       - '4430:443'
+    env_file:
+      - path: ./.env.nginx
     volumes:
       - ./nginx/src:/usr/share/nginx/src
       - ${HOST_VOLUME_PATH}:/usr/share/nginx/html/uploads:ro
