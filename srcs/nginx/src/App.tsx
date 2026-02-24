@@ -5,6 +5,7 @@ import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
 import { WelcomePage } from './pages/WelcomePage';
 import { HomePage } from './pages/HomePage';
+import { OAuthCallback } from './pages/OAuthCallback';
 import { NotFoundPage } from './pages/NotFoundPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
@@ -20,6 +21,9 @@ export const App = () => {
         {/* Routes réservées aux non-authentifiés */}
         <Route element={<PublicRoute />}>
           <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/login" element={<WelcomePage />} />
+          <Route path="/register" element={<WelcomePage />} />
+          <Route path="/auth/oauth/:provider/callback" element={<OAuthCallback />} />
         </Route>
 
         {/* Routes protégées — authentification requise */}

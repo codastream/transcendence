@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../../providers/AuthProvider';
 import i18next from 'i18next';
 import { ZodSafeParseResult } from 'zod';
+import { GoogleOAuthButton, School42OAuthButton } from '../atoms/OAuthButton';
 
 interface SignupState {
   fields?: {
@@ -124,6 +125,20 @@ export const RegisterForm = ({ onToggleForm }: { onToggleForm?: () => void }) =>
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      {/* OAuth Buttons Section */}
+      <div className="flex flex-col gap-3">
+        <GoogleOAuthButton disabled={isPending} />
+        <School42OAuthButton disabled={isPending} />
+      </div>
+
+      {/* Separator */}
+      <div className="relative flex items-center py-2">
+        <div className="flex-grow border-t border-gray-600"></div>
+        <span className="flex-shrink mx-4 text-gray-400 text-sm">{t('oauth.or_separator')}</span>
+        <div className="flex-grow border-t border-gray-600"></div>
+      </div>
+
+      {/* Traditional Registration Form */}
       <Input
         name="username"
         customType="username"

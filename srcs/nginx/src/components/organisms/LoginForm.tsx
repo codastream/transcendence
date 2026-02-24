@@ -6,6 +6,7 @@ import { useAuth } from '../../providers/AuthProvider';
 import { emailSchema, ERROR_CODES, FrontendError, HTTP_STATUS } from '@transcendence/core';
 import { authApi } from '../../api/auth-api';
 import i18next from 'i18next';
+import { GoogleOAuthButton, School42OAuthButton } from '../atoms/OAuthButton';
 
 interface LoginState {
   fields?: {
@@ -91,6 +92,20 @@ export const LoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      {/* OAuth Buttons Section */}
+      <div className="flex flex-col gap-3">
+        <GoogleOAuthButton disabled={isPending} />
+        <School42OAuthButton disabled={isPending} />
+      </div>
+
+      {/* Separator */}
+      <div className="relative flex items-center py-2">
+        <div className="flex-grow border-t border-gray-600"></div>
+        <span className="flex-shrink mx-4 text-gray-400 text-sm">{t('oauth.or_separator')}</span>
+        <div className="flex-grow border-t border-gray-600"></div>
+      </div>
+
+      {/* Traditional Login Form */}
       <Input
         name="identifier"
         customType="username"

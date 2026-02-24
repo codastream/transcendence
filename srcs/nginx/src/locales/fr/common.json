@@ -6,6 +6,23 @@
     "signup": "Créer un compte",
     "login": "S'identifier"
   },
+  "oauth": {
+    "continue_google": "Continuer avec Google",
+    "continue_42": "Continuer avec 42",
+    "or_separator": "OU",
+    "connecting": "Connexion...",
+    "processing": "Authentification en cours...",
+    "success": "Authentification réussie !",
+    "redirecting": "Redirection...",
+    "error": "Erreur d'authentification",
+    "back_to_login": "Retour à la connexion",
+    "error_config": "Configuration OAuth manquante pour {{provider}}",
+    "invalid_provider": "Provider OAuth invalide",
+    "authorization_denied": "Autorisation refusée par l'utilisateur",
+    "missing_code": "Code d'autorisation manquant",
+    "invalid_state": "État CSRF invalide - problème de sécurité potentiel",
+    "callback_failed": "Échec de l'authentification OAuth"
+  },
   "fieldtype": {
     "email": "courriel",
     "username": "pseudo",

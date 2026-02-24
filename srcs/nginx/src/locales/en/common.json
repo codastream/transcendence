@@ -6,6 +6,23 @@
     "signup": "Signup",
     "login": "Login"
   },
+  "oauth": {
+    "continue_google": "Continue with Google",
+    "continue_42": "Continue with 42",
+    "or_separator": "OR",
+    "connecting": "Connecting...",
+    "processing": "Processing authentication...",
+    "success": "Authentication successful!",
+    "redirecting": "Redirecting...",
+    "error": "Authentication error",
+    "back_to_login": "Back to login",
+    "error_config": "OAuth configuration missing for {{provider}}",
+    "invalid_provider": "Invalid OAuth provider",
+    "authorization_denied": "Authorization denied by user",
+    "missing_code": "Missing authorization code",
+    "invalid_state": "Invalid CSRF state - possible security issue",
+    "callback_failed": "OAuth authentication failed"
+  },
   "fieldtype": {
     "email": "email",
     "username": "username",
