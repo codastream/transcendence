@@ -1,10 +1,23 @@
 import { UserProfile } from '@prisma/client';
-import { FriendshipFullDTO, FriendshipUnifiedDTO, ProfileSimpleDTO } from '@transcendence/core';
+import {
+  FriendshipFullDTO,
+  FriendshipUnifiedDTO,
+  ProfileSimpleDTO,
+  ProfileDTO,
+} from '@transcendence/core';
 
 export function mapProfileToDTO(profile: UserProfile): ProfileSimpleDTO {
   return {
     username: profile.username,
     avatarUrl: profile.avatarUrl,
+  };
+}
+
+export function mapProfileToIdDTO(profile: UserProfile): ProfileDTO {
+  return {
+    username: profile.username,
+    avatarUrl: profile.avatarUrl,
+    authId: profile.authId,
   };
 }
 

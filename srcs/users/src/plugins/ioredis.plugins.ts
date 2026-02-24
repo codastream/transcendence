@@ -1,9 +1,9 @@
 import fp from 'fastify-plugin';
 import { Redis } from 'ioredis';
-import { env } from '../config/env.js';
+import { appenv } from '../config/env.js';
 
 export default fp(async (app) => {
-  const url = env.REDIS_URL;
+  const url = appenv.REDIS_URL;
 
   if (!url) {
     app.log.warn('REDIS_URL not set, redis plugin disabled');
@@ -13,7 +13,7 @@ export default fp(async (app) => {
   const redis = new Redis(url, {
     maxRetriesPerRequest: 1,
     retryStrategy(times) {
-      if (env.NODE_ENV === 'test') return null;
+      if (appenv.NODE_ENV === 'test') return null;
       return Math.min(times * 50, 2000);
     },
   });
@@ -32,7 +32,7 @@ export default fp(async (app) => {
 
   app.decorate('redis', redis);
 
-  app.addHook('onClose', async (instance) => {
+  app.addHook('onClose', async () => {
     app.log.info('Closing Redis connection...');
     try {
       await Promise.race([
@@ -41,7 +41,7 @@ export default fp(async (app) => {
       ]);
     } catch (err) {
       app.log.error('Forcing Redis disconnect');
-      await redis.disconnect();
+      redis.disconnect();
     }
   });
 });

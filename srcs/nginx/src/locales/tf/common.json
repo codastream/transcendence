@@ -102,8 +102,10 @@
     "semi_final": "On prends du Galon",
     "little_final": "Les loosers c'est ici",
     "start": "C'est parti",
+    "run": "Lancement de la Vendetta",
     "friends": "Les potes",
     "waitiing": "On t'attend...",
-    "creating": "Création de la vendetta..."
+    "creating": "Création de la vendetta...",
+    "tournament_full": "Cette vendetta est complete(maximum 4 truands)."
   }
 }
