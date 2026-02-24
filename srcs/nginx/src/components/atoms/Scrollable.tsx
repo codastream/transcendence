@@ -9,8 +9,8 @@ interface ScrollableProps {
 
 export default function Scrollable({
   children,
-  className,
-  divClassName,
+  className = '',
+  divClassName = '',
   isAnimated = false,
 }: ScrollableProps) {
   const layoutClass = !isAnimated ? 'max-w-4xl' : '';

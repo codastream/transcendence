@@ -1,17 +1,18 @@
 import { useTranslation } from 'react-i18next';
 import { Page } from '../components/organisms/PageContainer';
 import Scrollable from '../components/atoms/Scrollable';
+import type { ReactNode } from 'react';
 
 const TosPage = () => {
   const { t } = useTranslation();
-  const H2 = ({ children }: { children: React.ReactNode }) => (
+  const H2 = ({ children }: { children: ReactNode }) => (
     <h2 className="text-xl mb-1 font-semibold">{children}</h2>
   );
-  const P = ({ children }: { children: React.ReactNode }) => (
+  const P = ({ children }: { children: ReactNode }) => (
     <p className="text-sm text-gray-700 mb-1 whitespace-pre-line">{children}</p>
   );
 
-  const LegalSection = ({ children }: { children: React.ReactNode }) => (
+  const LegalSection = ({ children }: { children: ReactNode }) => (
     <section className="w-full flex flex-col my-2 px-3 py-1 text-justify">{children}</section>
   );
 
@@ -34,8 +35,8 @@ const TosPage = () => {
         </LegalSection>
 
         <LegalSection>
-          <H2>{t('tos.responsabilities')}</H2>
-          <P>{t('tos.responsabilities-text')}</P>
+          <H2>{t('tos.responsibilities')}</H2>
+          <P>{t('tos.responsibilities-text')}</P>
         </LegalSection>
 
         <LegalSection>
@@ -63,7 +64,7 @@ const TosPage = () => {
           <P>
             {t('tos.law-text', {
               governingLaw: t('governingLaw'),
-              arbitrationLocation: t('governingLaw'),
+              arbitrationLocation: t('arbitrationLocation'),
             })}
           </P>
         </LegalSection>

@@ -32,7 +32,7 @@
   "email": "ping@patapong.com",
   "governingLaw": "la loi française, mon vieux",
   "arbitrationLocation": "Poitiers, France - on a choisi exprès, c'est central",
-  "privacyPolicyLink": "/la-loi-du-silence",
+  "privacyPolicyLink": "/privacy",
   "tos": {
     "title": "LES RÈGLES DU JEU",
     "last_updated": "Dernière mise à jour : 24 février 2026 - Faut suivre, hein",
@@ -47,8 +47,8 @@
     "ip": "2. LE MATOS, C'EST À NOUS",
     "ip-text": "Tout ce qu'y a sur nos Services, c'est à nous : le contenu, les marques, les logiciels. T'as le droit de t'en servir pour toi, mais pas pour en faire du fric. Et surtout, pas de copie, de redistribution ou de bidouille sans notre feu vert écrit. On est pas des enfants de chœur.",
 
-    "responsabilities": "3. TES OBLIGATIONS, MON GAZIER",
-    "responsabilities-text": "Faut nous filer des infos justes et complètes. Tout ce qui se passe sur ton compte, c'est pour ta pomme. Interdit de : Emmerder les gens, tricher ou faire des coups tordus, Foutre le bordel dans nos Services ou contourner nos sécurités, Balancer des virus, du spam ou des saloperies du genre, Piquer le boulot des autres. T'as compris ?",
+    "responsibilities": "3. TES OBLIGATIONS, MON GAZIER",
+    "responsibilities-text": "Faut nous filer des infos justes et complètes. Tout ce qui se passe sur ton compte, c'est pour ta pomme. Interdit de : Emmerder les gens, tricher ou faire des coups tordus, Foutre le bordel dans nos Services ou contourner nos sécurités, Balancer des virus, du spam ou des saloperies du genre, Piquer le boulot des autres. T'as compris ?",
 
     "user_content": "4. TES TRUCS À TOI",
     "user_content-text": "Ce que tu balances sur nos Services, ça reste à toi. Mais on a le droit de s'en servir, partout dans le monde. T'es prévenu : ton contenu doit être légal, original et pas volé. Sinon, ça va chauffer.",

@@ -1,31 +1,26 @@
 import { useTranslation } from 'react-i18next';
 import { Page } from '../components/organisms/PageContainer';
 import Scrollable from '../components/atoms/Scrollable';
-import { HTMLAttributes } from 'react';
+import type { HTMLAttributes, ReactNode, FC } from 'react';
 
 const PrivacyPage = () => {
   const { t } = useTranslation();
-  const H2 = ({ children }: { children: React.ReactNode }) => (
+  const H2 = ({ children }: { children: ReactNode }) => (
     <h2 className="text-xl mb-1 font-semibold">{children}</h2>
   );
-  const H3 = ({ children }: { children: React.ReactNode }) => (
+  const H3 = ({ children }: { children: ReactNode }) => (
     <h3 className="text-md font-semibold">{children}</h3>
   );
-  const P = ({ children }: { children: React.ReactNode }) => (
+  const P = ({ children }: { children: ReactNode }) => (
     <p className="text-md text-gray-700 mb-1 ">{children}</p>
   );
 
-  interface LegalSectionProps extends HTMLAttributes<HTMLDivElement> {
-    children: React.ReactNode;
+  interface LegalSectionProps extends HTMLAttributes<HTMLElement> {
+    children: ReactNode;
   }
 
-  const LegalSection: React.FC<LegalSectionProps> = ({
-    children,
-    ...rest
-  }: {
-    children: React.ReactNode;
-  }) => (
-    <section {...rest} className="w-full flex flex-col my-2 text-justify">
+  const LegalSection: FC<LegalSectionProps> = ({ children, className = '', ...rest }) => (
+    <section {...rest} className={`w-full flex flex-col my-2 text-justify ${className}`}>
       {children}
     </section>
   );
