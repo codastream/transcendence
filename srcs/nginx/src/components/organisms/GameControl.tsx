@@ -2,6 +2,7 @@ interface GameControlProps {
   className?: string;
   onCreateLocalGame: () => void;
   onStartGame: () => void;
+  // onExitGame: () => void;
   loading?: boolean;
 }
 
@@ -9,6 +10,7 @@ const GameControl = ({
   className,
   onCreateLocalGame: onCreateLocalGame,
   onStartGame: onStartGame,
+  // onExitGame: onExitGame,
   loading,
 }: GameControlProps) => {
   return (
@@ -37,6 +39,10 @@ const GameControl = ({
       </button>
       <button
         id="exit-btn"
+        onClick={() => {
+          // onExitGame();
+          console.log('exit');
+        }}
         className="flex-1 bg-red-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition"
       >
         Exit to main page

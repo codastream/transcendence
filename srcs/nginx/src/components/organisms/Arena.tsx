@@ -161,7 +161,11 @@ const Arena = ({ className = '', gameStateRef }: ArenaProps) => {
     };
   }, [gameStateRef]);
 
-  return <canvas ref={canvasRef} width={800} height={600} className="w-full h-full" />;
+  return (
+    <div className="w-full h-full flex items-center justify-center p-4">
+      <canvas ref={canvasRef} width={800} height={600} className="w-full h-full" />
+    </div>
+  );
 };
 
 export default Arena;

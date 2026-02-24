@@ -3,11 +3,12 @@ import Background from '../components/atoms/Background';
 import Arena from '../components/organisms/Arena';
 import GameStatusBar from '../components/organisms/GameStatusBar';
 import GameControl from '../components/organisms/GameControl';
-import { useLocalSession } from '../api/game-api';
+// import { useLocalSession } from '../api/game-api';
 import { useGameState } from '../hooks/GameState';
 import { useGameWebSocket } from '../hooks/GameWebSocket';
 import { useEffect, useState, useRef } from 'react';
 import { useKeyboardControls } from '../hooks/input.tsx';
+import { useGameSessions, UseGameSessionsReturn } from '../hooks/GameSessions';
 
 export interface Paddle {
   y: number;
@@ -64,12 +65,11 @@ interface ServerMessage {
 
 interface GamePageProps {
   sessionId: string | null;
+  gameMode: 'local' | 'remote' | 'tournament';
 }
 
 // export const GamePage = ({ sessionId: routeSessionId }: { sessionId: string | null }) => {
-export const GamePage = ({ sessionId }: GamePageProps) => {
-  // const { createLocalSession, isLoading, sessionId: localSessionId } = useLocalSession();
-
+export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const { openWebSocket, closeWebSocket } = useGameWebSocket();
   const { gameStateRef, updateGameState } = useGameState();
   const [currentSessionId, setSessionId] = useState<string | null>(sessionId);
@@ -131,6 +131,7 @@ export const GamePage = ({ sessionId }: GamePageProps) => {
     };
   }, [currentSessionId, openWebSocket, updateGameState, closeWebSocket]);
 
+  const sessions = useGameSessions() as UseGameSessionsReturn;
   return (
     <div className={`w-full h-full relative`}>
       <Background
@@ -147,7 +148,8 @@ export const GamePage = ({ sessionId }: GamePageProps) => {
               onStartGame={onStartGame}
               loading={isLoading}
             />
-            <GameStatusBar />
+
+            <GameStatusBar sessionsData={sessions} />
           </div>
 
           <div className="flex-[3]">
