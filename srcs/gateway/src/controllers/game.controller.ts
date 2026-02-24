@@ -46,7 +46,7 @@ export function registerGameRoutes(app: FastifyInstance) {
 
   // WebSocket proxy route for /api/game/:sessionId (dynamic session IDs)
   // add ws because /:sessionId  intercept all routes
-  app.get('/ws/:sessionId', { websocket: true }, (connection: any, request: FastifyRequest) => {
+  app.get('/:sessionId', { websocket: true }, (connection: any, request: FastifyRequest) => {
     const { sessionId } = request.params as { sessionId: string };
     const socket = connection.socket ?? connection; // handles both version of ws
     webSocketProxyRequest(app, socket, request, `/${sessionId}`);

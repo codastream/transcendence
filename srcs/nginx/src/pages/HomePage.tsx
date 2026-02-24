@@ -29,10 +29,13 @@ export const HomePage = () => {
         <NavBar />
         <Scrollable isAnimated={true}>
           <Link to="/game/pong-ai">
-            <CircleButton isMoving={true}>{t('game.playWithAI')}</CircleButton>
+            <CircleButton isMoving={true}>{t('game.playWithAi')}</CircleButton>
           </Link>
-          <Link to="/game/simple-game">
+          <Link to="/game/local">
             <CircleButton isMoving={true}>{t('game.playWithFriends')}</CircleButton>
+          </Link>
+          <Link to="/game/remote">
+            <CircleButton isMoving={true}>{t('game.playRemote')}</CircleButton>
           </Link>
           <Link to="/game/tournament">
             <CircleButton isMoving={true}>{t('game.tournament')}</CircleButton>

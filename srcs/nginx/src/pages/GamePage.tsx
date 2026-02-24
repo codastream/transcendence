@@ -107,6 +107,13 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   };
 
   useEffect(() => {
+    if (gameMode === 'local' && !currentSessionId) {
+      createLocalSession();
+      console.log('Auto-creating local session...');
+    }
+  }, [gameMode, currentSessionId]); // Only run when gameMode changes (on mount)
+
+  useEffect(() => {
     if (!currentSessionId) return;
     const connectWebSocket = async () => {
       try {
@@ -132,6 +139,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   }, [currentSessionId, openWebSocket, updateGameState, closeWebSocket]);
 
   const sessions = useGameSessions() as UseGameSessionsReturn;
+
   return (
     <div className={`w-full h-full relative`}>
       <Background
@@ -148,8 +156,11 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
               onStartGame={onStartGame}
               loading={isLoading}
             />
-
-            <GameStatusBar sessionsData={sessions} />
+            {gameMode === 'remote' ? (
+              <GameStatusBar sessionsData={sessions} />
+            ) : (
+              <GameStatusBar sessionsData={null} />
+            )}
           </div>
 
           <div className="flex-[3]">

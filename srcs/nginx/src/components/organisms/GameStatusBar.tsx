@@ -2,7 +2,7 @@ import { UseGameSessionsReturn, useGameSessions } from '../../hooks/GameSessions
 
 interface GameStatusBarProps {
   className?: string;
-  sessionsData: UseGameSessionsReturn;
+  sessionsData: UseGameSessionsReturn | null;
 }
 
 export interface GameSession {
@@ -14,10 +14,12 @@ export interface GameSession {
 }
 
 const GameStatusBar = ({ className = '', sessionsData }: GameStatusBarProps) => {
-  if (!sessionsData) {
-    return <div className={className}>Loading...</div>;
-  }
-  const { sessionsList, isLoadingSessions, error, refetch } = sessionsData;
+  const {
+    sessionsList = [],
+    isLoadingSessions = false,
+    error = null,
+    refetch = () => {},
+  } = sessionsData || {};
   console.log('sessionsList:', sessionsList);
   console.log('sessionsList type:', typeof sessionsList);
   console.log('Is array?', Array.isArray(sessionsList));
@@ -57,18 +59,23 @@ const GameStatusBar = ({ className = '', sessionsData }: GameStatusBarProps) => 
 
       <div className="bg-white/5 backdrop-blur rounded-lg p-4 max-w-2xl mx-auto">
         <h3 className="text-sm font-semibold text-purple-300 mb-2">Game Log</h3>
-        {sessionsData.isLoadingSessions && <p>Loading sessions...</p>}
-        {sessionsData.error && <p>Error: {sessionsData.error}</p>}
+        {sessionsData && (
+          <div>
+            {sessionsData.isLoadingSessions && <p>Loading sessions...</p>}
+            {sessionsData.error && <p>Error: {sessionsData.error}</p>}
+            <button className="rounded-lg" onClick={sessionsData.refetch}>
+              Refresh Sessions
+            </button>
+            <ul>
+              {sessionsData.sessionsList.map((session) => (
+                <li key={session.sessionId}>
+                  {session.sessionId} - {session.status}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-        <button onClick={sessionsData.refetch}>Refresh Sessions</button>
-
-        <ul>
-          {sessionsData.sessionsList.map((session) => (
-            <li key={session.sessionId}>
-              {session.sessionId} - {session.status}
-            </li>
-          ))}
-        </ul>
         <div
           id="game-log"
           className="h-24 overflow-y-auto space-y-1 text-left text-sm font-mono text-gray-300"
