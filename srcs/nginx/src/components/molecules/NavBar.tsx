@@ -23,7 +23,7 @@ export const NavBar = () => {
 
   const profileItems = [
     { label: t('navbar.profile'), to: '/me' },
-    { label: t('navbar.profile_logout'), onClick: logout },
+    { label: t('navbar.profile_logout'), onClick: () => logout() },
   ];
 
   return (

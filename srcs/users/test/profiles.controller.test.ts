@@ -7,6 +7,7 @@ import { buildApp } from '../src/app.js';
 vi.mock('../src/services/profiles.service.js', () => ({
   profileService: {
     getByUsername: vi.fn(),
+    getByUsernameQuery: vi.fn(),
     createProfile: vi.fn(),
     updateAvatar: vi.fn(),
     deleteByUsername: vi.fn(),
@@ -118,6 +119,36 @@ describe('Profile Controller unit tests', () => {
       });
 
       expect(response.statusCode).toBe(409);
+    });
+  });
+
+  describe('GET /query?=:query', () => {
+    test('Should return matching profiles - 200', async () => {
+      vi.spyOn(profileService, 'getByUsernameQuery').mockResolvedValue([
+        mockProfileDTO,
+      ] as ProfileDTO[]);
+      const response = await app.inject({
+        method: 'GET',
+        headers: authHeaders,
+        url: '/',
+        query: { query: 'to' },
+      });
+      expect(profileService.getByUsernameQuery).toHaveBeenCalledWith('to');
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.payload)).toEqual([mockProfileDTO]);
+    });
+
+    test('Should return empty array when no result - 200', async () => {
+      vi.spyOn(profileService, 'getByUsernameQuery').mockResolvedValue([]);
+      const response = await app.inject({
+        method: 'GET',
+        headers: authHeaders,
+        url: '/',
+        query: { query: 'to' },
+      });
+      expect(profileService.getByUsernameQuery).toHaveBeenCalledWith('to');
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.payload)).toEqual([]);
     });
   });
 

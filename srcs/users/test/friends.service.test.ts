@@ -21,6 +21,7 @@ vi.mock('../src/data/friends.data.js', () => ({
 
 const profileServiceMock = vi.hoisted(() => ({
   getById: vi.fn(),
+  getByUsernameRaw: vi.fn(),
 }));
 
 vi.mock('../src/services/profiles.service.js', () => ({
@@ -32,6 +33,7 @@ import {
   checkFriendshipExistence,
   friendshipService,
 } from '../src/services/friends.service.js';
+import { mockFullProfileDTO2 } from './fixtures/profiles.fixtures.js';
 
 const baseFriendship = {
   id: 42,
@@ -78,7 +80,7 @@ describe('FriendshipService', () => {
 
   describe('createFriend', () => {
     it('rejects self relation', async () => {
-      await expect(friendshipService.createFriend(1, 1)).rejects.toMatchObject({
+      await expect(friendshipService.createFriend('toto', 1, 'toto')).rejects.toMatchObject({
         code: ERR_DEFS.RESOURCE_INVALID_STATE.code,
         statusCode: ERR_DEFS.RESOURCE_INVALID_STATE.statusCode,
       });
@@ -86,8 +88,9 @@ describe('FriendshipService', () => {
 
     it('rejects when friendship already exists', async () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(baseFriendship);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      await expect(friendshipService.createFriend(1, 2)).rejects.toMatchObject({
+      await expect(friendshipService.createFriend('toto', 1, 'tata')).rejects.toMatchObject({
         code: ERR_DEFS.RESOURCE_ALREADY_EXIST.code,
       });
       expect(repoMocks.createFriendship).not.toHaveBeenCalled();
@@ -96,8 +99,9 @@ describe('FriendshipService', () => {
     it('rejects when max friends reached', async () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(null);
       repoMocks.countFriendships.mockResolvedValue(CONFIG.MAX_FRIENDS);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      await expect(friendshipService.createFriend(1, 2)).rejects.toMatchObject({
+      await expect(friendshipService.createFriend('toto', 1, 'tata')).rejects.toMatchObject({
         code: ERR_DEFS.RESOURCE_LIMIT_REACHED.code,
       });
       expect(repoMocks.createFriendship).not.toHaveBeenCalled();
@@ -107,11 +111,12 @@ describe('FriendshipService', () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(null);
       repoMocks.countFriendships.mockResolvedValue(1);
       repoMocks.createFriendship.mockResolvedValue(baseFriendship);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      const result = await friendshipService.createFriend(1, 2);
+      const result = await friendshipService.createFriend('toto', 1, 'tata');
 
       expect(profileServiceMock.getById).toHaveBeenCalledWith(1);
-      expect(profileServiceMock.getById).toHaveBeenCalledWith(2);
+      expect(profileServiceMock.getByUsernameRaw).toHaveBeenCalledWith('tata');
       expect(repoMocks.createFriendship).toHaveBeenCalledWith(1, 2);
       expect(result).toEqual(baseFriendship);
     });
@@ -128,6 +133,7 @@ describe('FriendshipService', () => {
         nicknameReceiver: 'nickFromCharlie',
       };
       repoMocks.findFriendshipsByUser.mockResolvedValue([baseFriendship, incomingFriendship]);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
       const result = await friendshipService.getFriendsByUserId(1);
 
@@ -152,20 +158,22 @@ describe('FriendshipService', () => {
   describe('updateFriendshipNickname', () => {
     it('throws when friendship missing', async () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(null);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      await expect(friendshipService.updateFriendshipNickname(1, 2, 'buddy')).rejects.toMatchObject(
-        {
-          code: ERR_DEFS.RESOURCE_NOT_FOUND.code,
-        },
-      );
+      await expect(
+        friendshipService.updateFriendshipNickname(1, 'tata', 'buddy'),
+      ).rejects.toMatchObject({
+        code: ERR_DEFS.RESOURCE_NOT_FOUND.code,
+      });
     });
 
     it('updates nickname when friendship exists', async () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(baseFriendship);
       const updated = { ...baseFriendship, nicknameRequester: 'buddy' };
       repoMocks.updateFriendshipNicknameRequester.mockResolvedValue(updated);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      const result = await friendshipService.updateFriendshipNickname(1, 2, 'buddy');
+      const result = await friendshipService.updateFriendshipNickname(1, 'tata', 'buddy');
 
       expect(repoMocks.updateFriendshipNicknameRequester).toHaveBeenCalledWith(
         baseFriendship.id,
@@ -178,9 +186,10 @@ describe('FriendshipService', () => {
   describe('updateFriendshipStatus', () => {
     it('throws when friendship missing', async () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(null);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
       await expect(
-        friendshipService.updateFriendshipStatus(1, 2, 'REJECTED'),
+        friendshipService.updateFriendshipStatus(1, 'tata', 'REJECTED'),
       ).rejects.toMatchObject({
         code: ERR_DEFS.RESOURCE_NOT_FOUND.code,
       });
@@ -190,8 +199,9 @@ describe('FriendshipService', () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(baseFriendship);
       const updated = { ...baseFriendship, status: 'REJECTED' };
       repoMocks.updateFriendshipStatus.mockResolvedValue(updated);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      const result = await friendshipService.updateFriendshipStatus(1, 2, 'REJECTED');
+      const result = await friendshipService.updateFriendshipStatus(1, 'tata', 'REJECTED');
 
       expect(repoMocks.updateFriendshipStatus).toHaveBeenCalledWith(baseFriendship.id, 'REJECTED');
       expect(result).toEqual(updated);
@@ -201,8 +211,9 @@ describe('FriendshipService', () => {
   describe('removeFriend', () => {
     it('throws when friendship missing', async () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(null);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      await expect(friendshipService.removeFriend(1, 2)).rejects.toMatchObject({
+      await expect(friendshipService.removeFriend(1, 'tata')).rejects.toMatchObject({
         code: ERR_DEFS.RESOURCE_NOT_FOUND.code,
       });
     });
@@ -210,8 +221,9 @@ describe('FriendshipService', () => {
     it('removes friendship when it exists', async () => {
       repoMocks.findFriendshipBetween.mockResolvedValue(baseFriendship);
       repoMocks.deleteFriendshipById.mockResolvedValue(baseFriendship);
+      profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
-      const result = await friendshipService.removeFriend(1, 2);
+      const result = await friendshipService.removeFriend(1, 'tata');
 
       expect(repoMocks.deleteFriendshipById).toHaveBeenCalledWith(baseFriendship.id);
       expect(result).toEqual(baseFriendship);

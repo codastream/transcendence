@@ -114,6 +114,14 @@ export const ERR_DEFS = {
     HTTP_STATUS.UNAUTHORIZED,
   ),
 
+  // === AUTH INFO ===
+  AUTH_HEADER_INVALID: authError(
+    ERROR_CODES.INVALID_AUTH_HEADER,
+    LOG_REASONS.SECURITY.HEADER_INVALID,
+    'Invalid authentication header',
+    HTTP_STATUS.UNAUTHORIZED,
+  ),
+
   // === ROLE ===
   FORBIDDEN: authError(
     ERROR_CODES.FORBIDDEN,

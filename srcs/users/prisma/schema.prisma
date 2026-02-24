@@ -27,10 +27,10 @@ model Friendship {
   status                String
   
   requesterId           Int
-  requester             UserProfile @relation("requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  requester             UserProfile @relation("requester", fields: [requesterId], references: [authId], onDelete: Cascade)
 
   receiverId            Int
-  receiver              UserProfile @relation("receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiver              UserProfile @relation("receiver", fields: [receiverId], references: [authId], onDelete: Cascade)
   
   @@unique([requesterId, receiverId])
 }
