@@ -152,8 +152,11 @@ export async function joinTournament(
   try {
     db.joinTournament(userId, tourId);
   } catch (err: unknown) {
-    if (err instanceof AppError && err.context?.reason === LOG_REASONS.TOURNAMENT.FULL) {
-      return reply.code(409).send({ message: err.message });
+    if (err instanceof AppError) {
+      const isTournamentFull = err.context?.details?.some(
+        (d: any) => d.reason === 'tournament_full',
+      );
+      if (isTournamentFull) return reply.code(409).send({ message: err.message });
     } else {
       throw err;
     }

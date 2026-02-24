@@ -10,10 +10,6 @@ export const env = cleanEnv(process.env, {
     choices: ['debug', 'info', 'warn', 'error'],
     default: 'info',
   }),
-  JWT_SECRET: str({
-    desc: 'JWT secret key for token signing - MUST be cryptographically secure',
-    example: 'a-long-random-cryptographically-secure-string-at-least-32-chars',
-  }),
   GAME_SERVICE_PORT: port({ default: 3003 }),
   GAME_SERVICE_NAME: str({ default: 'game-service' }),
   GAME_DB_PATH: str({ default: './data/game.db' }),
