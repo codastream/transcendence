@@ -4,6 +4,7 @@ import { PlayerCapsule } from '../atoms/PlayerCapsule';
 import { MatchNode } from '../atoms/MatchNode';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { StartButton } from '../atoms/StartButton';
 
 interface TournamentBracketProps {
   players: [Player, Player, Player, Player];
@@ -17,7 +18,6 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
   const p2Ref = useRef<HTMLDivElement>(null);
   const p3Ref = useRef<HTMLDivElement>(null);
   const p4Ref = useRef<HTMLDivElement>(null);
-
   const semiLeftRef = useRef<HTMLDivElement>(null);
   const semiRightRef = useRef<HTMLDivElement>(null);
   const finalRef = useRef<HTMLDivElement>(null);
@@ -50,36 +50,18 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
         {/* CENTER */}
         <div className="flex flex-col items-center gap-14">
           <div ref={semiLeftRef}>
-            <MatchNode
-              label={t('game.semi_final')}
-              status="ready"
-              onStart={() => console.log(`startSemiFinal('left')`)}
-            />
+            <MatchNode label={t('game.semi_final')} status="ready" />
           </div>
 
           <div ref={finalRef}>
-            <MatchNode
-              label={t('game.final')}
-              highlight
-              status="pending"
-              onStart={() => console.log(`startFinal()`)}
-            />
+            <MatchNode label={t('game.final')} highlight status="pending" />
           </div>
           <div ref={littleFinalRef}>
-            <MatchNode
-              label={t('game.little_final')}
-              highlight
-              status="pending"
-              onStart={() => console.log(`startLittleFinal()`)}
-            />
+            <MatchNode label={t('game.little_final')} highlight status="pending" />
           </div>
 
           <div ref={semiRightRef}>
-            <MatchNode
-              label={t('game.semi_final')}
-              status="ready"
-              onStart={() => console.log(`startSemiFinal('right')`)}
-            />
+            <MatchNode label={t('game.semi_final')} status="ready" />
           </div>
         </div>
 
@@ -93,6 +75,11 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
           </div>
         </div>
       </div>
+      <StartButton
+        label={t('game.run')}
+        isready={false}
+        onStart={() => console.log(`startSemiFinal('right')`)}
+      />
     </div>
   );
 }

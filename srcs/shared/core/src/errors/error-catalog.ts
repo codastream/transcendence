@@ -114,6 +114,14 @@ export const ERR_DEFS = {
     HTTP_STATUS.UNAUTHORIZED,
   ),
 
+  // === AUTH INFO ===
+  AUTH_HEADER_INVALID: authError(
+    ERROR_CODES.INVALID_AUTH_HEADER,
+    LOG_REASONS.SECURITY.HEADER_INVALID,
+    'Invalid authentication header',
+    HTTP_STATUS.UNAUTHORIZED,
+  ),
+
   // === ROLE ===
   FORBIDDEN: authError(
     ERROR_CODES.FORBIDDEN,
@@ -147,6 +155,12 @@ export const ERR_DEFS = {
     'Internal error',
     HTTP_STATUS.INTERNAL_SERVER_ERROR,
   ),
+  RESOURCE_CONFLICT: serviceError(
+    ERROR_CODES.CONFLICT,
+    LOG_REASONS.CONFLICT.UNIQUE_VIOLATION,
+    'Resource conflict',
+    HTTP_STATUS.CONFLICT,
+  ),
 
   // === RESOURCES ===
   RESOURCE_NOT_FOUND: serviceError(
@@ -179,5 +193,36 @@ export const ERR_DEFS = {
     LOG_REASONS.VALIDATION.INVALID_FORMAT,
     'Invalid format',
     HTTP_STATUS.BAD_REQUEST,
+  ),
+  // Game service
+  USER_NOTFOUND_ERRORS: serviceError(
+    ERROR_CODES.NOT_FOUND,
+    LOG_REASONS.DATABASE.DB_SELECT,
+    `User doesn't exist`,
+    HTTP_STATUS.NOT_FOUND,
+  ),
+  DB_SELECT_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_SELECT,
+    `Database select critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
+  DB_INSERT_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_INSERT,
+    `Database insert critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
+  DB_UPDATE_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_UPDATE,
+    `Database update critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
+  DB_DELETE_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_DELETE,
+    `Database delete critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
   ),
 } as const;

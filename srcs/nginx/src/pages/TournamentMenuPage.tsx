@@ -1,4 +1,4 @@
-import { CircleButton } from '../components/atoms/CircleButton';
+import { CircleButton } from '../components/atoms/CircleButtonSimple';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 

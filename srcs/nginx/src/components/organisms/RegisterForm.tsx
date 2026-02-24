@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Button from '../atoms/Button';
 import { Input } from '../atoms/Input';
-import { Link, useNavigate } from 'react-router-dom';
 import { useActionState, useEffect } from 'react';
 import { authApi } from '../../api/auth-api';
 import {
@@ -112,26 +111,16 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
     return nextState;
   }
 }
-
-export const RegisterForm = () => {
+export const RegisterForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(signupAction, null);
-  const navigate = useNavigate();
-  const { user, login, isLoggedIn } = useAuth();
-
-  useEffect(() => {
-    if (user && isLoggedIn) {
-      navigate(`/profile/${user.username}`);
-    }
-  }, [user, isLoggedIn]);
+  const { login } = useAuth();
 
   useEffect(() => {
     if (state?.success && state.fields?.username) {
-      const username = state.fields?.username;
-      login({ username: username, avatarUrl: null });
-      navigate(`/profile/${username}`);
+      login({ username: state.fields.username, avatarUrl: null });
     }
-  }, [state?.success, state?.fields?.username, navigate]);
+  }, [state?.success, state?.fields?.username, login]);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -167,11 +156,9 @@ export const RegisterForm = () => {
 
       <div className="text-xs text-gray-500 mt-5">
         {t('auth.hasAccount')}{' '}
-        <span>
-          <Link className="hover:text-blue-400" to={`/login`}>
-            {t('auth.login')}
-          </Link>
-        </span>
+        <button type="button" onClick={onToggleForm} className="hover:text-blue-400 underline">
+          {t('auth.login')}
+        </button>
       </div>
     </form>
   );

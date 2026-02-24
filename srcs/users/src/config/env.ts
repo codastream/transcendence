@@ -23,4 +23,8 @@ export const appenv = cleanEnv(process.env, {
   UM_DB_URL: str({ default: 'file:/data/um.db' }),
   UM_REDIS_CHANNEL: str({ default: 'user_management' }),
   REDIS_SERVICE_NAME: str({ default: 'redis-broker' }),
+  REDIS_URL: str({
+    choices: ['redis://127.0.0.1:6379', 'redis://redis-broker:6379'],
+    default: '',
+  }),
 });

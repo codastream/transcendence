@@ -4,6 +4,7 @@ import TournamentMenuPage from '../pages/TournamentMenuPage';
 import TournamentsListPage from '../pages/TournamentsListPage';
 import TournamentCreatePage from '../pages/TournamentCreatePage';
 import TournamentPage from '../pages/TournamentPage';
+import { TournamentGuard } from './TournamentGuard';
 
 /*
  * simplified page management with React Routes
@@ -15,7 +16,9 @@ export default function TournamentRoutes() {
         <Route index element={<TournamentMenuPage />} />
         <Route path="list" element={<TournamentsListPage />} />
         <Route path="create" element={<TournamentCreatePage />} />
-        <Route path=":id" element={<TournamentPage />} />
+        <Route element={<TournamentGuard />}>
+          <Route path=":id" element={<TournamentPage />} />
+        </Route>
       </Route>
     </Routes>
   );

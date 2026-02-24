@@ -22,8 +22,8 @@ const Circle = ({ children, className = '', size = 120 }: CircleProps) => {
       justify-center
       transition-all duration-900 ease-in-out
       relative
-      w-[90%]
-      h-[80vh]
+      w-full
+      h-[75vh]
       rounded-3xl
       mx-auto
       text-gray-700
@@ -38,7 +38,7 @@ const Circle = ({ children, className = '', size = 120 }: CircleProps) => {
       lg:rounded-full
       ${className}`}
     >
-      <div className="relative z-10 text-center w-full max-w-4xl px-6 ">{children}</div>
+      <div className="relative z-10 text-center w-full max-w-4xl px-2 md:px-6 ">{children}</div>
     </div>
   );
 };

@@ -1,11 +1,14 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { CatchAllParams } from '../types/params.types.js';
 import { fastStreamProxy } from '../utils/proxy.js';
-import { fastifyReplyFrom } from '@fastify/reply-from';
 
 const UM_SERVICE_URL = 'https://user-service:3002';
 
 export function registerUsersRoutes(app: FastifyInstance) {
+  app.get('/', async (request, reply) => {
+    await fastStreamProxy(request, reply, UM_SERVICE_URL);
+  });
+
   app.all<{ Params: CatchAllParams }>(
     '/*',
     async (request: FastifyRequest, reply: FastifyReply) => {

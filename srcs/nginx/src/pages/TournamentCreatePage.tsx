@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import api from '../api/api-client';
 
 /* This component displays a loader until the tournament is created by the backend.
  * Use `useEffect` is used to redirect the user.
@@ -13,15 +14,13 @@ export default function TournamentCreatePage() {
   useEffect(() => {
     async function createTournament() {
       try {
-        // A remplacer par le vrai appel API
-        const res = await fakeCreateTournament();
-
+        const res = await creatingTournament();
+        console.log(res.id);
         navigate(`/tournaments/${res.id}`);
       } catch (err) {
         setError('Failed to create tournament');
       }
     }
-
     createTournament();
   }, [navigate]);
 
@@ -33,21 +32,22 @@ export default function TournamentCreatePage() {
           <p className="font-quantico text-lg text-white">{t('game.creating')}</p>
         </>
       ) : (
-        <div className="text-red-500 font-quantico">{error}</div>
+        <div className="text-red-500 font-quantico bg-white/70 rounded-full p-6">{error}</div>
       )}
     </div>
   );
 }
 
 /*
- *  Fake API simulation
- *  This function should be replaced by a proper call to the backend.
+ *  fake loading creating time Tournament
+ *  this function could be replaced or remove to call to the backend.
  */
+async function creatingTournament() {
+  const { data } = await api.post<number>(`/game/create-tournament`);
 
-async function fakeCreateTournament() {
-  return new Promise<{ id: string }>((resolve) => {
+  return new Promise<{ id: number }>((resolve) => {
     setTimeout(() => {
-      resolve({ id: '42' });
+      resolve({ id: data });
     }, 1500);
   });
 }
