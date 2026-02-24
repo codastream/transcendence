@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Button from '../atoms/Button';
 import { Input } from '../atoms/Input';
-import { useNavigate } from 'react-router-dom';
 import { useActionState, useEffect } from 'react';
 import { authApi } from '../../api/auth-api';
 import {
@@ -115,24 +114,13 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
 export const RegisterForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(signupAction, null);
-  const navigate = useNavigate();
-  const { user, login, isLoggedIn } = useAuth();
-
-  useEffect(() => {
-    if (user && isLoggedIn) {
-      // navigate(`/profile/${user.username}`);
-      navigate(`/welcome`);
-    }
-  }, [user, isLoggedIn]);
+  const { login } = useAuth();
 
   useEffect(() => {
     if (state?.success && state.fields?.username) {
-      const username = state.fields?.username;
-      login({ username: username, avatarUrl: null });
-      // navigate(`/profile/${username}`);
-      navigate(`/welcome`);
+      login({ username: state.fields.username, avatarUrl: null });
     }
-  }, [state?.success, state?.fields?.username, navigate]);
+  }, [state?.success, state?.fields?.username, login]);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">

@@ -338,6 +338,19 @@ export async function logoutHandler(
 ) {
   const username = (req.headers as any)['x-user-name'] || null;
   req.log.info({ event: 'logout', user: username });
+  try {
+    const user = authService.findByUsername(username);
+    if (user) {
+      await onlineService.updateOnlineStatus(user.id || 0, false);
+    }
+  } catch (err: any) {
+    logger.error({
+      event: 'update_online_status_error_on_logout',
+      user: username,
+      error: err?.message || err,
+    });
+    // Ne pas relancer l'erreur : le statut en ligne est non critique
+  }
   return reply.clearCookie('token').send({ result: { message: 'Logged out successfully' } });
 }
 
