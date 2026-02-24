@@ -9,6 +9,8 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
+import TosPage from './pages/TosPage';
+import PrivacyPage from './pages/PrivacyPage';
 
 export const App = () => {
   return (
@@ -20,6 +22,8 @@ export const App = () => {
         {/* Routes réservées aux non-authentifiés */}
         <Route element={<PublicRoute />}>
           <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/tos" element={<TosPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
 
         {/* Routes protégées — authentification requise */}
