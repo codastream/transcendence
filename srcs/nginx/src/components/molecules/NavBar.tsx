@@ -1,4 +1,3 @@
-// import { UserRow } from './UserRow';
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
 import { Link } from 'react-router-dom';
@@ -6,12 +5,6 @@ import { Locale } from '../atoms/Locale';
 import { useAuth } from '../../providers/AuthProvider';
 import Avatar from '../atoms/Avatar';
 import { useTranslation } from 'react-i18next';
-
-// const homeItems = [{ label: 'Home', href: '#' }];
-
-// interface NavbarProps {
-//   user: ProfileAuthDTO;
-// }
 
 export const NavBar = () => {
   const { user, isLoggedIn, logout } = useAuth();
@@ -29,8 +22,8 @@ export const NavBar = () => {
   ];
 
   const profileItems = [
-    { label: t('navbar.profile'), to: '/profile' },
-    { label: t('navbar.profile_logout'), onClick: logout },
+    { label: t('navbar.profile'), to: '/me' },
+    { label: t('navbar.profile_logout'), onClick: () => logout() },
   ];
 
   return (
@@ -55,10 +48,9 @@ export const NavBar = () => {
           <Link
             to="/me"
             className="hover:opacity-80 transition-opacity"
-            style={{ textDecoration: 'non', color: 'inherit' }}
+            style={{ textDecoration: 'none', color: 'inherit' }}
           >
             <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
-            {/* <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow> */}
           </Link>
         )}
 

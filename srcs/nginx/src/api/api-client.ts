@@ -14,6 +14,9 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+/**
+ * Intercepteur global — transforme les erreurs Axios brutes en FrontendError.
+ */
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -21,7 +24,7 @@ api.interceptors.response.use(
     let message: string = i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
     let code: ErrorCode = ERROR_CODES.INTERNAL_ERROR;
     let details: ErrorDetail[] | null = null;
-    // console.log(error);
+
     if (error.response) {
       const { data } = error.response;
       const errorPayload = data.error || data;
@@ -35,9 +38,6 @@ api.interceptors.response.use(
       details = errorPayload?.details || null;
       if (errorPayload?.details) {
         details = errorPayload.details;
-      }
-      if (statusCode === HTTP_STATUS.UNAUTHORIZED) {
-        console.warn('Invalid or expired session. Redirecting...');
       }
     }
     const frontendError = new FrontendError(message, statusCode, code, details);

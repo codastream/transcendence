@@ -1,14 +1,14 @@
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { friendshipController } from '../controllers/friends.controller.js';
 import {
-  FriendshipFullSchema as FriendshipFullSchema,
+  FriendshipFullSchema,
   SimpleErrorWithMessageSchema,
   ValidationErrorSchema,
   FriendshipUnifiedSchema,
   FriendshipUpdateStatusSchema,
   DetailedErrorSchema,
   FriendshipUpdateNicknameSchema,
-  IdSchema,
+  usernameSchema,
 } from '@transcendence/core';
 import z from 'zod';
 
@@ -27,7 +27,7 @@ export const createFriendSchema = {
   summary: 'Create a friend',
   description:
     'Register a new friendship associating current user as requester and target user as receiver',
-  body: IdSchema,
+  body: z.object({ targetUsername: usernameSchema }),
   response: {
     201: FriendshipFullSchema,
     400: ValidationErrorSchema,
@@ -39,8 +39,11 @@ export const createFriendSchema = {
 export const removeFriendSchema = {
   tags: ['friends'],
   summary: 'Remove a friend',
-  description: 'Remove a friendship associating current user and an user identified by target id',
-  params: IdSchema,
+  description:
+    'Remove a friendship associating current user and an user identified by target username',
+  params: z.object({
+    targetUsername: usernameSchema,
+  }),
   response: {
     200: FriendshipFullSchema,
     400: ValidationErrorSchema,
@@ -51,8 +54,11 @@ export const removeFriendSchema = {
 export const updateFriendStatusSchema = {
   tags: ['friends'],
   summary: 'Update friendship status',
-  description: 'Update friendship status between current user and an user identified by target id',
-  params: IdSchema,
+  description:
+    'Update friendship status between current user and an user identified by target username',
+  params: z.object({
+    targetUsername: usernameSchema,
+  }),
   body: FriendshipUpdateStatusSchema,
   response: {
     200: FriendshipFullSchema,
@@ -64,8 +70,10 @@ export const updateFriendStatusSchema = {
 export const updateFriendNicknameSchema = {
   tags: ['friends'],
   summary: 'Update friend nickname',
-  description: 'Update nickname given by current user to an user identified by target id',
-  params: IdSchema,
+  description: 'Update nickname given by current user to an user identified by target username',
+  params: z.object({
+    targetUsername: usernameSchema,
+  }),
   body: FriendshipUpdateNicknameSchema,
   response: {
     200: FriendshipFullSchema,
@@ -77,14 +85,14 @@ export const updateFriendNicknameSchema = {
 export const friendsRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get('', { schema: getFriendsByUserIdSchema }, friendshipController.getFriendsByUserId);
   app.post('', { schema: createFriendSchema }, friendshipController.createFriend);
-  app.delete('/:id', { schema: removeFriendSchema }, friendshipController.removeFriend);
+  app.delete('/:targetUsername', { schema: removeFriendSchema }, friendshipController.removeFriend);
   app.patch(
-    '/:id/status',
+    '/:targetUsername/status',
     { schema: updateFriendStatusSchema },
     friendshipController.updateFriendStatus,
   );
   app.patch(
-    '/:id/nickname',
+    '/:targetUsername/nickname',
     { schema: updateFriendNicknameSchema },
     friendshipController.updateFriendNickname,
   );

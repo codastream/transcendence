@@ -3,6 +3,14 @@
 # ==========================
 FROM node:20-alpine AS builder
 
+# Arguments pour les variables d'environnement Vite à build time
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_SCHOOL42_CLIENT_ID
+
+# Exposer les arguments comme variables d'environnement pour Vite
+ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+ENV VITE_SCHOOL42_CLIENT_ID=${VITE_SCHOOL42_CLIENT_ID}
+
 WORKDIR /app
 
 # Copy ROOT workspace manifests

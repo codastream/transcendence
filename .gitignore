@@ -182,5 +182,11 @@ output.css
 **/src/SmartContract/dump.rdb
 make/scripts/certs/certs
 .venv
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md
 *.ai
 docs/welcomPage.jpg
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github/instructions/snyk_rules.instructions.md

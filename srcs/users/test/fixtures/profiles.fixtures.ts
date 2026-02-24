@@ -8,6 +8,12 @@ export const mockProfileDTO2 = {
   avatarUrl: null,
 };
 
+export const mockFullProfileDTO2 = {
+  username: 'tata',
+  avatarUrl: null,
+  authId: 2,
+};
+
 export const mockProfileDTOUpdatedAvatar = {
   username: 'toto',
   avatarUrl: 'uploads/avatar-toto-1519129853500.jpg',

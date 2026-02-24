@@ -5,7 +5,7 @@ import { Redis } from 'ioredis';
 
 declare module 'fastify' {
   interface FastifyRequest {
-    user: UserRequest;
+    user: UserRequestDTO;
     file(): Promise<MultipartFile | undefined>;
   }
   interface FastifyInstance {
