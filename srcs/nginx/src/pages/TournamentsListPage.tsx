@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import {
   TournamentTableDesktop,
   TournamentListMobile,
@@ -37,7 +38,7 @@ export default function TournamentsListPage() {
       }
     };
     fetchTournaments();
-    const interval = setInterval(fetchTournaments, 5000);
+    const interval = setInterval(fetchTournaments, 20000);
     return () => clearInterval(interval);
   }, []);
   const navigate = useNavigate();
@@ -49,7 +50,7 @@ export default function TournamentsListPage() {
       const errorCode = err.response?.data?.code;
 
       if (errorCode === 'TOURNAMENT_FULL') {
-        alert(t('game.tournament_fulll'));
+        toast(t('game.tournament_full'));
       } else {
         // already in tournament
         navigate(`/tournaments/${id}`);

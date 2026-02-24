@@ -60,7 +60,7 @@ export default function TournamentPage() {
     };
     fetchPlayers();
     // refresh the page to show in realtime the users who joining the tournament
-    const interval = setInterval(fetchPlayers, 10000);
+    const interval = setInterval(fetchPlayers, 20000);
     return () => clearInterval(interval);
   }, []);
   return <TournamentBracket players={fillSlotPlayer(players)} />;

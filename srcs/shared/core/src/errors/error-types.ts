@@ -12,12 +12,14 @@ type SecurityFrontReasons =
 
 type ValidationReasons = DeepValues<typeof LOG_REASONS.VALIDATION>;
 type ConflictReasons = DeepValues<typeof LOG_REASONS.CONFLICT>;
+type TournamentReasons = DeepValues<typeof LOG_REASONS.TOURNAMENT>;
 
 export type FrontendReasonValue =
   | SecurityFrontReasons
   | ValidationReasons
   | ConflictReasons
   | ZodIssueCode
+  | TournamentReasons
   | typeof LOG_REASONS.UNKNOWN;
 
 const PUBLIC_REASONS: string[] = [

@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { MatchDTO } from '../types/game.dto.js';
 import { env } from '../config/env.js';
-import { UserEvent, TournamentDTO } from '@transcendence/core';
+import { UserEvent, TournamentDTO, ERR_DEFS } from '@transcendence/core';
+import { AppError, ErrorDetail } from '@transcendence/core';
 
 // DB path
 const DEFAULT_DIR = path.join(process.cwd(), 'data');
@@ -13,10 +14,11 @@ const DB_PATH = env.GAME_DB_PATH || path.join(DEFAULT_DIR, 'game.db');
 try {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 } catch (err: unknown) {
-  const message = err instanceof Error ? err.message : String(err);
-  const error = new Error(`Failed to ensure DB directory: ${message}`) as Error & { code: string };
-  error.code = 'GAME_DB_DIRECTORY_ERROR';
-  throw error;
+  throw new AppError(
+    ERR_DEFS.SERVICE_GENERIC,
+    { details: [{ field: `Failed to ensure DB directory` }] },
+    err,
+  );
 }
 
 export const db = new Database(DB_PATH);
@@ -66,10 +68,11 @@ CREATE INDEX IF NOT EXISTS idx_tournament_player_tid
 ON tournament_player(tournament_id);
 `);
 } catch (err: unknown) {
-  const msg = err instanceof Error ? err.message : String(err);
-  const error = new Error(`Failed to initialize DB schema: ${msg}`) as Error & { code: string };
-  error.code = 'GAME_DB_INIT_FAILED';
-  throw error;
+  throw new AppError(
+    ERR_DEFS.SERVICE_GENERIC,
+    { details: [{ field: `Failed to initialize DB schema` }] },
+    err,
+  );
 }
 
 const addMatchStmt = db.prepare(`
@@ -149,6 +152,11 @@ FROM tournament_player
 WHERE player_id = ? and tournament_id  = ?
 `);
 
+const getUserStmt = db.prepare(`
+SELECT *
+FROM player
+WHERE id = ?`);
+
 export function addMatch(match: MatchDTO): number {
   try {
     const idmatch = addMatchStmt.run(
@@ -162,12 +170,11 @@ export function addMatch(match: MatchDTO): number {
     );
     return Number(idmatch.lastInsertRowid);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error: any = new Error(`Error during Match storage: ${message}`) as Error & {
-      code: string;
-    };
-    error.code = 'Game_DB_INSERT_MATCH_ERR';
-    throw error;
+    throw new AppError(
+      ERR_DEFS.DB_INSERT_ERROR,
+      { details: [{ field: `addMatch to tournament ${match.tournament_id}` }] },
+      err,
+    );
   }
 }
 
@@ -177,10 +184,11 @@ export function createTournament(player_id: number): number {
     addPlayerTournament(player_id, Number(idtournament.lastInsertRowid));
     return Number(idtournament.lastInsertRowid);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`Tournament creation failed: ${message}`) as Error & { code: string };
-    error.code = 'GAME_DB_INSERT_TOURNAMENT_ERR';
-    throw error;
+    throw new AppError(
+      ERR_DEFS.DB_INSERT_ERROR,
+      { details: [{ field: `createTournament ${player_id}` }] },
+      err,
+    );
   }
 }
 
@@ -188,14 +196,11 @@ export function addPlayerTournament(player: number, tournament: number) {
   try {
     addPlayerTournamentStmt.run(player, tournament);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(
-      `Add Player(${player}) to a tournament(${tournament}) failed: ${message}`,
-    ) as Error & {
-      code: string;
-    };
-    error.code = 'GAME_DB_UPDATE_TOURNAMENT_ERROR';
-    throw error;
+    throw new AppError(
+      ERR_DEFS.DB_UPDATE_ERROR,
+      { details: [{ field: `addPlayerTournament ${player} ${tournament}` }] },
+      err,
+    );
   }
 }
 
@@ -203,10 +208,11 @@ export function addPlayerPositionTournament(player: number, position: number, to
   try {
     addPlayerPositionTournamentStmt.run(position, tournament, player);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`Add player position failed: ${message}`) as Error & { code: string };
-    error.code = 'GAME_DB_UPDATE_PLAYER_POSITION';
-    throw error;
+    throw new AppError(
+      ERR_DEFS.DB_UPDATE_ERROR,
+      { details: [{ field: `addPlayerPositionTournament ${player} ${position} ${tournament}` }] },
+      err,
+    );
   }
 }
 
@@ -214,10 +220,11 @@ export async function upsertUser(user: UserEvent) {
   try {
     upsertUserStmt.run(user.id, user.username, user.avatar, user.timestamp);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`Add or Update player failed: ${message}`) as Error & { code: string };
-    error.code = 'GAME_DB_UPSERT_FAILED';
-    throw error;
+    throw new AppError(
+      ERR_DEFS.DB_UPDATE_ERROR,
+      { details: [{ field: `upsertUser ${user.id}` }] },
+      err,
+    );
   }
 }
 
@@ -225,10 +232,7 @@ export async function deleteUser(id: number) {
   try {
     deleteUserStmt.run(id);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`Delete user failed: ${message}`) as Error & { code: string };
-    error.code = 'GAME_DB_DELETE_USER_FAILED';
-    throw error;
+    throw new AppError(ERR_DEFS.DB_DELETE_ERROR, { details: [{ field: `deleteUser ${id}` }] }, err);
   }
 }
 
@@ -237,10 +241,7 @@ export function listTournaments(): TournamentDTO[] {
     const rows = listTournamentsStmt.all() as TournamentDTO[];
     return rows;
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`Failed to list tournaments: ${message}`) as Error & { code: string };
-    error.code = 'GAME_DB_TOURNAMENT_LIST_ERROR';
-    throw error;
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: `listTournaments` }] }, err);
   }
 }
 
@@ -251,22 +252,24 @@ export function joinTournament(player_id: number, tournament_id: number) {
     if (isAlreadyInGame) return;
     const nbPlayers = result['nbPlayer'];
     if (nbPlayers >= 4) {
-      const fullError = new Error('The Tournament is full') as Error & { code: string };
-      fullError.code = 'TOURNAMENT_FULL';
-      throw fullError;
+      const errorDetail: ErrorDetail = {
+        field: `tournament full: ${tournament_id}`,
+        message: 'Tournament is already full',
+        reason: 'tournament_full',
+      };
+      throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
     }
     addPlayerTournament(player_id, tournament_id);
     if (nbPlayers === 3) {
       changeStatusTournamentStmt.run('STARTED', tournament_id);
     }
   } catch (err: unknown) {
-    if (err instanceof Error && (err as any).code === 'TOURNAMENT_FULL') {
-      throw err;
-    }
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`Join tournament failed: ${message}`) as Error & { code: string };
-    error.code = 'GAME_DB_JOIN_TOURNAMENT_ERR';
-    throw error;
+    if (err instanceof AppError) throw err;
+    throw new AppError(
+      ERR_DEFS.DB_UPDATE_ERROR,
+      { details: [{ field: `joinTournament: ${tournament_id}` }] },
+      err,
+    );
   }
 }
 
@@ -275,8 +278,23 @@ export function showTournament(tournament_id: number) {
     const result = listPlayersTournamentStmt.all(tournament_id);
     return result;
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`This tournament don't exist: ${message}`) as Error & { code: string };
-    error.code = 'GAME_DB_TOURNAMENT_NOT_FOUND';
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: `showTournament: ${tournament_id}` }] },
+      err,
+    );
+  }
+}
+
+export function getUser(id: number) {
+  try {
+    const result = getUserStmt.get(id);
+    if (!result) {
+      throw new AppError(ERR_DEFS.USER_NOTFOUND_ERRORS, { userId: id });
+    }
+    return result;
+  } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: `getUser ${id}` }] }, err);
   }
 }
