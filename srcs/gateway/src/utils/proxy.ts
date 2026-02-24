@@ -158,8 +158,9 @@ export function webSocketProxyRequest(
   });
 
   // Create WebSocket downstreamWs to game-service
-  const upstreamUrl = `ws://game-service:3003${path}`;
+  const upstreamUrl = `wss://game-service:3003${path}`;
   const upstreamWs = new WebSocket(upstreamUrl, {
+    rejectUnauthorized: false, // for self-signed certs
     headers: {
       'x-user-name': userName as string,
       'x-user-id': userId as string,
