@@ -13,10 +13,11 @@ export default function Scrollable({
   divClassName,
   isAnimated = false,
 }: ScrollableProps) {
+  const layoutClass = !isAnimated ? 'max-w-4xl' : '';
   return (
     <div className={`mt-15 mb-15 h-[80vh]flex justify-center items-center ${divClassName}`}>
       <div
-        className={`h-[70vh] w-full max-w-4xl overflow-y-auto
+        className={`${layoutClass} h-[70vh] w-full overflow-y-auto
           flex flex-col items-center 
           gap-12 py-2
           scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${className}`}
