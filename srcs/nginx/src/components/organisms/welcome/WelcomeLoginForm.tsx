@@ -1,12 +1,15 @@
 import { useTranslation } from 'react-i18next';
-import Button from '../atoms/Button';
-import { Input } from '../atoms/Input';
+import WelcomeButton from '../../atoms/welcome/WelcomeButton';
+import { WelcomeInput } from '../../atoms/welcome/WelcomeInput';
 import { useActionState, useEffect } from 'react';
-import { useAuth } from '../../providers/AuthProvider';
+import { useAuth } from '../../../providers/AuthProvider';
 import { emailSchema, ERROR_CODES, FrontendError, HTTP_STATUS } from '@transcendence/core';
-import { authApi } from '../../api/auth-api';
+import { authApi } from '../../../api/auth-api';
 import i18next from 'i18next';
-import { GoogleOAuthButton, School42OAuthButton } from '../atoms/OAuthButton';
+import {
+  WelcomeGoogleOAuthButton,
+  WelcomeSchool42OAuthButton,
+} from '../../atoms/welcome/WelcomeOAuthButton';
 
 interface LoginState {
   fields?: {
@@ -79,7 +82,11 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
   }
 }
 
-export const LoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
+/**
+ * WelcomeLoginForm - Formulaire de connexion pour WelcomePage
+ * Style: Atome avec gradient cyan/bleu
+ */
+export const WelcomeLoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(loginAction, null);
   const { login } = useAuth();
@@ -91,45 +98,55 @@ export const LoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   }, [state?.success, state?.fields?.username, login]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-2">
       {/* OAuth Buttons Section */}
-      <div className="flex flex-col gap-3">
-        <GoogleOAuthButton disabled={isPending} />
-        <School42OAuthButton disabled={isPending} />
+      <div className="flex flex-col gap-2">
+        <WelcomeGoogleOAuthButton disabled={isPending} />
+        <WelcomeSchool42OAuthButton disabled={isPending} />
       </div>
 
       {/* Separator */}
       <div className="relative flex items-center py-2">
-        <div className="flex-grow border-t border-gray-600"></div>
-        <span className="flex-shrink mx-4 text-gray-400 text-sm">{t('oauth.or_separator')}</span>
-        <div className="flex-grow border-t border-gray-600"></div>
+        <div className="flex-grow border-t-2 border-gray-300"></div>
+        <span className="flex-shrink mx-2 text-gray-600 text-xs font-bold tracking-widest bg-gradient-to-r from-gray-100 to-gray-50 px-2 py-1 rounded-full border-2 border-gray-200 shadow-sm">
+          {t('oauth.or_separator')}
+        </span>
+        <div className="flex-grow border-t-2 border-gray-300"></div>
       </div>
 
       {/* Traditional Login Form */}
-      <Input
+      <WelcomeInput
         name="identifier"
         customType="username"
         defaultValue={state?.fields?.identifier}
         errorMessage={state?.errors?.identifier}
         autoComplete="username"
         placeholder={t('fieldtype.username-email')}
-      ></Input>
-      <Input
+      />
+      <WelcomeInput
         name="password"
         customType="password"
         errorMessage={state?.errors?.password}
         autoComplete="current-password"
         placeholder={t('fieldtype.password')}
-      ></Input>
-      <Button className="mt-4" type="submit">
+      />
+      <WelcomeButton className="mt-1" type="submit">
         {isPending ? t('form.processing') : t('auth.login')}
-      </Button>
+      </WelcomeButton>
 
-      {state?.errors?.form && <p className="text-red-500 text-sm mb-3">{state.errors.form}</p>}
+      {state?.errors?.form && (
+        <div className="bg-red-50 border-2 border-red-300 text-red-700 px-2 py-1.5 rounded-lg text-xs font-medium shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          {state.errors.form}
+        </div>
+      )}
 
-      <div className="text-xs text-gray-500 mt-5">
+      <div className="text-xs text-gray-600 mt-2 font-medium">
         {t('auth.noAccount')}{' '}
-        <button type="button" onClick={onToggleForm} className="hover:text-blue-400 underline">
+        <button
+          type="button"
+          onClick={onToggleForm}
+          className="text-[#0088ff] hover:text-[#00ff9f] underline decoration-2 underline-offset-2 transition-colors font-semibold"
+        >
           {t('auth.signup')}
         </button>
       </div>

@@ -87,28 +87,67 @@ export const OAuthCallback = () => {
         <NavBar />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
           {state.status === 'loading' && (
-            <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-              <p className="text-lg">{t('oauth.processing')}</p>
+            <div className="flex flex-col items-center gap-6 p-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,255,159,0.15),0_0_100px_rgba(0,136,255,0.1)] border border-white/40 animate-in fade-in zoom-in duration-500">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-500 border-t-transparent shadow-lg shadow-cyan-500/50"></div>
+                <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border-4 border-cyan-400 opacity-20"></div>
+                <div className="absolute inset-2 animate-pulse rounded-full bg-gradient-to-br from-cyan-500/20 to-blue-500/20 blur-xl"></div>
+              </div>
+              <p className="text-xl font-semibold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent animate-pulse">
+                {t('oauth.processing')}
+              </p>
             </div>
           )}
 
           {state.status === 'success' && (
-            <div className="flex flex-col items-center gap-4">
-              <div className="text-green-500 text-5xl">✓</div>
-              <p className="text-lg">{t('oauth.success')}</p>
-              <p className="text-sm text-gray-400">{t('oauth.redirecting')}</p>
+            <div className="flex flex-col items-center gap-6 p-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,255,159,0.15),0_0_100px_rgba(0,136,255,0.1)] border border-white/40 animate-in fade-in zoom-in duration-500">
+              <div className="relative">
+                <div className="text-green-400 text-7xl animate-in zoom-in duration-700 drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]">
+                  ✓
+                </div>
+                <div className="absolute inset-0 animate-ping text-green-400 text-7xl opacity-30">
+                  ✓
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
+                  {t('oauth.success')}
+                </p>
+                <p className="text-sm text-gray-600 animate-pulse flex items-center justify-center gap-2">
+                  <span className="inline-block w-1 h-1 bg-cyan-400 rounded-full animate-bounce"></span>
+                  <span
+                    className="inline-block w-1 h-1 bg-cyan-400 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.2s' }}
+                  ></span>
+                  <span
+                    className="inline-block w-1 h-1 bg-cyan-400 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.4s' }}
+                  ></span>
+                  {t('oauth.redirecting')}
+                </p>
+              </div>
             </div>
           )}
 
           {state.status === 'error' && (
-            <div className="flex flex-col items-center gap-4 max-w-md p-6 bg-red-900/20 rounded-lg border border-red-500">
-              <div className="text-red-500 text-5xl">✕</div>
-              <p className="text-lg font-bold">{t('oauth.error')}</p>
-              <p className="text-sm text-gray-300">{state.error}</p>
+            <div className="flex flex-col items-center gap-6 max-w-md p-8 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_8px_32px_rgba(0,255,159,0.15),0_0_100px_rgba(0,136,255,0.1)] border-2 border-red-400/50 animate-in fade-in zoom-in duration-500">
+              <div className="relative">
+                <div className="text-red-500 text-7xl animate-in zoom-in duration-700 drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                  ✕
+                </div>
+                <div className="absolute inset-0 animate-pulse text-red-400 text-7xl opacity-20">
+                  ✕
+                </div>
+              </div>
+              <div className="space-y-3 text-center">
+                <p className="text-2xl font-bold bg-gradient-to-r from-red-500 to-rose-500 bg-clip-text text-transparent">
+                  {t('oauth.error')}
+                </p>
+                <p className="text-sm text-gray-700 leading-relaxed px-4">{state.error}</p>
+              </div>
               <button
                 onClick={() => navigate('/welcome', { replace: true })}
-                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                className="mt-2 px-8 py-3 bg-gradient-to-r from-[#00ff9f] to-[#0088ff] hover:shadow-[0_4px_20px_rgba(0,255,159,0.3)] text-white rounded-xl transition-all duration-300 transform hover:scale-105 active:scale-95 font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-[#00ff9f] focus:ring-offset-2"
               >
                 {t('oauth.back_to_login')}
               </button>

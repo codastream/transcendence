@@ -1,20 +1,23 @@
 import { useTranslation } from 'react-i18next';
-import Button from '../atoms/Button';
-import { Input } from '../atoms/Input';
+import WelcomeButton from '../../atoms/welcome/WelcomeButton';
+import { WelcomeInput } from '../../atoms/welcome/WelcomeInput';
 import { useActionState, useEffect } from 'react';
-import { authApi } from '../../api/auth-api';
+import { useAuth } from '../../../providers/AuthProvider';
 import {
-  passwordSchema,
   emailSchema,
-  usernameSchema,
+  ERROR_CODES,
   FrontendError,
   HTTP_STATUS,
-  ERROR_CODES,
+  passwordSchema,
+  usernameSchema,
 } from '@transcendence/core';
-import { useAuth } from '../../providers/AuthProvider';
+import { authApi } from '../../../api/auth-api';
 import i18next from 'i18next';
-import { ZodSafeParseResult } from 'zod';
-import { GoogleOAuthButton, School42OAuthButton } from '../atoms/OAuthButton';
+import {
+  WelcomeGoogleOAuthButton,
+  WelcomeSchool42OAuthButton,
+} from '../../atoms/welcome/WelcomeOAuthButton';
+import { z } from 'zod';
 
 interface SignupState {
   fields?: {
@@ -32,7 +35,7 @@ interface SignupState {
 
 const adjustErrorMessage = (
   errors: Record<string, string>,
-  result: ZodSafeParseResult<string>,
+  result: ReturnType<typeof emailSchema.safeParse>,
   field: string,
 ): void => {
   if (!result.success) {
@@ -85,7 +88,6 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
             nextState.errors![key] =
               i18next.t(`zod_errors.${d.reason}`) || i18next.t(`zod_errors.invalid_format`);
           } else if (d.field) {
-            // If field is not part of state, error will be in form
             nextState.errors!.form =
               i18next.t(`zod_errors.${d.reason}`) || i18next.t(`zod_errors.invalid_format`);
           }
@@ -94,11 +96,9 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
 
       if (err.statusCode === HTTP_STATUS.CONFLICT && err.details) {
         err.details.forEach((d) => {
-          if (d.field && d.field in nextState.fields!) {
-            const key = d.field as keyof NonNullable<SignupState['fields']>;
-            nextState.errors![key] = err.message;
-          } else if (d.field) {
-            nextState.errors!.form = err.message;
+          if (d.field && d.field in nextState.errors!) {
+            const key = d.field as keyof NonNullable<SignupState['errors']>;
+            nextState.errors![key] = d.message || i18next.t(`errors.${ERROR_CODES.CONFLICT}`);
           }
         });
       } else {
@@ -112,7 +112,12 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
     return nextState;
   }
 }
-export const RegisterForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
+
+/**
+ * WelcomeRegisterForm - Formulaire d'inscription pour WelcomePage
+ * Style: Atome avec gradient cyan/bleu
+ */
+export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(signupAction, null);
   const { login } = useAuth();
@@ -124,54 +129,64 @@ export const RegisterForm = ({ onToggleForm }: { onToggleForm?: () => void }) =>
   }, [state?.success, state?.fields?.username, login]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-2">
       {/* OAuth Buttons Section */}
-      <div className="flex flex-col gap-3">
-        <GoogleOAuthButton disabled={isPending} />
-        <School42OAuthButton disabled={isPending} />
+      <div className="flex flex-col gap-2">
+        <WelcomeGoogleOAuthButton disabled={isPending} />
+        <WelcomeSchool42OAuthButton disabled={isPending} />
       </div>
 
       {/* Separator */}
       <div className="relative flex items-center py-2">
-        <div className="flex-grow border-t border-gray-600"></div>
-        <span className="flex-shrink mx-4 text-gray-400 text-sm">{t('oauth.or_separator')}</span>
-        <div className="flex-grow border-t border-gray-600"></div>
+        <div className="flex-grow border-t-2 border-gray-300"></div>
+        <span className="flex-shrink mx-2 text-gray-600 text-xs font-bold tracking-widest bg-gradient-to-r from-gray-100 to-gray-50 px-2 py-1 rounded-full border-2 border-gray-200 shadow-sm">
+          {t('oauth.or_separator')}
+        </span>
+        <div className="flex-grow border-t-2 border-gray-300"></div>
       </div>
 
       {/* Traditional Registration Form */}
-      <Input
+      <WelcomeInput
         name="username"
         customType="username"
         autoComplete="username"
         defaultValue={state?.fields?.username}
         errorMessage={state?.errors?.username}
         placeholder={t('fieldtype.username-choose')}
-      ></Input>
-      <Input
+      />
+      <WelcomeInput
         name="email"
         customType="email"
         autoComplete="email"
         defaultValue={state?.fields?.email}
         errorMessage={state?.errors?.email}
         placeholder={t('fieldtype.email')}
-      ></Input>
-      <Input
+      />
+      <WelcomeInput
         name="password"
         customType="password"
         autoComplete="new-password"
         errorMessage={state?.errors?.password}
         placeholder={t('fieldtype.password-choose')}
-      ></Input>
+      />
 
-      <Button className="mt-4" type="submit">
+      <WelcomeButton className="mt-1" type="submit">
         {isPending ? t('form.processing') : t('auth.signup')}
-      </Button>
+      </WelcomeButton>
 
-      {state?.errors?.form && <p className="text-red-500 text-sm mb-3">{state.errors.form}</p>}
+      {state?.errors?.form && (
+        <div className="bg-red-50 border-2 border-red-300 text-red-700 px-2 py-1.5 rounded-lg text-xs font-medium shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          {state.errors.form}
+        </div>
+      )}
 
-      <div className="text-xs text-gray-500 mt-5">
+      <div className="text-xs text-gray-600 mt-2 font-medium">
         {t('auth.hasAccount')}{' '}
-        <button type="button" onClick={onToggleForm} className="hover:text-blue-400 underline">
+        <button
+          type="button"
+          onClick={onToggleForm}
+          className="text-[#0088ff] hover:text-[#00ff9f] underline decoration-2 underline-offset-2 transition-colors font-semibold"
+        >
           {t('auth.login')}
         </button>
       </div>

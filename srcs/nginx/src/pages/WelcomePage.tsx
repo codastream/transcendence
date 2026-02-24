@@ -1,5 +1,5 @@
 import { NavBar } from '../components/molecules/NavBar';
-import Halo from '../components/atoms/Halo';
+import WelcomeHalo from '../components/atoms/welcome/WelcomeHalo';
 import Background from '../components/atoms/Background';
 import { useState } from 'react';
 
@@ -27,7 +27,7 @@ export const WelcomePage = () => {
         colorEnd={colors.end}
       >
         <NavBar />
-        <Halo
+        <WelcomeHalo
           size={80}
           isRegister={isRegister}
           onToggleForm={() => setIsRegister(!isRegister)}

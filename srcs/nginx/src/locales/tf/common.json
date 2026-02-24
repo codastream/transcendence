@@ -7,7 +7,7 @@
     "login": "Se pointer (avec les bons papiers)"
   },
   "oauth": {
-    "continue_google": "Passe par Google (si t'as peur de te faire repérer)",
+    "continue_google": "Passe par Google",
     "continue_42": "Passe par 42 c'est la référence",
     "or_separator": "OU BIEN",
     "connecting": "On s'branche...",
