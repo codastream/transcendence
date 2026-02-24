@@ -27,7 +27,10 @@ export const HomePage = () => {
         colorEnd={colors.end}
       >
         <NavBar />
-        <Scrollable isAnimated={true}>
+        <Scrollable
+          className="h-screen md:grid md:grid-cols-2 md:place-items-center"
+          isAnimated={true}
+        >
           <Link to="/game/pong-ai">
             <CircleButton isMoving={true}>{t('game.playWithAI')}</CircleButton>
           </Link>

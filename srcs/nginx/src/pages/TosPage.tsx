@@ -8,17 +8,17 @@ const TosPage = () => {
     <h2 className="text-xl mb-1 font-semibold">{children}</h2>
   );
   const P = ({ children }: { children: React.ReactNode }) => (
-    <p className="text-sm text-gray-700 mb-1 ">{children}</p>
+    <p className="text-sm text-gray-700 mb-1 whitespace-pre-line">{children}</p>
   );
 
   const LegalSection = ({ children }: { children: React.ReactNode }) => (
-    <section className="w-full flex flex-col my-2 text-justify">{children}</section>
+    <section className="w-full flex flex-col my-2 px-3 py-1 text-justify">{children}</section>
   );
 
   return (
     <Page>
-      <Scrollable className="md:mt-15">
-        <h1 className="text-2xl mb-2 font-bold">{t('tos.title')}</h1>
+      <Scrollable className="md:mt-15 w-[90%]">
+        <h1 className="text-3xl mb-2 font-bold">{t('tos.title')}</h1>
         <p>
           <i>{t('tos.last_updated')}</i>
         </p>
@@ -74,7 +74,7 @@ const TosPage = () => {
               companyName: t('companyName'),
               address: t('address'),
               email: t('email'),
-              phone: t('phone'),
+              phone: '01 00 01 00 11',
             })}
           </P>
         </LegalSection>

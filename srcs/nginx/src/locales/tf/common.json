@@ -27,36 +27,49 @@
     "disabled": "pas enclenché, le machin"
   },
   "companyName": "Patapong SA",
+  "serviceName": "Spin Pong",
   "address": "1, Avenue des Frères Lebrun",
   "email": "ping@patapong.com",
-  "governingLaw": "droit français",
-  "arbitrationLocation": "Poitiers, France",
-  "privacyPolicyLink": "/politique-de-confidentialite",
+  "governingLaw": "la loi française, mon vieux",
+  "arbitrationLocation": "Poitiers, France - on a choisi exprès, c'est central",
+  "privacyPolicyLink": "/la-loi-du-silence",
   "tos": {
-    "title": "Conditions Générales d'Utilisation",
-    "last_updated": "Dernière mise à jour : 24 février 2026",
-    "provider": "Fournisseur : {{companyName}} ({{address}})",
-    "contact_info": "Contact : {{email}} | Téléphone : {{phone}}",
-    "agreement": "1. Acceptation des conditions",
-    "agreement-text": "En utilisant {{serviceName}} (les « Services »), vous acceptez de vous conformer à ces Conditions Générales. Si vous n'êtes pas d'accord, ne pas utiliser les Services.",
-    "ip": "2. Propriété intellectuelle",
-    "ip-text": "Tout le contenu, les marques déposées et les logiciels des Services sont la propriété de {{companyName}} ou lui sont concédés sous licence. Vous pouvez utiliser les Services à des fins personnelles et non commerciales uniquement. Toute copie, redistribution ou ingénierie inverse est interdite sans autorisation écrite.",
-    "responsabilities": "3. Responsabilités de l'utilisateur",
-    "responsabilities-text": "Vous devez fournir des informations exactes, actuelles et complètes. Vous êtes responsable de toute activité liée à votre compte. Les activités interdites incluent (sans s'y limiter) : le harcèlement, la fraude ou l'utilisation illégale ; la perturbation des Services ou le contournement des mesures de sécurité ; le téléchargement de contenu nuisible (virus, spam, etc.) ; la violation des droits de propriété intellectuelle.",
-    "user_content": "4. Contenu généré par l'utilisateur",
-    "user_content-text": "Vous conservez la propriété du contenu que vous soumettez, mais accordez à {{companyName}} une licence non exclusive et mondiale pour l'utiliser. Vous garantissez que votre contenu est légal, original et ne porte pas atteinte aux droits d'autrui.",
-    "purchases": "5. Achats et paiements",
-    "purchases-text": "Tous les achats sont définitifs et non remboursables. Vous acceptez de fournir des informations de paiement exactes. Les prix peuvent changer sans préavis.",
-    "termination": "6. Résiliation",
-    "termination-text": "Nous nous réservons le droit de suspendre ou de résilier votre accès en cas de violation de ces Conditions, sans préavis.",
-    "disclaimers": "7. Exclusions de garantie et responsabilité",
-    "disclaimers-text": "Les Services sont fournis « en l'état » sans garantie. Nous ne sommes pas responsables des dommages résultant de votre utilisation des Services. Vous acceptez d'indemniser {{companyName}} pour toute réclamation résultant de vos actions.",
-    "privacy": "8. Politique de confidentialité",
-    "privacy-text": "Vos données sont traitées conformément à notre {{privacyPolicyLink}}.",
-    "law": "9. Loi applicable et litiges",
-    "law-text": "Ces Conditions sont régies par le {{governingLaw}}. Les litiges seront résolus par arbitrage à {{arbitrationLocation}}.",
-    "contact": "10. Nous contacter",
-    "contact-text": "Pour toute question ou préoccupation, contactez-nous à : {{companyName}}, {{address}}, {{email}}, {{phone}}"
+    "title": "LES RÈGLES DU JEU",
+    "last_updated": "Dernière mise à jour : 24 février 2026 - Faut suivre, hein",
+
+    "provider": "C'est {{companyName}} ({{address}}) qui tient la barre",
+
+    "contact_info": "Pour nous joindre : {{email}} | Téléphone : {{phone}} - On répond, mais faut pas abuser",
+
+    "agreement": "1. LE CONTRAT, MON P'TIT",
+    "agreement-text": "Dès que t'utilises {{serviceName}} (nos « Services »), t'acceptes nos règles. Si ça te va pas, dégage. C'est simple.",
+
+    "ip": "2. LE MATOS, C'EST À NOUS",
+    "ip-text": "Tout ce qu'y a sur nos Services, c'est à nous : le contenu, les marques, les logiciels. T'as le droit de t'en servir pour toi, mais pas pour en faire du fric. Et surtout, pas de copie, de redistribution ou de bidouille sans notre feu vert écrit. On est pas des enfants de chœur.",
+
+    "responsabilities": "3. TES OBLIGATIONS, MON GAZIER",
+    "responsabilities-text": "Faut nous filer des infos justes et complètes. Tout ce qui se passe sur ton compte, c'est pour ta pomme. Interdit de : Emmerder les gens, tricher ou faire des coups tordus, Foutre le bordel dans nos Services ou contourner nos sécurités, Balancer des virus, du spam ou des saloperies du genre, Piquer le boulot des autres. T'as compris ?",
+
+    "user_content": "4. TES TRUCS À TOI",
+    "user_content-text": "Ce que tu balances sur nos Services, ça reste à toi. Mais on a le droit de s'en servir, partout dans le monde. T'es prévenu : ton contenu doit être légal, original et pas volé. Sinon, ça va chauffer.",
+
+    "purchases": "5. LES SOUS, C'EST LES SOUS",
+    "purchases-text": "Quand t'achètes, c'est définitif - pas de remboursement. Faut nous donner les bonnes infos de paiement. Et les prix, ça peut changer sans prévenir. C'est la vie.",
+
+    "termination": "6. SI ON TE VIRE",
+    "termination-text": "Si t'abuses, on peut te couper l'accès sans prévenir. C'est notre droit. T'es pas content ? Tant pis.",
+
+    "disclaimers": "7. ON SE DÉDOUANE (FAUT BIEN)",
+    "disclaimers-text": "Nos Services, c'est comme une bagnole d'occasion : on te les donne en l'état, sans garantie. Si t'as un problème en les utilisant, c'est pour ta gueule. Et si t'as fait une connerie, t'assumes - nous, on est couverts.",
+
+    "privacy": "8. TES DONNÉES, ON EN PREND SOIN (ENFIN, À PEU PRÈS)",
+    "privacy-text": "On gère tes données comme il faut. Tout est expliqué dans notre {{privacyPolicyLink}}. Lis-la, c'est pour ton bien.",
+
+    "law": "9. LA LOI, C'EST LA LOI",
+    "law-text": "Ici, c'est le {{governingLaw}} qui commande. Si y'a un litige, on règle ça à {{arbitrationLocation}}. Pas la peine de râler, c'est comme ça.",
+
+    "contact": "10. TU VEUX NOUS PARLER ?",
+    "contact-text": "T'as un problème ? Contacte-nous : {{companyName}}, {{address}}, {{email}}, {{phone}}. Mais dérange pas pour rien, hein."
   },
   "privacy_policy": {
     "title": "POLITIQUE DE CONFIDENTIALITÉ",

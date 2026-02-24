@@ -18,12 +18,12 @@ export const App = () => {
       <Routes>
         {/* Route publique sans guard — animation d'intro */}
         <Route path="/" element={<AnimationPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/tos" element={<TosPage />} />
 
         {/* Routes réservées aux non-authentifiés */}
         <Route element={<PublicRoute />}>
           <Route path="/welcome" element={<WelcomePage />} />
-          <Route path="/tos" element={<TosPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
         </Route>
 
         {/* Routes protégées — authentification requise */}
