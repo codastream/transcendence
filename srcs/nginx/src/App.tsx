@@ -2,7 +2,6 @@ import { Route, Routes } from 'react-router-dom';
 import { MyProfilePage } from './pages/MyProfilePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { GamePage } from './pages/GamePage';
-import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
