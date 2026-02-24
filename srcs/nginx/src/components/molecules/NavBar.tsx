@@ -1,4 +1,3 @@
-// import { UserRow } from './UserRow';
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
 import { Link } from 'react-router-dom';
@@ -30,7 +29,7 @@ export const NavBar = () => {
 
   const profileItems = [
     { label: t('navbar.profile'), to: '/profile' },
-    { label: t('navbar.profile_logout'), onClick: logout },
+    { label: t('navbar.profile_logout'), onClick: () => logout() },
   ];
 
   return (
@@ -58,7 +57,6 @@ export const NavBar = () => {
             style={{ textDecoration: 'non', color: 'inherit' }}
           >
             <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
-            {/* <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow> */}
           </Link>
         )}
 

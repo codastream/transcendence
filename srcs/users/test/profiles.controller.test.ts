@@ -7,6 +7,7 @@ import { buildApp } from '../src/app.js';
 vi.mock('../src/services/profiles.service.js', () => ({
   profileService: {
     getByUsername: vi.fn(),
+    getByUsernameQuery: vi.fn(),
     createProfile: vi.fn(),
     updateAvatar: vi.fn(),
     deleteByUsername: vi.fn(),
@@ -17,7 +18,7 @@ vi.mock('../src/utils/mappers.js', () => ({
   mapProfileToDTO: vi.fn(),
 }));
 
-const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto' };
+const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto', 'x-user-role': 'USER' };
 
 const mockUserProfile = {
   id: 1,
@@ -121,6 +122,36 @@ describe('Profile Controller unit tests', () => {
     });
   });
 
+  describe('GET /query?=:query', () => {
+    test('Should return matching profiles - 200', async () => {
+      vi.spyOn(profileService, 'getByUsernameQuery').mockResolvedValue([
+        mockProfileDTO,
+      ] as ProfileDTO[]);
+      const response = await app.inject({
+        method: 'GET',
+        headers: authHeaders,
+        url: '/',
+        query: { query: 'to' },
+      });
+      expect(profileService.getByUsernameQuery).toHaveBeenCalledWith('to');
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.payload)).toEqual([mockProfileDTO]);
+    });
+
+    test('Should return empty array when no result - 200', async () => {
+      vi.spyOn(profileService, 'getByUsernameQuery').mockResolvedValue([]);
+      const response = await app.inject({
+        method: 'GET',
+        headers: authHeaders,
+        url: '/',
+        query: { query: 'to' },
+      });
+      expect(profileService.getByUsernameQuery).toHaveBeenCalledWith('to');
+      expect(response.statusCode).toBe(200);
+      expect(JSON.parse(response.payload)).toEqual([]);
+    });
+  });
+
   describe('GET /username/:username', () => {
     test('Should return user profile - 200', async () => {
       vi.spyOn(profileService, 'getByUsername').mockResolvedValue(mockProfileDTO as ProfileDTO);
@@ -183,6 +214,7 @@ describe('Profile Controller unit tests', () => {
         headers: {
           'x-user-id': '1',
           'x-user-name': 'toto',
+          'x-user-role': 'USER',
           'content-type': `multipart/form-data; boundary=${boundary}`,
         },
         payload: body,
@@ -202,6 +234,7 @@ describe('Profile Controller unit tests', () => {
         headers: {
           'x-user-id': '1',
           'x-user-name': 'toto',
+          'x-user-role': 'USER',
           'content-type': `multipart/form-data; boundary=----VitestBoundary`,
         },
       });

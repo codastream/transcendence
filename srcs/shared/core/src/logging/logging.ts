@@ -78,6 +78,7 @@ export const LOG_REASONS = {
     TOKEN_MISSING: 'token_missing',
     TOKEN_INVALID: 'token_invalid',
     TOKEN_EXPIRED: 'token_expired',
+    HEADER_INVALID: 'header_invalid',
     MFA_ON: 'mfa_enabled',
     MFA_OFF: 'mfa_disabled',
     MFA_INVALID: 'mfa_code_invalid',

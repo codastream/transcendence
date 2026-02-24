@@ -15,6 +15,7 @@ import { errorHandler } from './utils/error-handler.js';
 import { appenv } from './config/env.js';
 import { friendsRoutes } from './routes/friends.routes.js';
 import { loggerConfig } from './config/logger.config.js';
+import { logger } from './utils/logger.js';
 
 export async function buildApp() {
   const isTest = appenv.NODE_ENV === 'test';
@@ -37,8 +38,7 @@ export async function buildApp() {
   const app = fastify(options).withTypeProvider<ZodTypeProvider>();
 
   app.addHook('onRequest', (request, reply, done) => {
-    const socket = request.raw.socket as any;
-    // Allow local healthchecks without mTLS
+    const socket = request.raw.socket;
     if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
       return done();
     }
@@ -48,6 +48,48 @@ export async function buildApp() {
       return;
     }
     done();
+  });
+
+  app.addHook('preHandler', async (req, reply) => {
+    const userIdHeader = req.headers['x-user-id'];
+    const usernameHeader = req.headers['x-user-name'];
+    const roleHeader = req.headers['x-user-role'];
+
+    if (req.routeOptions.config.skipAuth) {
+      return;
+    }
+
+    // If no auth headers are present, leave req.user undefined (public route or unauthenticated request)
+    if (
+      typeof userIdHeader === 'undefined' &&
+      typeof usernameHeader === 'undefined' &&
+      typeof roleHeader === 'undefined'
+    ) {
+      return;
+    }
+    // If some auth headers are present but not all required ones, treat as invalid
+    if (
+      typeof userIdHeader === 'undefined' ||
+      typeof usernameHeader === 'undefined' ||
+      typeof roleHeader === 'undefined'
+    ) {
+      logger.warn(`invalid auth header`);
+
+      reply.code(400).send({ error: 'Invalid authentication headers' });
+      return;
+    }
+    const id = Number(userIdHeader);
+    if (!Number.isFinite(id)) {
+      logger.warn(`invalid auth header - no finite number`);
+
+      reply.code(400).send({ error: 'Invalid authentication headers' });
+      return;
+    }
+    req.user = {
+      id,
+      username: String(usernameHeader),
+      role: String(roleHeader),
+    };
   });
 
   await app.setValidatorCompiler(validatorCompiler);

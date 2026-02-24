@@ -16,6 +16,7 @@ import {
   mapZodIssuesToErrorDetails,
 } from '@transcendence/core';
 import * as oauthService from '../services/oauth.service.js';
+
 /**
  * Configuration des cookies avec security enforcée en production
  */

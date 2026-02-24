@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProfilePage } from './pages/ProfilePage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
+import { FriendsPage } from './pages/FriendsPage';
 import { WelcomePage } from './pages/WelcomePage';
 import TournamentRoutes from './router/TournamentRoutes';
 
@@ -27,6 +28,7 @@ export const App = () => {
 
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/me" element={<MeRedirect />}></Route>
+        <Route path="/friends" element={<FriendsPage />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
         <Route path="/tournaments/*" element={<TournamentRoutes />} />
       </Routes>
