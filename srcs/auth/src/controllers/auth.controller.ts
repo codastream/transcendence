@@ -1,7 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as authService from '../services/auth.service.js';
 import { ValidationSchemas } from '../utils/validation.js';
-import { AUTH_CONFIG, ERROR_MESSAGES, UserRole } from '../utils/constants.js';
+import { AUTH_CONFIG, ERROR_MESSAGES } from '../utils/constants.js';
+import { GoogleOAuthError } from '../services/providers/google.service.js';
+import { School42OAuthError } from '../services/providers/school42.service.js';
 import * as totpService from '../services/totp.service.js';
 import * as onlineService from '../services/online.service.js';
 import { logger } from '../index.js';
@@ -13,6 +15,8 @@ import {
   mapToFrontendError,
   mapZodIssuesToErrorDetails,
 } from '@transcendence/core';
+import * as oauthService from '../services/oauth.service.js';
+
 /**
  * Configuration des cookies avec security enforcée en production
  */
@@ -262,6 +266,21 @@ export async function loginHandler(
         getCookieOptions(AUTH_CONFIG.COOKIE_2FA_MAX_AGE_SECONDS),
       );
 
+      // Marquer l'utilisateur comme en ligne
+      try {
+        await onlineService.updateOnlineStatus(user.id || 0, true);
+      } catch (onlineStatusError) {
+        logger.error({
+          event: 'update_online_status_error',
+          userId: user.id,
+          error:
+            onlineStatusError instanceof Error
+              ? onlineStatusError.message
+              : String(onlineStatusError),
+        });
+        // Ne pas relancer l'erreur : le statut en ligne est non critique
+      }
+
       return reply.code(HTTP_STATUS.OK).send({
         result: {
           require2FA: true,
@@ -283,6 +302,8 @@ export async function loginHandler(
         AUTH_CONFIG.JWT_EXPIRATION,
       );
       logger.info({ event: 'login_success', identifier });
+
+      await onlineService.updateOnlineStatus(user.id || 0, true);
 
       reply
         .setCookie('token', token, getCookieOptions(AUTH_CONFIG.COOKIE_MAX_AGE_SECONDS))
@@ -1002,6 +1023,154 @@ export async function deleteUserHandler(
       error: {
         message: 'Internal server error',
         code: ERROR_CODES.INTERNAL_ERROR,
+      },
+    });
+  }
+}
+
+// ============================================
+// OAuth Handlers
+// ============================================
+
+/**
+ * POST /oauth/:provider/callback
+ * Handler OAuth callback - Frontend envoie le code reçu du provider
+ */
+export async function oauthCallbackHandler(
+  this: FastifyInstance,
+  request: FastifyRequest<{
+    Params: { provider: string };
+    Body: { code: string; state?: string };
+  }>,
+  reply: FastifyReply,
+) {
+  const validation = ValidationSchemas.oauthCallback.safeParse({
+    provider: request.params.provider,
+    code: request.body?.code,
+    state: request.body?.state,
+  });
+
+  if (!validation.success) {
+    logger.warn({
+      event: 'oauth_callback_validation_failed',
+      provider: request.params.provider,
+      errors: validation.error.issues,
+    });
+    return reply.code(HTTP_STATUS.BAD_REQUEST).send({
+      error: {
+        message: 'Invalid OAuth callback parameters',
+        code: ERROR_CODES.VALIDATION_ERROR,
+        details: mapZodIssuesToErrorDetails(validation.error.issues),
+      },
+    });
+  }
+
+  const { provider, code } = validation.data;
+
+  try {
+    logger.info({
+      event: 'oauth_callback_start',
+      provider,
+    });
+
+    // Orchestrer le processus OAuth complet
+    const result = await oauthService.handleOAuthCallback(provider as 'google' | 'school42', code);
+
+    logger.info({
+      event: 'oauth_callback_success',
+      provider,
+      username: result.username,
+      isNewUser: result.isNewUser,
+    });
+
+    // Marquer l'utilisateur comme en ligne
+    try {
+      await onlineService.updateOnlineStatus(result.userId, true);
+    } catch (onlineStatusError) {
+      logger.error({
+        event: 'oauth_online_status_update_failed',
+        provider,
+        userId: result.userId,
+        error:
+          onlineStatusError instanceof Error
+            ? onlineStatusError.message
+            : String(onlineStatusError),
+      });
+      // Ne pas relancer l'erreur : le statut en ligne est non critique
+    }
+
+    // Générer le JWT et le poser en cookie (identique au login classique)
+    const userRole = authService.getUserRole(result.userId);
+    const token = generateJWT(
+      this,
+      result.userId,
+      result.username,
+      userRole,
+      AUTH_CONFIG.JWT_EXPIRATION,
+    );
+
+    return reply
+      .setCookie('token', token, getCookieOptions(AUTH_CONFIG.COOKIE_MAX_AGE_SECONDS))
+      .code(HTTP_STATUS.OK)
+      .send({
+        result: {
+          message: result.isNewUser
+            ? `Welcome! Account created successfully with ${provider}`
+            : `Login successful with ${provider}`,
+          username: result.username,
+          provider,
+          isNewUser: result.isNewUser,
+        },
+      });
+  } catch (error: unknown) {
+    // Gestion des erreurs OAuth spécifiques (provider errors)
+    if (error instanceof GoogleOAuthError || error instanceof School42OAuthError) {
+      logger.warn({
+        event: 'oauth_error_provider',
+        errorCode: error.code,
+        message: error.message,
+        statusCode: error.statusCode,
+        provider,
+      });
+      return reply.code(error.statusCode || HTTP_STATUS.BAD_REQUEST).send({
+        error: {
+          message: error.message,
+          code: error.code,
+          provider,
+        },
+      });
+    }
+
+    // Gestion de AppError (si applicable)
+    if (error instanceof AppError) {
+      const frontendError = mapToFrontendError(error);
+      logger.error({
+        event: 'oauth_error_app_error',
+        code: frontendError.code,
+        statusCode: frontendError.statusCode,
+      });
+
+      return reply.code(frontendError.statusCode).send({
+        error: {
+          message: frontendError.message,
+          code: frontendError.code,
+          provider,
+        },
+      });
+    }
+
+    // Erreur générique inattendue
+    logger.error({
+      event: 'oauth_error_unexpected',
+      provider,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+      error: {
+        message: 'OAuth authentication failed. Please check the server logs for more details.',
+        code: ERROR_CODES.INTERNAL_ERROR,
+        provider,
       },
     });
   }

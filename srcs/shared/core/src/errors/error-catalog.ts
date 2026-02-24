@@ -114,6 +114,14 @@ export const ERR_DEFS = {
     HTTP_STATUS.UNAUTHORIZED,
   ),
 
+  // === AUTH INFO ===
+  AUTH_HEADER_INVALID: authError(
+    ERROR_CODES.INVALID_AUTH_HEADER,
+    LOG_REASONS.SECURITY.HEADER_INVALID,
+    'Invalid authentication header',
+    HTTP_STATUS.UNAUTHORIZED,
+  ),
+
   // === ROLE ===
   FORBIDDEN: authError(
     ERROR_CODES.FORBIDDEN,
@@ -146,6 +154,12 @@ export const ERR_DEFS = {
     LOG_REASONS.UNKNOWN,
     'Internal error',
     HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
+  RESOURCE_CONFLICT: serviceError(
+    ERROR_CODES.CONFLICT,
+    LOG_REASONS.CONFLICT.UNIQUE_VIOLATION,
+    'Resource conflict',
+    HTTP_STATUS.CONFLICT,
   ),
 
   // === RESOURCES ===

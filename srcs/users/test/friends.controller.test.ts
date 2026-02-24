@@ -22,6 +22,8 @@ import {
   LOG_RESOURCES,
 } from '@transcendence/core';
 
+const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto', 'x-user-role': 'USER' };
+
 describe('Friends Controller unit tests', () => {
   let app: FastifyInstance;
 
@@ -90,19 +92,19 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 2 },
+        headers: authHeaders,
+        payload: { targetUsername: 'tata' },
       });
 
       expect(response.statusCode).toBe(201);
     });
 
-    test('Should return 400 for invalid targetId', async () => {
+    test('Should return 400 for invalid body', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: -1 },
+        headers: authHeaders,
+        payload: { targetUsername: '' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -116,8 +118,8 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 999 },
+        headers: authHeaders,
+        payload: { targetUsername: 'idontexist' },
       });
 
       expect(response.statusCode).toBe(404);
@@ -131,8 +133,8 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 2 },
+        headers: authHeaders,
+        payload: { targetUsername: 'tata' },
       });
 
       expect(response.statusCode).toBe(409);
@@ -146,15 +148,15 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 1 },
+        headers: authHeaders,
+        payload: { targetUsername: 'toto' },
       });
 
       expect(response.statusCode).toBe(422);
     });
   });
 
-  describe('DELETE /friends/:id', () => {
+  describe('DELETE /friends/:targetusername', () => {
     test('Should delete friendship - 200', async () => {
       vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(
         mockFriendshipFullDTO as FriendshipFullDTO,
@@ -162,8 +164,8 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/friends/2',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        url: '/friends/tata',
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(200);
@@ -182,8 +184,8 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/friends/3',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        url: '/friends/tata',
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(404);
@@ -202,8 +204,8 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/friends/2',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        url: '/friends/unknown',
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(404);
@@ -219,7 +221,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(200);
@@ -231,14 +233,14 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(200);
     });
   });
 
-  describe('PATCH /friends/:id/nickname', () => {
+  describe('PATCH /friends/:targetusername/nickname', () => {
     test('Should update friend nickname - 200', async () => {
       const updatedFriendship = { ...mockFriendshipFullDTO, nickname: 'newNick' };
       vi.mocked(friendshipService.updateFriendshipNickname).mockResolvedValue(
@@ -247,8 +249,8 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'PATCH',
-        url: `/friends/2/nickname`,
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        url: `/friends/tata/nickname`,
+        headers: authHeaders,
         payload: { nickname: 'newNick' },
       });
 
@@ -258,8 +260,8 @@ describe('Friends Controller unit tests', () => {
     test('Should return 400 for invalid nickname', async () => {
       const response = await app.inject({
         method: 'PATCH',
-        url: '/friends/2/nickname',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        url: '/friends/tata/nickname',
+        headers: authHeaders,
         payload: { nickname: 'a'.repeat(51) },
       });
 
@@ -273,8 +275,8 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'PATCH',
-        url: '/friends/2/nickname',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        url: '/friends/tata/nickname',
+        headers: authHeaders,
         payload: { nickname: 'newNick' },
       });
 

@@ -8,10 +8,10 @@ WORKDIR /app
 # Copy ROOT workspace manifests
 COPY package.json package-lock.json ./
 
-
 # Workspace manifests (OBLIGATOIRE avant npm ci)
 COPY srcs/shared/core/package.json ./srcs/shared/core/package.json
 COPY srcs/nginx/package.json ./srcs/nginx/package.json
+COPY srcs/nginx/tsconfig.json ./srcs/nginx/tsconfig.json
 COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 
 # Install deps once (workspace-aware)
@@ -27,7 +27,7 @@ COPY srcs/nginx/src/html/admin.html ./srcs/nginx/html/admin.html
 
 # Build frontend (Vite)
 RUN npm run build --workspace srcs/shared/core
-RUN npm run build --workspace srcs/nginx
+RUN npm run build --workspace proxy-service
 
 
 # ==========================

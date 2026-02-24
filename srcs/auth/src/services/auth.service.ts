@@ -4,7 +4,6 @@ import { createUserProfile, deleteUserProfile } from './external/um.service.js';
 import { DataError, ServiceError } from '../types/errors.js';
 import { APP_ERRORS } from '../utils/error-catalog.js';
 import { EVENTS, REASONS, UserRole } from '../utils/constants.js';
-import { authenv } from '../config/env.js';
 import { logger } from '../index.js';
 import { AppError, ERR_DEFS } from '@transcendence/core';
 import * as onlineService from './online.service.js';

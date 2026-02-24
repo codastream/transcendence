@@ -17,6 +17,10 @@
   "form": {
     "processing": "On gère ça, mon pote…"
   },
+  "search": {
+    "no_results": "nada",
+    "user": "voir les gars qui trainent"
+  },
   "global": {
     "loading": "Laisse nous gérer ça...",
     "not_found": "Que dalle",
@@ -38,7 +42,9 @@
     "rate_limit_exceeded": "T’as trop tiré sur la corde, là. Reviens dans quelques minutes, on sera plus cool.",
     "mfa_required": "Faut un double contrôle, mon gars. Sors ton code MFA ou configure-le, sinon c’est mort.",
     "invalid_mfa_code": "Ton code MFA, il est foireux. Vérifie et retente.",
-    "internal_error": "Putain, y’a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous."
+    "internal_error": "Putain, y’a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous.",
+    "friend_self_add": "Tu peux pas t'ajouter toi-meme, vieux. Choisis un autre tandem.",
+    "friend_already": "T'es déjà pote, mon vieux !"
   },
   "navbar": {
     "home": "Le bercail",
@@ -50,12 +56,19 @@
     "stats": "Ton palmarès",
     "stats_history": "Ton historique",
     "profile": "Ton pedigree",
-    "profile_logout": "Allez, on se tire"
+    "profile_logout": "Allez, on se tire",
+    "profile_login": "Login"
   },
   "profile": {
     "profile": "Pedigree",
     "2fa": "Double contrôle",
     "update_avatar": "Se faire retirer le portrait"
+  },
+  "friends": {
+    "friends": "Les potes",
+    "add": "ajoute-le",
+    "remove": "vire-le",
+    "play": "on s'amuse"
   },
   "file_uploader": {
     "file_choose": "Fais ton choix mon gars",
@@ -68,12 +81,14 @@
     "termsOfService": "Les règles du jeu (lis ça, sinon t’es un rigolo)"
   },
   "game": {
+    "playWithAI": "Défie le machin",
+    "playWithFriends": "Joue avec tes potes",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
     "participate": "Tu cherches des embrouilles!",
     "create": "Je vous mets au défi!",
     "tournament_available": "Vendetta disponibles",
-    "name": "Blaz",
+    "name": "Blase",
     "players": "Nb truands",
     "status": "Statut",
     "action": "Action",

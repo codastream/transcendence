@@ -1,4 +1,3 @@
-// import { UserRow } from './UserRow';
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
 import { Link } from 'react-router-dom';
@@ -30,12 +29,14 @@ export const NavBar = () => {
 
   const profileItems = [
     { label: t('navbar.profile'), to: '/profile' },
-    { label: t('navbar.profile_logout'), onClick: logout },
+    { label: t('navbar.profile_logout'), onClick: () => logout() },
   ];
 
   return (
-    <nav className="mb-3 bg-teal-800/30 p-5 w-full flex flex-row justify-between">
-      <div className="lg:text-3xl text-xl group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
+    <nav
+      className={`mb-3 bg-teal-800/30 p-5 w-full flex flex-row ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
+    >
+      <div className="lg:text-3xl hidden sm:block group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
         <span>Sp</span>
         <span className="lowercase inline-block duration-500 group-hover:rotate-180">i</span>
         <span>n Pong</span>
@@ -56,10 +57,12 @@ export const NavBar = () => {
             style={{ textDecoration: 'non', color: 'inherit' }}
           >
             <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
-            {/* <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow> */}
           </Link>
         )}
-        <Locale className="flex items-center" />
+
+        <div className="flex flex-row items-center justify-center">
+          <Locale className="mt-1 flex justify-center items-center" />
+        </div>
       </div>
     </nav>
   );

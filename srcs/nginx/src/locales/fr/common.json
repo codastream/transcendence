@@ -17,6 +17,10 @@
   "form": {
     "processing": "traitement..."
   },
+  "search": {
+    "no_results": "pas de résulytat",
+    "user": "Cherchez un utilisateur"
+  },
   "global": {
     "loading": "Chargement...",
     "not_found": "Non trouvé",
@@ -38,7 +42,9 @@
     "rate_limit_exceeded": "Limite de requêtes dépassée. Réessayez dans quelques minutes.",
     "mfa_required": "Authentification à deux facteurs requise. Veuillez configurer ou saisir votre code MFA.",
     "invalid_mfa_code": "Code MFA invalide. Vérifiez le code et réessayez.",
-    "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard."
+    "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard.",
+    "friend_self_add": "Choisissez un autre utilisateur que vous-même",
+    "friend_already": "Vous êtes déjà amis"
   },
   "navbar": {
     "home": "Accueil",
@@ -50,12 +56,19 @@
     "stats": "Stats",
     "stats_history": "Historique",
     "profile": "Profil",
-    "profile_logout": "Se déconnecter"
+    "profile_logout": "Logout",
+    "profile_login": "Se connecter"
   },
   "profile": {
     "profile": "Profil",
     "2fa": "2FA",
     "update_avatar": "Changer d'avatar"
+  },
+  "friends": {
+    "friends": "Amis",
+    "add": "ajouter aux amis",
+    "remove": "supprimer des amis",
+    "play": "jouer"
   },
   "file_uploader": {
     "file_choose": "Choisir un fichier",
@@ -68,6 +81,8 @@
     "termsOfService": "Conditions d'utilisation"
   },
   "game": {
+    "playWithAI": "Joue avec un ROBOT (no friends?)",
+    "playWithFriends": "Joue avec ton copaing",
     "tournament": "Tournoi",
     "game": "Jeu",
     "participate": "Participer",

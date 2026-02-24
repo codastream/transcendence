@@ -3,6 +3,19 @@ import { ReactNode } from 'react';
 
 export type AvatarSize = 'sm' | 'md' | 'lg';
 
+export interface UserAction {
+  label: string;
+  color?: string;
+  icon: string;
+}
+
+export enum UserActions {
+  PLAY = 'play',
+  ADD = 'add',
+  REMOVE = 'remove',
+  CHANGE = 'change',
+}
+
 export enum MenuActions {
   HOME = 'home',
   PLAY = 'play',
@@ -23,6 +36,8 @@ export interface AuthContextType {
   login: (user: ProfileSimpleDTO) => void;
   logout: () => void;
   updateUser: (newUser: ProfileSimpleDTO) => void;
+  markAnimAsSeen: () => void;
+  hasSeenAnim: boolean;
 }
 
 export interface AuthProviderProps {

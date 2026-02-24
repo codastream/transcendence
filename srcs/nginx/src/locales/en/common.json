@@ -17,6 +17,10 @@
   "form": {
     "processing": "processing..."
   },
+  "search": {
+    "no_results": "no results",
+    "user": "Search for a user"
+  },
   "global": {
     "loading": "Loading...",
     "not_found": "Not found",
@@ -38,7 +42,9 @@
     "rate_limit_exceeded": "Rate limit exceeded. Please try again in a few minutes",
     "mfa_required": "Multi-factor authentication required. Please set up or enter your MFA code",
     "invalid_mfa_code": "Invalid MFA code. Please check the code and try again",
-    "internal_error": "Internal server error. Please try again later."
+    "internal_error": "Internal server error. Please try again later.",
+    "friend_self_add": "You cannot add yourself as a friend",
+    "friend_already": "You are already friends"
   },
   "navbar": {
     "home": "Home",
@@ -50,12 +56,19 @@
     "stats": "Stats",
     "stats_history": "History",
     "profile": "Profile",
-    "profile_logout": "Logout"
+    "profile_logout": "Logout",
+    "profile_login": "Login"
   },
   "profile": {
     "profile": "Profile",
     "2fa": "2FA",
     "update_avatar": "Update avatar"
+  },
+  "friends": {
+    "friends": "Friends",
+    "add": "add to friends",
+    "remove": "remove from friends",
+    "play": "play"
   },
   "file_uploader": {
     "file_choose": "Choose a file",
@@ -68,6 +81,8 @@
     "termsOfService": "Terms of Service"
   },
   "game": {
+    "playWithAI": "Play with AI",
+    "playWithFriends": "Play with Friends",
     "tournament": "Tournament",
     "game": "Game",
     "participate": "Participate",

@@ -98,6 +98,34 @@ export const AUTH_CONFIG = {
       timeWindow: '1 minute',
     },
   },
+
+  // OAuth 2.0 Configuration
+  OAUTH: {
+    // Timeouts et limites
+    TOKEN_EXCHANGE_TIMEOUT_MS: 10000, // 10 secondes
+    USER_PROFILE_TIMEOUT_MS: 8000, // 8 secondes
+
+    // Rate limiting OAuth
+    CALLBACK_RATE_LIMIT: {
+      max: isTestOrDev ? 1000 : 10,
+      timeWindow: '5 minutes',
+    },
+
+    // Providers configuration
+    GOOGLE: {
+      AUTHORIZATION_URL: 'https://accounts.google.com/o/oauth2/v2/auth',
+      TOKEN_URL: 'https://oauth2.googleapis.com/token',
+      USER_INFO_URL: 'https://openidconnect.googleapis.com/v1/userinfo',
+      SCOPES: ['openid', 'profile', 'email'],
+    },
+
+    SCHOOL42: {
+      AUTHORIZATION_URL: 'https://api.intra.42.fr/oauth/authorize',
+      TOKEN_URL: 'https://api.intra.42.fr/oauth/token',
+      USER_INFO_URL: 'https://api.intra.42.fr/v2/me',
+      SCOPES: ['public'],
+    },
+  },
 } as const;
 
 /**
@@ -177,6 +205,7 @@ export const ERROR_RESPONSE_CODES = {
   INVALID_ROLE: 'INVALID_ROLE',
   MISSING_FIELDS: 'MISSING_FIELDS',
   VALIDATION_ERROR: 'VALIDATION_ERROR',
+  BAD_REQUEST: 'BAD_REQUEST',
   EMAIL_EXISTS: 'EMAIL_EXISTS',
   USERNAME_EXISTS: 'USERNAME_EXISTS',
   TWO_FA_NOT_ENABLED: '2FA_NOT_ENABLED',
@@ -254,6 +283,9 @@ export const EVENTS = {
     GAME_MATCH_START: 'lc_game_match_started',
     GAME_MATCH_END: 'lc_game_match_ended',
     GAME_MATCH_ABORT: 'lc_game_match_aborted',
+    // oauth
+    OAUTH_LOGIN_SUCCESS: 'lc_oauth_logged_in',
+    OAUTH_REGISTER_SUCCESS: 'lc_oauth_registered',
   },
 
   DEPENDENCY: {
@@ -267,6 +299,12 @@ export const EVENTS = {
     // service specific errors
     AUTH_FAIL: 'app_auth_failed',
     VALIDATION_FAIL: 'app_validation_failed',
+    // oauth specific events
+    OAUTH_EXCHANGE_START: 'app_oauth_exchange_start',
+    OAUTH_EXCHANGE_SUCCESS: 'app_oauth_exchange_success',
+    OAUTH_EXCHANGE_FAILED: 'app_oauth_exchange_failed',
+    OAUTH_USER_CREATED: 'app_oauth_user_created',
+    OAUTH_USER_LINKED: 'app_oauth_user_linked',
   },
 
   CRITICAL: {
@@ -318,35 +356,6 @@ export const REASONS = {
 } as const;
 
 /**
- * Standardized errors, defining what will be displayed to end user
- */
-// export const ERROR_CODES = {
-//   // 400 Validation
-//   VALIDATION_ERROR: 'VALIDATION_ERROR',
-
-//   // 401 Authentication
-//   UNAUTHORIZED: 'UNAUTHORIZED',
-//   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
-
-//   // 403 Access
-//   FORBIDDEN: 'FORBIDDEN', // if admin role is required
-
-//   // 404 - 409 Resources
-//   NOT_FOUND: 'NOT_FOUND',
-//   CONFLICT: 'CONFLICT',
-
-//   // 429 Limits
-//   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-
-//   // specific
-//   MFA_REQUIRED: 'MFA_REQUIRED',
-//   MFA_INVALID: 'INVALID_MFA_CODE',
-
-//   // 500 for all server errors - no details needed for end user
-//   INTERNAL_ERROR: 'INTERNAL_ERROR',
-// } as const;
-
-/**
  * Error codes for data layer only
  */
 export const DATA_ERROR = {
@@ -355,22 +364,5 @@ export const DATA_ERROR = {
   CONNECTION_FAIL: 'connection_fail',
   CONSTRAINT_VIOLATION: 'constraint_violation',
   INTERNAL_ERROR: 'internal_error',
+  ALREADY_EXISTS: 'already_exists',
 } as const;
-
-/**
- * Standard error messages
- * NB : some default messages are not user-friendly (CONFLICT, ...)
- * -> we should check error metadata in frontend to display a more transparent message, eg 'username is taken'
- */
-// export const ERROR_MESSAGES = {
-//   [ERROR_CODES.VALIDATION_ERROR]: 'Invalid input data',
-//   [ERROR_CODES.UNAUTHORIZED]: 'Unauthorized access',
-//   [ERROR_CODES.INVALID_CREDENTIALS]: 'Invalid credentials',
-//   [ERROR_CODES.FORBIDDEN]: 'Access forbidden',
-//   [ERROR_CODES.NOT_FOUND]: 'Resource not found',
-//   [ERROR_CODES.CONFLICT]: 'Conflicting resource',
-//   [ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'Too many requests. Please try again later.',
-//   [ERROR_CODES.MFA_REQUIRED]: 'Two-factors authentication is required',
-//   [ERROR_CODES.MFA_INVALID]: 'Invalid 2FA code is invalid',
-//   [ERROR_CODES.INTERNAL_ERROR]: 'Internal server error',
-// } as const

@@ -2,12 +2,18 @@ include make/config.mk
 
 # === Global ===
 
-all : volumes certs colima build
-	npm i
+all : volumes certs colima install build
 	$(D_COMPOSE) up -d
+
 
 dev: volumes colima build-dev
 	$(D_COMPOSE_DEV) up -d
+ai: volumes certs colima
+	npm i
+	COMPOSE_PROFILES=ai $(D_COMPOSE) build
+	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d
+
+re-ai: fclean ai
 
 volumes:
 	@mkdir -p $(DATABASE_PATH) $(UPLOADS_PATH)
@@ -85,21 +91,33 @@ install:
 # --- Builds Images ---
 nginx:
 	$(D_COMPOSE) up -d --build $(PROXY_SERVICE_NAME)
+nginx-nc:
+	$(D_COMPOSE) build --no-cache $(PROXY_SERVICE_NAME)
+	$(D_COMPOSE) up $(PROXY_SERVICE_NAME)
 redis:
 	$(D_COMPOSE) up -d --build $(REDIS_SERVICE_NAME)
 api:
 	$(D_COMPOSE) up -d --build $(API_GATEWAY_NAME)
 auth:
 	$(D_COMPOSE) up -d --build $(AUTH_SERVICE_NAME)
+auth-nc:
+	$(D_COMPOSE) build --no-cache $(AUTH_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(AUTH_SERVICE_NAME)
 user:
 	$(D_COMPOSE) build $(UM_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
+user-nc:
+	$(D_COMPOSE) build --no-cache $(UM_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
 game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
 block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
+block-nc:
+	$(D_COMPOSE) build --no-cache $(BK_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(BK_SERVICE_NAME)
 pong-ai:
-	$(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
+	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
 build:
 	$(D_COMPOSE) build
 build-dev:
@@ -155,7 +173,7 @@ redis-cli:
 	$(CONTAINER_CMD) exec -it $(REDIS_SERVICE_NAME) redis-cli
 
 
-dev-nginx: install
+dev-nginx:
 	npm run dev --workspace proxy-service
 
 # --- Shell access ---
@@ -182,8 +200,12 @@ shell-pong-ai:
 
 # --- Logs and status ---
 
-prisma-user:
-	$(CONTAINER_CMD) exec -it $(USER_SERVICE_NAME) npx prisma studio --browser none
+USERS_DIR = ./srcs/users
+
+.PHONY: studio-users
+studio-users:
+	@echo "Launching Prisma Studio for Users DB..."
+	UM_DB_URL="file:../../data/database/um.db" npx prisma studio --config=$(USERS_DIR)/prisma.config.ts
 
 logs:
 	$(D_COMPOSE) logs -f
@@ -260,4 +282,4 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima
+.PHONY : all ai re-ai clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima studio-user
