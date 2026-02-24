@@ -18,7 +18,7 @@ vi.mock('../src/utils/mappers.js', () => ({
   mapProfileToDTO: vi.fn(),
 }));
 
-const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto', 'x-user-role': 'USER' };
+const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto' };
 
 const mockUserProfile = {
   id: 1,
@@ -214,7 +214,6 @@ describe('Profile Controller unit tests', () => {
         headers: {
           'x-user-id': '1',
           'x-user-name': 'toto',
-          'x-user-role': 'USER',
           'content-type': `multipart/form-data; boundary=${boundary}`,
         },
         payload: body,
@@ -234,7 +233,6 @@ describe('Profile Controller unit tests', () => {
         headers: {
           'x-user-id': '1',
           'x-user-name': 'toto',
-          'x-user-role': 'USER',
           'content-type': `multipart/form-data; boundary=----VitestBoundary`,
         },
       });

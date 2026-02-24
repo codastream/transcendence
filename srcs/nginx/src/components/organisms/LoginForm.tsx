@@ -1,7 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Button from '../atoms/Button';
 import { Input } from '../atoms/Input';
-import { useNavigate } from 'react-router-dom';
 import { useActionState, useEffect } from 'react';
 import { useAuth } from '../../providers/AuthProvider';
 import { emailSchema, ERROR_CODES, FrontendError, HTTP_STATUS } from '@transcendence/core';
@@ -82,18 +81,14 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
 export const LoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(loginAction, null);
-  const navigate = useNavigate();
-  const { user, login } = useAuth();
+  const { login } = useAuth();
+
   useEffect(() => {
     if (state?.success && state.fields?.username) {
-      const username = state.fields.username;
-      login({ username: username, avatarUrl: null });
-      navigate(`/`, { replace: true });
+      login({ username: state.fields.username, avatarUrl: null });
     }
-    if (user?.username) {
-      navigate(`/`, { replace: true });
-    }
-  }, [state?.success, state?.fields?.username, user, navigate, login]);
+  }, [state?.success, state?.fields?.username, login]);
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <Input

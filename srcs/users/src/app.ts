@@ -38,7 +38,8 @@ export async function buildApp() {
   const app = fastify(options).withTypeProvider<ZodTypeProvider>();
 
   app.addHook('onRequest', (request, reply, done) => {
-    const socket = request.raw.socket;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const socket = request.raw.socket as any;
     if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
       return done();
     }
@@ -53,26 +54,17 @@ export async function buildApp() {
   app.addHook('preHandler', async (req, reply) => {
     const userIdHeader = req.headers['x-user-id'];
     const usernameHeader = req.headers['x-user-name'];
-    const roleHeader = req.headers['x-user-role'];
 
     if (req.routeOptions.config.skipAuth) {
       return;
     }
 
     // If no auth headers are present, leave req.user undefined (public route or unauthenticated request)
-    if (
-      typeof userIdHeader === 'undefined' &&
-      typeof usernameHeader === 'undefined' &&
-      typeof roleHeader === 'undefined'
-    ) {
+    if (typeof userIdHeader === 'undefined' && typeof usernameHeader === 'undefined') {
       return;
     }
     // If some auth headers are present but not all required ones, treat as invalid
-    if (
-      typeof userIdHeader === 'undefined' ||
-      typeof usernameHeader === 'undefined' ||
-      typeof roleHeader === 'undefined'
-    ) {
+    if (typeof userIdHeader === 'undefined' || typeof usernameHeader === 'undefined') {
       logger.warn(`invalid auth header`);
 
       reply.code(400).send({ error: 'Invalid authentication headers' });
@@ -88,7 +80,6 @@ export async function buildApp() {
     req.user = {
       id,
       username: String(usernameHeader),
-      role: String(roleHeader),
     };
   });
 

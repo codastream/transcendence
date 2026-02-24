@@ -14,22 +14,25 @@ const colors = {
 };
 
 export const AnimationPage = ({ className = '' }: AnimationPageProps) => {
-  const { hasSeenAnim, markAnimAsSeen } = useAuth();
+  const { hasSeenAnim, markAnimAsSeen, isLoggedIn, isAuthChecked } = useAuth();
   const [animDone, setAnimDone] = useState(false);
   const navigate = useNavigate();
 
+  const destination = isLoggedIn ? '/home' : '/welcome';
+
   useEffect(() => {
+    if (!isAuthChecked) return;
     if (hasSeenAnim) {
-      navigate(`/welcome`);
+      navigate(destination, { replace: true });
     }
-  }, [hasSeenAnim, navigate]);
+  }, [hasSeenAnim, navigate, destination, isAuthChecked]);
 
   useEffect(() => {
     if (animDone) {
       markAnimAsSeen();
-      navigate(`/welcome`);
+      navigate(destination, { replace: true });
     }
-  }, [animDone, navigate, markAnimAsSeen]);
+  }, [animDone, navigate, markAnimAsSeen, destination]);
 
   const handleComplete = () => {
     setAnimDone(true);

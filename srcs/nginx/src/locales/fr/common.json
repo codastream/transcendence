@@ -18,7 +18,7 @@
     "processing": "traitement..."
   },
   "search": {
-    "no_results": "pas de résulytat",
+    "no_results": "pas de résultats",
     "user": "Cherchez un utilisateur"
   },
   "global": {
@@ -56,7 +56,7 @@
     "stats": "Stats",
     "stats_history": "Historique",
     "profile": "Profil",
-    "profile_logout": "Logout",
+    "profile_logout": "Se déconnecter",
     "profile_login": "Se connecter"
   },
   "profile": {

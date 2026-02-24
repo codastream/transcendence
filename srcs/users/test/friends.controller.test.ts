@@ -22,7 +22,7 @@ import {
   LOG_RESOURCES,
 } from '@transcendence/core';
 
-const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto', 'x-user-role': 'USER' };
+const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto' };
 
 describe('Friends Controller unit tests', () => {
   let app: FastifyInstance;
@@ -50,7 +50,7 @@ describe('Friends Controller unit tests', () => {
   //   const response = await app.inject({
   //     method: 'DELETE',
   //     url: '/friends/2',
-  //     headers: { 'x-user-id': '15', 'x-user-role': 'ADMIN' },
+  //     headers: { 'x-user-id': '15'},
   //   });
 
   //   expect(response.statusCode).toBe(200);
