@@ -229,6 +229,8 @@ services:
         ]
 
   pong-ai-service:
+    profiles:
+      - ai
     build:
       context: ./pong-ai
       dockerfile: Dockerfile
