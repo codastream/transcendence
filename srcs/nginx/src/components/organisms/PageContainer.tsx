@@ -33,9 +33,7 @@ export const Page = ({ children, title, className }: PageProps) => {
               {children}
             </Circle>
           </div>
-          <div className="z-15 lg:block w-full">
-            <Footer className=""></Footer>
-          </div>
+          <Footer className=""></Footer>
         </div>
       </Background>
     </div>

@@ -27,7 +27,8 @@ const Circle = ({ children, className = '', size = 120 }: CircleProps) => {
       rounded-3xl
       mx-auto
       text-gray-700
-
+      
+      sm: mt-5
       lg:absolute
       lg:top-1/2
       lg:left-1/2

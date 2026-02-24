@@ -237,8 +237,8 @@
     "termsOfService": "Conditions d'utilisation"
   },
   "game": {
-    "playWithAI": "Joue avec un ROBOT (no friends?)",
-    "playWithFriends": "Joue avec ton copaing",
+    "playWithAI": "Match vs IA",
+    "playWithFriends": "Match vs ami",
     "tournament": "Tournoi",
     "game": "Jeu",
     "participate": "Participer",

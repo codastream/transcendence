@@ -28,7 +28,7 @@ export const NavBar = () => {
 
   return (
     <nav
-      className={`mb-3 bg-teal-800/30 p-5 w-full flex flex-row ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
+      className={`mb-0 bg-teal-800/30 p-5 w-full flex flex-row ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
     >
       <div className="lg:text-3xl hidden sm:block group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
         <span>Sp</span>

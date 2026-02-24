@@ -9,13 +9,15 @@ export const Footer = ({ className }: FooterProps) => {
   const { t } = useTranslation();
 
   return (
-    <aside
-      className={`mt-3 p-3 flex flex-row justify-evenly uppercase bg-teal-800/30 ${className}`}
-    >
-      <Link className="" to="/privacy">
-        {t('privacy_policy.title')}
-      </Link>
-      <Link to="/tos">{t('tos.title')}</Link>
-    </aside>
+    <div className="md:col-span-2 z-15 lg:block w-full">
+      <aside
+        className={`mt-3 p-3 flex flex-row justify-evenly uppercase bg-teal-800/30 ${className}`}
+      >
+        <Link className="" to="/privacy">
+          {t('privacy_policy.title')}
+        </Link>
+        <Link to="/tos">{t('tos.title')}</Link>
+      </aside>
+    </div>
   );
 };
