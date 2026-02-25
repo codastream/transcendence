@@ -13,6 +13,7 @@ interface TournamentBracketProps {
 export function TournamentBracket({ players }: TournamentBracketProps) {
   const { t } = useTranslation();
   const [p1, p2, p3, p4] = players;
+  const isStarted = players.every((p) => p.status === 'connected');
   const containerRef = useRef<HTMLDivElement>(null);
   const p1Ref = useRef<HTMLDivElement>(null);
   const p2Ref = useRef<HTMLDivElement>(null);
@@ -77,7 +78,7 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
       </div>
       <StartButton
         label={t('game.run')}
-        isready={false}
+        isready={isStarted}
         onStart={() => console.log(`startSemiFinal('right')`)}
       />
     </div>
