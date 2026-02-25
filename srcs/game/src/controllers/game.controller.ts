@@ -87,7 +87,9 @@ export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
 }
 
 export async function newGameSession(this: FastifyInstance) {
-  const sessionId = randomUUID();
+  const userId = (this as any).userId || null;
+  const tournamentId = (this as any).tournamentId || null;
+  let sessionId = db.getSessionGame(tournamentId, userId);
   const sessionData = getSessionData.call(this, null, sessionId);
   if (sessionData.game) sessionData.game.preview();
   return {
