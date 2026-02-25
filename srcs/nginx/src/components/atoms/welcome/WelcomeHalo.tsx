@@ -45,7 +45,9 @@ const WelcomeHalo = ({ className = '', size = 92, isRegister, onToggleForm }: We
         <div
           className={`transition-all duration-500 w-full ${isHovered ? 'opacity-100 scale-100 block visible' : 'opacity-0 scale-90 absolute invisible'}`}
         >
-          <h1 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-900">{title}</h1>
+          <h1 className="-mt-3 sm:-mt-4 text-xl sm:text-2xl font-bold mb-4 sm:mb-5 text-gray-900">
+            {title}
+          </h1>
           <div className="w-full space-y-1">
             {isRegister ? (
               <WelcomeRegisterForm onToggleForm={onToggleForm} />

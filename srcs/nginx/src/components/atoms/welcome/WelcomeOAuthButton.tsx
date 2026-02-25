@@ -103,7 +103,7 @@ export const WelcomeGoogleOAuthButton = ({
       <img
         src={logoGoogle}
         alt="Google"
-        className="w-6 h-6 transition-transform duration-300 group-hover:rotate-12"
+        className="w-6 h-6 transition-transform duration-300 group-hover:scale-110"
         aria-hidden="true"
       />
       <span className="tracking-wide">{t('oauth.continue_google')}</span>
