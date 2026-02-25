@@ -28,7 +28,7 @@ export const NavBar = () => {
 
   return (
     <nav
-      className={`mb-3 bg-teal-800/30 p-5 w-full flex flex-row gap-4 ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
+      className={`mb-2 bg-teal-800/30 p-5 w-full flex flex-row sm:gap-4 ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
     >
       <div className="lg:text-3xl hidden sm:block group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
         <Link to="/home">
@@ -39,11 +39,15 @@ export const NavBar = () => {
       </div>
       {user && isLoggedIn && (
         <>
-          <Link to="/game-session">
+          <Link to="/game/local">
             <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7}></MenuElement>
           </Link>
-          <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
-          <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
+          <Link to="/stats">
+            <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
+          </Link>
+          <Link to="/me">
+            <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
+          </Link>
         </>
       )}
 
