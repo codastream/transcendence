@@ -29,6 +29,12 @@ export enum Roles {
   ADMIN = 'admin',
 }
 
+export interface TwoFactorContext {
+  username: string;
+  provider?: 'google' | 'school42';
+  expiresIn: number;
+}
+
 export interface AuthContextType {
   user: ProfileSimpleDTO | null;
   isLoggedIn: boolean;
@@ -38,6 +44,9 @@ export interface AuthContextType {
   updateUser: (newUser: ProfileSimpleDTO) => void;
   markAnimAsSeen: () => void;
   hasSeenAnim: boolean;
+  twoFactorContext: TwoFactorContext | null;
+  triggerTwoFactor: (context: TwoFactorContext) => void;
+  clearTwoFactor: () => void;
 }
 
 export interface AuthProviderProps {

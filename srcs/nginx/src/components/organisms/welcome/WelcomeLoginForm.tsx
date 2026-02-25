@@ -10,6 +10,7 @@ import {
   WelcomeGoogleOAuthButton,
   WelcomeSchool42OAuthButton,
 } from '../../atoms/welcome/WelcomeOAuthButton';
+import { useTwoFactorRedirect } from '../../../hooks/useTwoFactorRedirect';
 
 interface LoginState {
   fields?: {
@@ -22,6 +23,11 @@ interface LoginState {
     form?: string;
   };
   success?: boolean;
+  require2FA?: boolean;
+  twoFactorContext?: {
+    username: string;
+    expiresIn: number;
+  };
 }
 
 async function loginAction(prevState: LoginState | null, formData: FormData) {
@@ -45,9 +51,25 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
 
   const isEmail = emailSchema.safeParse(identifier).success;
   try {
-    username = await authApi.login(
+    const result = await authApi.login(
       isEmail ? { email: identifier, password } : { username: identifier, password },
     );
+
+    // Cas 1 : 2FA requis
+    if (result.type === 'require2fa') {
+      return {
+        success: false,
+        require2FA: true,
+        twoFactorContext: {
+          username: result.context.username,
+          expiresIn: result.context.expiresIn,
+        },
+        fields: { identifier, username: result.context.username },
+      };
+    }
+
+    // Cas 2 : Login normal sans 2FA
+    username = result.username;
     return { success: true, fields: { identifier, username } };
   } catch (err: unknown) {
     const nextState: LoginState = {
@@ -94,17 +116,33 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
 /**
  * WelcomeLoginForm - Formulaire de connexion pour WelcomePage
  * Style: Atome avec gradient cyan/bleu
+ *
+ * Gère le flux 2FA automatiquement via useTwoFactorRedirect()
  */
 export const WelcomeLoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(loginAction, null);
-  const { login } = useAuth();
+  const { login, triggerTwoFactor } = useAuth();
 
+  // Hook de redirection automatique vers /2fa
+  useTwoFactorRedirect();
+
+  // Effet pour login normal (sans 2FA)
   useEffect(() => {
-    if (state?.success && state.fields?.username) {
+    if (state?.success && state.fields?.username && !('require2FA' in state && state.require2FA)) {
       login({ username: state.fields.username, avatarUrl: null });
     }
-  }, [state?.success, state?.fields?.username, login]);
+  }, [state, login]);
+
+  // Effet pour déclencher le flux 2FA
+  useEffect(() => {
+    if (state && 'require2FA' in state && state.require2FA && state.twoFactorContext) {
+      triggerTwoFactor({
+        username: state.twoFactorContext.username,
+        expiresIn: state.twoFactorContext.expiresIn,
+      });
+    }
+  }, [state, triggerTwoFactor]);
 
   return (
     <form action={formAction} className="flex flex-col gap-2">

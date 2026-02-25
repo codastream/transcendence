@@ -7,6 +7,7 @@ import { WelcomePage } from './pages/WelcomePage';
 import { HomePage } from './pages/HomePage';
 import { OAuthCallback } from './pages/OAuthCallback';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { TwoFactorPage } from './pages/TwoFactorPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
@@ -24,6 +25,7 @@ export const App = () => {
           <Route path="/login" element={<WelcomePage />} />
           <Route path="/register" element={<WelcomePage defaultMode="register" />} />
           <Route path="/auth/oauth/:provider/callback" element={<OAuthCallback />} />
+          <Route path="/2fa" element={<TwoFactorPage />} />
         </Route>
 
         {/* Routes protégées — authentification requise */}

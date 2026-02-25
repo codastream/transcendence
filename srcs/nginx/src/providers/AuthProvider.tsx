@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { AuthContextType, AuthProviderProps } from '../types/react-types';
+import { AuthContextType, AuthProviderProps, TwoFactorContext } from '../types/react-types';
 import { authApi } from '../api/auth-api';
 import { profileApi } from '../api/profile-api';
 import api from '../api/api-client';
@@ -18,6 +18,7 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<ProfileSimpleDTO | null>(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [twoFactorContext, setTwoFactorContext] = useState<TwoFactorContext | null>(null);
   const isLoggingOut = useRef(false);
 
   /**
@@ -113,6 +114,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.setItem('hasSeenAnim', JSON.stringify(true));
   }, []);
 
+  /**
+   * Déclenche le flux 2FA et stocke le contexte temporaire
+   * À appeler depuis loginAction ou oauthCallbackAction
+   */
+  const triggerTwoFactor = useCallback((context: TwoFactorContext) => {
+    setTwoFactorContext(context);
+  }, []);
+
+  /**
+   * Efface le contexte 2FA temporaire
+   * À appeler après validation réussie ou abandon
+   */
+  const clearTwoFactor = useCallback(() => {
+    setTwoFactorContext(null);
+  }, []);
+
   // memoize to avoid re-renders
   const contextValue = useMemo(
     () => ({
@@ -124,8 +141,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       updateUser,
       hasSeenAnim,
       markAnimAsSeen,
+      twoFactorContext,
+      triggerTwoFactor,
+      clearTwoFactor,
     }),
-    [user, hasSeenAnim, isAuthChecked, login, logout, updateUser, markAnimAsSeen],
+    [
+      user,
+      hasSeenAnim,
+      isAuthChecked,
+      login,
+      logout,
+      updateUser,
+      markAnimAsSeen,
+      twoFactorContext,
+      triggerTwoFactor,
+      clearTwoFactor,
+    ],
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
