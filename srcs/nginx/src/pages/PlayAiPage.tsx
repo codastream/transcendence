@@ -5,7 +5,7 @@ import GameStatusBar from '../components/organisms/GameStatusBar';
 import GameControl from '../components/organisms/GameControl';
 import { useGameState } from '../hooks/GameState';
 import { useGameWebSocket } from '../hooks/GameWebSocket';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useKeyboardControls } from '../hooks/input.tsx';
 import { createAiSession, joinAiToSession } from '../api/game-api';
 import { useNavigate } from 'react-router-dom';
@@ -31,27 +31,28 @@ export const PlayAiPage = () => {
   const phaseRef = useRef<'idle' | 'playing' | 'gameOver'>('idle');
   const navigate = useNavigate();
 
-  // 'ai' mode: W/S and ArrowUp/Down all control left paddle only
   useKeyboardControls({ wsRef, enabled: !!currentSessionId && !isGameOver, gameMode: 'ai' });
 
-  const createSession = async () => {
+  const createSession = useCallback(async () => {
+    // Close any existing connection first
+    closeWebSocket();
+    wsRef.current = null;
+
     setIsLoading(true);
     setIsGameOver(false);
     setWinner(null);
     setScores({ left: 0, right: 0 });
     phaseRef.current = 'idle';
+
     const { sessionId } = await createAiSession();
     setSessionId(sessionId);
     setIsLoading(false);
-  };
+  }, [closeWebSocket]);
 
   useEffect(() => {
-    if (!currentSessionId) {
-      createSession();
-    }
+    createSession();
   }, []);
 
-  // AI sends start automatically — no-op kept for GameControl compatibility
   const onStartGame = () => {};
 
   const onExitGame = async () => {
@@ -66,8 +67,11 @@ export const PlayAiPage = () => {
   useEffect(() => {
     if (!currentSessionId) return;
 
+    let cancelled = false;
+
     const connect = async () => {
       const ws = await openWebSocket(currentSessionId, (message: ServerMessage) => {
+        if (cancelled) return;
         if (message.type === 'state' && message.data) {
           phaseRef.current = 'playing';
           updateGameState(message.data);
@@ -77,14 +81,18 @@ export const PlayAiPage = () => {
           updateGameState(message.data);
           const s = message.data.scores;
           setScores({ left: s.left, right: s.right });
-          // Human is always Player A (left paddle)
           setWinner(s.left >= s.right ? 'you' : 'ai');
           setIsGameOver(true);
         }
       });
+
+      if (cancelled) {
+        ws.close();
+        return;
+      }
+
       wsRef.current = ws;
 
-      // Guard onclose: don't reset if gameOver already handled
       ws.addEventListener('close', () => {
         if (phaseRef.current !== 'gameOver') {
           setIsGameOver(false);
@@ -97,6 +105,7 @@ export const PlayAiPage = () => {
     connect();
 
     return () => {
+      cancelled = true;
       closeWebSocket();
       wsRef.current = null;
     };
@@ -115,7 +124,13 @@ export const PlayAiPage = () => {
               gameMode="local"
               loading={isLoading}
             />
-            <GameStatusBar sessionsData={null} />
+            <GameStatusBar
+              sessionsData={null}
+              scoreLeft={scores.left}
+              scoreRight={scores.right}
+              labelLeft="YOU"
+              labelRight="AI"
+            />
           </div>
 
           {/* Arena + Game Over overlay */}

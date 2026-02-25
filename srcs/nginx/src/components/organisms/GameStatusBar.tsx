@@ -1,10 +1,14 @@
-import { UseGameSessionsReturn, useGameSessions } from '../../hooks/GameSessions.tsx';
+import { UseGameSessionsReturn } from '../../hooks/GameSessions.tsx';
 import { useState } from 'react';
 
 interface GameStatusBarProps {
   className?: string;
   sessionsData: UseGameSessionsReturn | null;
   onSelectSession?: (sessionId: string) => void;
+  scoreLeft?: number;
+  scoreRight?: number;
+  labelLeft?: string;
+  labelRight?: string;
 }
 
 export interface GameSession {
@@ -12,35 +16,34 @@ export interface GameSession {
   createdAt?: string;
   playerCount?: number;
   status?: 'waiting' | 'playing' | 'finished';
-  // Add other fields your backend returns
 }
 
-const GameStatusBar = ({ className = '', sessionsData, onSelectSession }: GameStatusBarProps) => {
+const GameStatusBar = ({
+  className = '',
+  sessionsData,
+  onSelectSession,
+  scoreLeft = 0,
+  scoreRight = 0,
+  labelLeft = 'Player A',
+  labelRight = 'Player B',
+}: GameStatusBarProps) => {
   const {
     sessionsList = [],
     isLoadingSessions = false,
     error = null,
     refetch = () => {},
   } = sessionsData || {};
-  // console.log('sessionsList:', sessionsList);
-  // console.log('sessionsList type:', typeof sessionsList);
-  // console.log('Is array?', Array.isArray(sessionsList));
-  // const { sessionsList, isLoadingSessions, error, refetch } = sessionsData as UseGameSessionsReturn;
 
   const [gameLogs, setGameLogs] = useState<string[]>([]);
-
-  const addGameLog = (message: string) => {
-    setGameLogs((prevLogs) => [...prevLogs, message]);
-  };
 
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
         <div className="flex justify-around text-white">
           <div className="text-center">
-            <p className="text-sm text-purple-300">Player A</p>
+            <p className="text-sm text-purple-300">{labelLeft}</p>
             <p id="player1-score" className="text-3xl font-bold">
-              0
+              {scoreLeft}
             </p>
           </div>
           <div className="text-center">
@@ -50,9 +53,9 @@ const GameStatusBar = ({ className = '', sessionsData, onSelectSession }: GameSt
             </p>
           </div>
           <div className="text-center">
-            <p className="text-sm text-purple-300">Player B</p>
+            <p className="text-sm text-purple-300">{labelRight}</p>
             <p id="player2-score" className="text-3xl font-bold">
-              0
+              {scoreRight}
             </p>
           </div>
         </div>
@@ -87,7 +90,6 @@ const GameStatusBar = ({ className = '', sessionsData, onSelectSession }: GameSt
             </ul>
           </div>
         )}
-
         <div
           id="game-log"
           className="h-24 overflow-y-auto space-y-1 text-left text-sm font-mono text-gray-300"
