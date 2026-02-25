@@ -18,18 +18,23 @@ export const PlayAiPage = () => {
   const [winner, setWinner] = useState<'you' | 'ai' | null>(null);
   const [displayScores, setDisplayScores] = useState({ left: 0, right: 0 });
 
-  const phaseRef      = useRef<Phase>('idle');
-  const myPaddleRef   = useRef<'left' | 'right'>('left');
-  const timeoutRef    = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sessionIdRef  = useRef<string | null>(null);
+  const phaseRef = useRef<Phase>('idle');
+  const myPaddleRef = useRef<'left' | 'right'>('left');
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
 
   const { openWebSocket, closeWebSocket } = useGameWebSocket();
   const { gameStateRef, updateGameState } = useGameState();
 
-  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   const clearSetupTimeout = useCallback(() => {
-    if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   }, []);
 
   const startGame = useCallback(async () => {
@@ -41,7 +46,9 @@ export const PlayAiPage = () => {
     timeoutRef.current = setTimeout(() => {
       if (phaseRef.current === 'loading' || phaseRef.current === 'playing') {
         closeWebSocket();
-        setError('Game did not start within 10s. Is the AI service running and is models/best_model.zip present?');
+        setError(
+          'Game did not start within 10s. Is the AI service running and is models/best_model.zip present?',
+        );
         setPhase('error');
       }
     }, 10000);
@@ -53,7 +60,6 @@ export const PlayAiPage = () => {
       await openWebSocket(sessionId, (msg: any) => {
         if (msg.type === 'connected') {
           myPaddleRef.current = msg.message === 'Player A' ? 'left' : 'right';
-
         } else if (msg.type === 'state' && msg.data) {
           if (phaseRef.current !== 'playing') {
             clearSetupTimeout();
@@ -61,12 +67,11 @@ export const PlayAiPage = () => {
           }
           updateGameState(msg.data as GameState);
           const s = msg.data.scores;
-          setDisplayScores(prev =>
+          setDisplayScores((prev) =>
             prev.left !== s.left || prev.right !== s.right
               ? { left: s.left, right: s.right }
-              : prev
+              : prev,
           );
-
         } else if (msg.type === 'gameOver' && msg.data) {
           clearSetupTimeout();
           updateGameState(msg.data as GameState);
@@ -74,11 +79,10 @@ export const PlayAiPage = () => {
           setDisplayScores({ left: s.left, right: s.right });
           const myPaddle = myPaddleRef.current;
           const iWon =
-            (myPaddle === 'left'  && s.left  >= s.right) ||
+            (myPaddle === 'left' && s.left >= s.right) ||
             (myPaddle === 'right' && s.right >= s.left);
           setWinner(iWon ? 'you' : 'ai');
           setPhase('gameOver');
-
         } else if (msg.type === 'error') {
           clearSetupTimeout();
           setError('Game error: ' + (msg.message ?? 'unknown'));
@@ -93,7 +97,6 @@ export const PlayAiPage = () => {
         setPhase('error');
         closeWebSocket();
       });
-
     } catch (e: any) {
       clearSetupTimeout();
       setError(e?.message ?? 'Failed to start game');
@@ -125,18 +128,24 @@ export const PlayAiPage = () => {
     const onDown = (e: KeyboardEvent) => {
       if (pressed.has(e.key)) return;
       pressed.add(e.key);
-      if (e.key === 'ArrowUp')   { e.preventDefault(); sendPaddleDir('up');   }
-      if (e.key === 'ArrowDown') { e.preventDefault(); sendPaddleDir('down'); }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        sendPaddleDir('up');
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        sendPaddleDir('down');
+      }
     };
     const onUp = (e: KeyboardEvent) => {
       pressed.delete(e.key);
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') sendPaddleDir('stop');
     };
     window.addEventListener('keydown', onDown);
-    window.addEventListener('keyup',   onUp);
+    window.addEventListener('keyup', onUp);
     return () => {
       window.removeEventListener('keydown', onDown);
-      window.removeEventListener('keyup',   onUp);
+      window.removeEventListener('keyup', onUp);
     };
   }, [phase]);
 
@@ -145,7 +154,7 @@ export const PlayAiPage = () => {
 
   const sendPaddleDir = useCallback((dir: 'up' | 'down' | 'stop') => {
     rawWsRef.current?.send(
-      JSON.stringify({ type: 'paddle', paddle: myPaddleRef.current, direction: dir })
+      JSON.stringify({ type: 'paddle', paddle: myPaddleRef.current, direction: dir }),
     );
   }, []);
 
@@ -177,7 +186,6 @@ export const PlayAiPage = () => {
 
         if (msg.type === 'connected') {
           myPaddleRef.current = msg.message === 'Player A' ? 'left' : 'right';
-
         } else if (msg.type === 'state' && msg.data) {
           if (phaseRef.current !== 'playing') {
             clearSetupTimeout();
@@ -185,23 +193,21 @@ export const PlayAiPage = () => {
           }
           updateGameState(msg.data as GameState);
           const s = msg.data.scores;
-          setDisplayScores(prev =>
+          setDisplayScores((prev) =>
             prev.left !== s.left || prev.right !== s.right
               ? { left: s.left, right: s.right }
-              : prev
+              : prev,
           );
-
         } else if (msg.type === 'gameOver' && msg.data) {
           clearSetupTimeout();
           updateGameState(msg.data as GameState);
           const s = msg.data.scores;
           setDisplayScores({ left: s.left, right: s.right });
           const iWon =
-            (myPaddleRef.current === 'left'  && s.left  >= s.right) ||
+            (myPaddleRef.current === 'left' && s.left >= s.right) ||
             (myPaddleRef.current === 'right' && s.right >= s.left);
           setWinner(iWon ? 'you' : 'ai');
           setPhase('gameOver');
-
         } else if (msg.type === 'error') {
           clearSetupTimeout();
           setError('Game error: ' + (msg.message ?? 'unknown'));
@@ -228,7 +234,6 @@ export const PlayAiPage = () => {
         clearSetupTimeout();
         if (phaseRef.current === 'playing') setPhase('idle');
       };
-
     } catch (e: any) {
       clearSetupTimeout();
       setError(e?.message ?? 'Failed to start game');
@@ -243,31 +248,40 @@ export const PlayAiPage = () => {
     const onDown = (e: KeyboardEvent) => {
       if (pressed.has(e.key)) return;
       pressed.add(e.key);
-      if (e.key === 'ArrowUp')   { e.preventDefault(); sendPaddleDir('up');   }
-      if (e.key === 'ArrowDown') { e.preventDefault(); sendPaddleDir('down'); }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        sendPaddleDir('up');
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        sendPaddleDir('down');
+      }
       if (e.key === 'w' || e.key === 'W') sendPaddleDir('up');
       if (e.key === 's' || e.key === 'S') sendPaddleDir('down');
     };
     const onUp = (e: KeyboardEvent) => {
       pressed.delete(e.key);
-      if (['ArrowUp','ArrowDown','w','W','s','S'].includes(e.key)) sendPaddleDir('stop');
+      if (['ArrowUp', 'ArrowDown', 'w', 'W', 's', 'S'].includes(e.key)) sendPaddleDir('stop');
     };
     window.addEventListener('keydown', onDown);
-    window.addEventListener('keyup',   onUp);
+    window.addEventListener('keyup', onUp);
     return () => {
       window.removeEventListener('keydown', onDown);
-      window.removeEventListener('keyup',   onUp);
+      window.removeEventListener('keyup', onUp);
     };
   }, [phase, sendPaddleDir]);
 
-  useEffect(() => () => {
-    clearSetupTimeout();
-    rawWsRef.current?.close();
-  }, [clearSetupTimeout]);
+  useEffect(
+    () => () => {
+      clearSetupTimeout();
+      rawWsRef.current?.close();
+    },
+    [clearSetupTimeout],
+  );
 
   const myColor = myPaddleRef.current === 'left' ? '#38bdf8' : '#fb7185';
   const aiColor = myPaddleRef.current === 'left' ? '#fb7185' : '#38bdf8';
-  const isGame  = phase === 'playing' || phase === 'gameOver';
+  const isGame = phase === 'playing' || phase === 'gameOver';
 
   return (
     <div className="w-full h-full relative">
@@ -277,8 +291,10 @@ export const PlayAiPage = () => {
         <div className="flex flex-row h-full">
           {/* Left panel — controls + status */}
           <div className="flex flex-col flex-[1] gap-4 p-4">
-            <h1 className="text-3xl font-bold font-mono tracking-widest text-center"
-              style={{ color: '#f0f9ff', textShadow: '0 0 24px #38bdf8' }}>
+            <h1
+              className="text-3xl font-bold font-mono tracking-widest text-center"
+              style={{ color: '#f0f9ff', textShadow: '0 0 24px #38bdf8' }}
+            >
               PONG vs AI
             </h1>
 
@@ -286,7 +302,9 @@ export const PlayAiPage = () => {
             {isGame && (
               <div className="flex justify-around text-white bg-white/10 backdrop-blur-lg rounded-lg p-4">
                 <div className="text-center">
-                  <p className="text-sm" style={{ color: myColor }}>YOU</p>
+                  <p className="text-sm" style={{ color: myColor }}>
+                    YOU
+                  </p>
                   <p className="text-3xl font-bold">{displayScores.left}</p>
                 </div>
                 <div className="text-center">
@@ -296,7 +314,9 @@ export const PlayAiPage = () => {
                   </p>
                 </div>
                 <div className="text-center">
-                  <p className="text-sm" style={{ color: aiColor }}>AI</p>
+                  <p className="text-sm" style={{ color: aiColor }}>
+                    AI
+                  </p>
                   <p className="text-3xl font-bold">{displayScores.right}</p>
                 </div>
               </div>
@@ -304,10 +324,11 @@ export const PlayAiPage = () => {
 
             <GameControl
               onCreateLocalGame={startGameWithRef}
+              onStartGame={() => {}}
               loading={phase === 'loading'}
             />
 
-            <GameStatusBar />
+            <GameStatusBar sessionsData={null} />
 
             {/* Controls hint */}
             {phase === 'playing' && (
@@ -323,13 +344,17 @@ export const PlayAiPage = () => {
                     onPointerUp={() => sendPaddleDir('stop')}
                     onPointerLeave={() => sendPaddleDir('stop')}
                     className="w-14 h-14 rounded-full bg-slate-800 border-2 border-cyan-500 text-xl flex items-center justify-center active:bg-slate-700 select-none"
-                  >▲</button>
+                  >
+                    ▲
+                  </button>
                   <button
                     onPointerDown={() => sendPaddleDir('down')}
                     onPointerUp={() => sendPaddleDir('stop')}
                     onPointerLeave={() => sendPaddleDir('stop')}
                     className="w-14 h-14 rounded-full bg-slate-800 border-2 border-cyan-500 text-xl flex items-center justify-center active:bg-slate-700 select-none"
-                  >▼</button>
+                  >
+                    ▼
+                  </button>
                 </div>
               </div>
             )}
@@ -361,15 +386,23 @@ export const PlayAiPage = () => {
                 style={{ background: 'rgba(2,6,23,0.85)', backdropFilter: 'blur(4px)' }}
               >
                 <p className="text-5xl">{winner === 'you' ? '🏆' : '🤖'}</p>
-                <p className="text-3xl font-bold font-mono"
-                  style={{ color: winner === 'you' ? '#34d399' : '#fb7185' }}>
+                <p
+                  className="text-3xl font-bold font-mono"
+                  style={{ color: winner === 'you' ? '#34d399' : '#fb7185' }}
+                >
                   {winner === 'you' ? 'You Win!' : 'AI Wins!'}
                 </p>
                 <p className="text-slate-400 font-mono text-lg">
                   {displayScores.left} — {displayScores.right}
                 </p>
-                <Button variant="secondary" type="button"
-                  onClick={() => { rawWsRef.current?.close(); startGameWithRef(); }}>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => {
+                    rawWsRef.current?.close();
+                    startGameWithRef();
+                  }}
+                >
                   Play Again
                 </Button>
               </div>

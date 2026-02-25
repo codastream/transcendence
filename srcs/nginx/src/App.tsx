@@ -40,7 +40,6 @@ export const App = () => {
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
-          <Route path="/game/local" element={<GamePage sessionId={null} />} />
           <Route path="/game/pong-ai" element={<PlayAiPage />} />
         </Route>
 
