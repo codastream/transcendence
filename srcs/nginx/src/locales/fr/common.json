@@ -82,8 +82,8 @@
   },
   "game": {
     "playWithAI": "Joue avec un ROBOT (no friends?)",
-    "playWithRemote": "2 joueurs sur cette machine",
-    "playWithFriends": "Joue avec ton copaing",
+    "playRemote": "Joue avec ton copaing",
+    "playLocal": "2 joueurs sur cette machine",
     "tournament": "Tournoi",
     "game": "Jeu",
     "participate": "Participer",

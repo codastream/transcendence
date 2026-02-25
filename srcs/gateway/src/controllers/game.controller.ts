@@ -51,17 +51,17 @@ export function registerGameRoutes(app: FastifyInstance) {
     return res;
   });
 
-  // // WebSocket proxy route for /api/game/ws
-  app.get('/ws', { websocket: true }, (connection: any, request: FastifyRequest) => {
-    webSocketProxyRequest(app, connection, request, '/ws');
-  });
+  // // // WebSocket proxy route for /api/game/ws
+  // app.get('/ws', { websocket: true }, (connection: any, request: FastifyRequest) => {
+  //   webSocketProxyRequest(app, connection, request, '/ws');
+  // });
 
   // WebSocket proxy route for /api/game/:sessionId (dynamic session IDs)
   // add ws because /:sessionId  intercept all routes
-  app.get('/:sessionId', { websocket: true }, (connection: any, request: FastifyRequest) => {
+  app.get('/ws/:sessionId', { websocket: true }, (connection: any, request: FastifyRequest) => {
     const { sessionId } = request.params as { sessionId: string };
     const socket = connection.socket ?? connection; // handles both version of ws
-    webSocketProxyRequest(app, socket, request, `/${sessionId}`);
+    webSocketProxyRequest(app, socket, request, `/ws/${sessionId}`);
   });
 
   app.all('/*', async (request, reply) => {

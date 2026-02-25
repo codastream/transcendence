@@ -32,7 +32,7 @@ export const HomePage = () => {
             <CircleButton isMoving={true}>{t('game.playWithAi')}</CircleButton>
           </Link>
           <Link to="/game/local">
-            <CircleButton isMoving={true}>{t('game.playWithFriends')}</CircleButton>
+            <CircleButton isMoving={true}>{t('game.playLocal')}</CircleButton>
           </Link>
           <Link to="/game/remote">
             <CircleButton isMoving={true}>{t('game.playRemote')}</CircleButton>

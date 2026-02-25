@@ -80,6 +80,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
 
   useKeyboardControls({
     wsRef,
+    gameMode,
     enabled: !!currentSessionId, // Only enable when connected
   });
 

@@ -81,9 +81,9 @@
     "termsOfService": "Terms of Service"
   },
   "game": {
-    "playWithAI": "Play with AI",
-    "playRemote": "2 Players on this machine",
-    "playWithFriends": "Play with Friends",
+    "playWithAi": "Play with AI",
+    "playRemote": "Remote Game",
+    "playLocal": "Local Game",
     "tournament": "Tournament",
     "game": "Game",
     "participate": "Participate",

@@ -35,7 +35,7 @@ class AIPlayer:
         self.max_delay = 8.0
 
     async def connect(self, session_id: str):
-        uri = f"{self.game_service_url}/{session_id}"
+        uri = f"{self.game_service_url}/ws/{session_id}"
         print(f"AI connecting to: {uri}", flush=True)
         try:
             self.websocket = await websockets.connect(uri, ssl=self.ssl_context)
@@ -102,6 +102,7 @@ class AIPlayer:
 
         try:
             await self.websocket.send(json.dumps({"type": "ping"}))
+            await self.websocket.send(json.dumps({"type": "start"}))
             print("AI player started, waiting for game state...", flush=True)
 
             while self.playing and self._is_connected():

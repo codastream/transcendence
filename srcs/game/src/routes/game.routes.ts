@@ -21,8 +21,6 @@ export async function gameRoutes(app: FastifyInstance) {
   app.get('/tournaments', listTournament);
   app.post('/tournaments/:id', joinTournament);
   app.get('/tournaments/:id', showTournament);
-  app.get('/del/:sessionId', deleteSession);
-  // WebSocket route for game sessions
-  //keep last to avoid conflict with other routes
-  app.get('/:sessionId', { websocket: true }, webSocketConnect);
+  app.delete('/del/:sessionId', deleteSession);
+  app.get('/ws/:sessionId', { websocket: true }, webSocketConnect);
 }

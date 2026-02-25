@@ -2,37 +2,46 @@ import { useEffect } from 'react';
 
 interface UseKeyboardControlsProps {
   wsRef: React.RefObject<WebSocket | null>;
+  gameMode: string;
   enabled?: boolean; // Optional: to enable/disable controls
 }
 
-export const useKeyboardControls = ({ wsRef, enabled = true }: UseKeyboardControlsProps) => {
+export const useKeyboardControls = ({
+  wsRef,
+  gameMode,
+  enabled = true,
+}: UseKeyboardControlsProps) => {
   useEffect(() => {
     if (!enabled) return;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!wsRef.current) return;
 
+      if (gameMode === 'local') {
+        switch (event.key) {
+          case 'w':
+          case 'W':
+            wsRef.current.send(
+              JSON.stringify({
+                type: 'paddle',
+                paddle: 'left',
+                direction: 'up',
+              }),
+            );
+            break;
+          case 's':
+          case 'S':
+            wsRef.current.send(
+              JSON.stringify({
+                type: 'paddle',
+                paddle: 'left',
+                direction: 'down',
+              }),
+            );
+            break;
+        }
+      }
       switch (event.key) {
-        case 'w':
-        case 'W':
-          wsRef.current.send(
-            JSON.stringify({
-              type: 'paddle',
-              paddle: 'left',
-              direction: 'up',
-            }),
-          );
-          break;
-        case 's':
-        case 'S':
-          wsRef.current.send(
-            JSON.stringify({
-              type: 'paddle',
-              paddle: 'left',
-              direction: 'down',
-            }),
-          );
-          break;
         case 'ArrowUp':
           wsRef.current.send(
             JSON.stringify({

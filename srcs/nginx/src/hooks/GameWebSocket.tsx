@@ -48,7 +48,7 @@ export const useGameWebSocket = () => {
       return new Promise((resolve, reject) => {
         let settled = false;
 
-        const wsUrl = `${window.location.origin.replace(/^http/, 'ws')}/api/game/${sessionId}`;
+        const wsUrl = `${window.location.origin.replace(/^http/, 'ws')}/api/game/ws/${sessionId}`;
         console.log(wsUrl);
 
         const ws = new WebSocket(wsUrl);
