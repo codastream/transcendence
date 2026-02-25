@@ -165,6 +165,11 @@ SELECT *
 FROM player
 WHERE id = ?`);
 
+const getPalyerStatsStmt = db.prepare(`
+SELECT *
+FROM match
+WHERE player1 = ? OR player2 = ?`);
+
 export function addMatch(match: MatchDTO): number {
   try {
     const idmatch = addMatchStmt.run(
@@ -310,3 +315,15 @@ export function getUser(id: number) {
     throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: `getUser ${id}` }] }, err);
   }
 }
+
+export function getPlayerStats(player_id: number) {
+  try {
+    const result = getPalyerStatsStmt.all(player_id);
+    return result;
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: `getPlayerStats ${player_id}` }] },
+      err,
+    );
+  }
