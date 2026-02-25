@@ -29,21 +29,21 @@ export const PlayAiPage = () => {
   const [scores, setScores] = useState({ left: 0, right: 0 });
   const wsRef = useRef<WebSocket | null>(null);
   const phaseRef = useRef<'idle' | 'playing' | 'gameOver'>('idle');
+  // Track last known scores in a ref to avoid re-renders on every frame
+  const scoresRef = useRef({ left: 0, right: 0 });
   const navigate = useNavigate();
 
   useKeyboardControls({ wsRef, enabled: !!currentSessionId && !isGameOver, gameMode: 'ai' });
 
   const createSession = useCallback(async () => {
-    // Close any existing connection first
     closeWebSocket();
     wsRef.current = null;
-
     setIsLoading(true);
     setIsGameOver(false);
     setWinner(null);
     setScores({ left: 0, right: 0 });
+    scoresRef.current = { left: 0, right: 0 };
     phaseRef.current = 'idle';
-
     const { sessionId } = await createAiSession();
     setSessionId(sessionId);
     setIsLoading(false);
@@ -75,11 +75,17 @@ export const PlayAiPage = () => {
         if (message.type === 'state' && message.data) {
           phaseRef.current = 'playing';
           updateGameState(message.data);
-          setScores({ ...message.data.scores });
+          // Only trigger a React re-render when the score actually changes
+          const s = message.data.scores;
+          if (s.left !== scoresRef.current.left || s.right !== scoresRef.current.right) {
+            scoresRef.current = { left: s.left, right: s.right };
+            setScores({ left: s.left, right: s.right });
+          }
         } else if (message.type === 'gameOver' && message.data) {
           phaseRef.current = 'gameOver';
           updateGameState(message.data);
           const s = message.data.scores;
+          scoresRef.current = { left: s.left, right: s.right };
           setScores({ left: s.left, right: s.right });
           setWinner(s.left >= s.right ? 'you' : 'ai');
           setIsGameOver(true);
