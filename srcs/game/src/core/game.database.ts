@@ -341,8 +341,8 @@ INSERT INTO match(tournament_id, player1, round, sessionId, created_at)
 VALUES (?,?,?,?,?)
 `);
 const createPlayer2Match = db.prepare(`
-INSERT INTO match(tournament_id, player2, round, sessionId, created_at)
-VALUES (?,?,?,?,?)
+INSERT INTO match(tournament_id, player2, round, created_at)
+VALUES (?,?,?,?)
 `);
 
 export async function getSessionGame(
@@ -359,19 +359,19 @@ export async function getSessionGame(
     if (tournamentHaveMatch.length === 0)
       createPlayer1Match.run(tournamentId, userId, 'SEMI_1', randomUUID(), Date.now());
     else if (tournamentHaveMatch.length === 1 && tournamentHaveMatch[0].player2 == null)
-      createPlayer2Match.run(tournamentId, userId, 'SEMI_1', randomUUID(), Date.now());
+      createPlayer2Match.run(tournamentId, userId, 'SEMI_1', Date.now());
     else if (tournamentHaveMatch.length === 1 && tournamentHaveMatch[0].player2 != null)
       createPlayer1Match.run(tournamentId, userId, 'SEMI_2', randomUUID(), Date.now());
     else if (tournamentHaveMatch.length === 2 && tournamentHaveMatch[1].player2 == null)
-      createPlayer2Match.run(tournamentId, userId, 'SEMI_2', randomUUID(), Date.now());
+      createPlayer2Match.run(tournamentId, userId, 'SEMI_2', Date.now());
     else if (tournamentHaveMatch.length === 2 && tournamentHaveMatch[1].player2 != null)
       createPlayer1Match.run(tournamentId, userId, 'LITTLE_FINAL', randomUUID(), Date.now());
     else if (tournamentHaveMatch.length === 3 && tournamentHaveMatch[2].player2 == null)
-      createPlayer2Match.run(tournamentId, userId, 'LITTLE_FINAL', randomUUID(), Date.now());
+      createPlayer2Match.run(tournamentId, userId, 'LITTLE_FINAL', Date.now());
     else if (tournamentHaveMatch.length === 3 && tournamentHaveMatch[2].player2 != null)
       createPlayer1Match.run(tournamentId, userId, 'FINAL', randomUUID(), Date.now());
     else if (tournamentHaveMatch.length === 4 && tournamentHaveMatch[3].player2 == null)
-      createPlayer2Match.run(tournamentId, userId, 'FINAL', randomUUID(), Date.now());
+      createPlayer2Match.run(tournamentId, userId, 'FINAL', Date.now());
     const sessionId =
       tournamentHaveMatch.length > 0
         ? tournamentHaveMatch[tournamentHaveMatch.length - 1].sessionId
