@@ -24,6 +24,7 @@ export const PlayAiPage = () => {
   const { gameStateRef, updateGameState } = useGameState();
   const [currentSessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [winner, setWinner] = useState<'you' | 'ai' | null>(null);
   const [scores, setScores] = useState({ left: 0, right: 0 });
@@ -35,6 +36,7 @@ export const PlayAiPage = () => {
 
   const createSession = async () => {
     setIsLoading(true);
+    setIsPlaying(false);
     setIsGameOver(false);
     setWinner(null);
     setScores({ left: 0, right: 0 });
@@ -50,10 +52,8 @@ export const PlayAiPage = () => {
     }
   }, []);
 
-  const onStartGame = () => {
-    if (!wsRef.current) return;
-    wsRef.current.send(JSON.stringify({ type: 'start' }));
-  };
+  // AI sends start automatically — this is a no-op kept for GameControl compatibility
+  const onStartGame = () => {};
 
   const onExitGame = async () => {
     if (!currentSessionId) return;
@@ -71,6 +71,7 @@ export const PlayAiPage = () => {
       const ws = await openWebSocket(currentSessionId, (message: ServerMessage) => {
         if (message.type === 'state' && message.data) {
           phaseRef.current = 'playing';
+          setIsPlaying(true);
           updateGameState(message.data);
           setScores({ ...message.data.scores });
         } else if (message.type === 'gameOver' && message.data) {
@@ -116,8 +117,8 @@ export const PlayAiPage = () => {
               gameMode="local"
               loading={isLoading}
             />
-            {/* Score display */}
-            {(phaseRef.current === 'playing' || isGameOver) && (
+            {/* Score display — uses isPlaying state (not ref) so React re-renders */}
+            {(isPlaying || isGameOver) && (
               <div className="flex justify-around text-white bg-white/10 backdrop-blur-lg rounded-lg p-4 mt-4">
                 <div className="text-center">
                   <p className="text-sm text-cyan-400">YOU</p>
