@@ -8,6 +8,10 @@ const colors = {
   end: '#0088ff',
 };
 
+interface WelcomePageProps {
+  defaultMode?: 'login' | 'register';
+}
+
 /**
  * WelcomePage — Page d'authentification (login / register).
  *
@@ -15,8 +19,8 @@ const colors = {
  * Le contenu "game menu" (anciennement affiché ici quand auth) a été extrait
  * vers HomePage pour respecter le Single Responsibility Principle.
  */
-export const WelcomePage = () => {
-  const [isRegister, setIsRegister] = useState(false);
+export const WelcomePage = ({ defaultMode = 'login' }: WelcomePageProps) => {
+  const [isRegister, setIsRegister] = useState(defaultMode === 'register');
 
   return (
     <div className="w-full h-full">

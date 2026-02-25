@@ -4,7 +4,9 @@
     "hasAccount": "Already have an account ?",
     "noAccount": "Don't have an account ?",
     "signup": "Signup",
-    "login": "Login"
+    "login": "Login",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "oauth": {
     "continue_google": "Continue with Google",

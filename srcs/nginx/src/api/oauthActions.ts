@@ -44,13 +44,23 @@ export const OAUTH_CONFIG: Record<string, ProviderConfig> = {
  *
  * @param provider - Provider OAuth ('google' | 'school42')
  * @returns URL OAuth complète avec state CSRF
+ * @throws Error si le provider n'est pas supporté ou si clientId est manquant
  */
-export function buildOAuthUrl(provider: string): string {
+export function buildOAuthUrl(provider: 'google' | 'school42'): string {
   const config = OAUTH_CONFIG[provider];
+
+  if (!config) {
+    throw new Error(`Unsupported OAuth provider: ${provider}`);
+  }
+
+  if (!config.clientId) {
+    throw new Error(`Missing clientId configuration for provider: ${provider}`);
+  }
+
   const redirectUri = `${window.location.origin}/auth/oauth/${provider}/callback`;
 
   const params = new URLSearchParams({
-    client_id: config.clientId!,
+    client_id: config.clientId,
     redirect_uri: redirectUri,
     response_type: 'code',
     scope: config.scopes.join(' '),

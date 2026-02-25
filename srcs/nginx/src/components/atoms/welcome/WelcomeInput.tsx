@@ -1,5 +1,6 @@
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { InputHTMLAttributes, useId, useState, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
 
@@ -33,6 +34,7 @@ export const WelcomeInput = ({
   validationContent,
   ...props
 }: WelcomeInputProps) => {
+  const { t } = useTranslation();
   const generatedId = useId();
   const inputId = id || generatedId;
   const errorId = `${inputId}-error`;
@@ -91,7 +93,7 @@ export const WelcomeInput = ({
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0088ff] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0088ff] rounded p-1"
-            aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+            aria-label={showPassword ? t('auth.hide_password') : t('auth.show_password')}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
           </button>

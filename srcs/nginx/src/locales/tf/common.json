@@ -4,7 +4,9 @@
     "hasAccount": "T’es déjà dans le coup ?",
     "noAccount": "T’es un bleu ma parole !",
     "signup": "S’inscrire (et devenir un vrai)",
-    "login": "Se pointer (avec les bons papiers)"
+    "login": "Se pointer (avec les bons papiers)",
+    "show_password": "Montre le mot de passe",
+    "hide_password": "Planque le mot de passe"
   },
   "oauth": {
     "continue_google": "Passe par Google",

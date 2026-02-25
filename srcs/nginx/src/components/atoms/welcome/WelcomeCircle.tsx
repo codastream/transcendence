@@ -11,22 +11,13 @@ interface WelcomeCircleProps {
 const WelcomeCircle = ({ children, className = '', size = 120 }: WelcomeCircleProps) => {
   return (
     <>
-      <style>{`
-        .welcome-circle-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .welcome-circle-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
       <div
         style={
           {
             '--circle-size': `${size}vh`,
           } as React.CSSProperties
         }
-        className={`welcome-circle-scrollbar
+        className={`no-scrollbar
         bg-white/95
         backdrop-blur-xl
         shadow-[0_8px_32px_rgba(0,255,159,0.15),0_0_100px_rgba(0,136,255,0.1)]

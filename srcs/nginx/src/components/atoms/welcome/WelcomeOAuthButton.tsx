@@ -104,7 +104,6 @@ export const WelcomeGoogleOAuthButton = ({
         src={logoGoogle}
         alt="Google"
         className="w-6 h-6 transition-transform duration-300 group-hover:scale-110"
-        aria-hidden="true"
       />
       <span className="tracking-wide">{t('oauth.continue_google')}</span>
     </WelcomeOAuthButton>
@@ -125,7 +124,6 @@ export const WelcomeSchool42OAuthButton = ({
         src={logo42}
         alt="42 School"
         className="w-6 h-6 brightness-0 invert transition-transform duration-300 group-hover:scale-110"
-        aria-hidden="true"
       />
       <span className="tracking-wide">{t('oauth.continue_42')}</span>
     </WelcomeOAuthButton>

@@ -22,7 +22,7 @@ export const App = () => {
         <Route element={<PublicRoute />}>
           <Route path="/welcome" element={<WelcomePage />} />
           <Route path="/login" element={<WelcomePage />} />
-          <Route path="/register" element={<WelcomePage />} />
+          <Route path="/register" element={<WelcomePage defaultMode="register" />} />
           <Route path="/auth/oauth/:provider/callback" element={<OAuthCallback />} />
         </Route>
 

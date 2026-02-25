@@ -17,15 +17,27 @@ interface WelcomeHaloProps {
  */
 const WelcomeHalo = ({ size = 92, isRegister, onToggleForm }: WelcomeHaloProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
   const title = isRegister ? t('auth.signup') : t('auth.login');
+
+  const handleLock = () => {
+    if (!isLocked) {
+      setIsLocked(true);
+      setIsHovered(true);
+    }
+  };
 
   return (
     <div
       className={`w-[95vw] max-w-2xl lg:w-auto transition-all duration-500 ${isHovered ? 'mt-20' : 'mt-0'}`}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        if (!isLocked) setIsHovered(false);
+      }}
+      onClick={handleLock}
+      onKeyDown={handleLock}
     >
       <WelcomeCircle
         size={isHovered ? (isLoggedIn ? 40 : isRegister ? size + 6 : size) : 32}

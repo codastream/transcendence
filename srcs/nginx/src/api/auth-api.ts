@@ -83,11 +83,30 @@ export const authApi = {
       state: request.state,
     });
 
+    const result = data?.result;
+    const username = result?.username;
+
+    if (!username) {
+      const details: ErrorDetail[] = [
+        {
+          field: 'username',
+          message: 'Missing username in OAuth callback response',
+          reason: LOG_REASONS.UNKNOWN,
+        },
+      ];
+      throw new FrontendError(
+        i18next.t(`errors.${ERROR_CODES.INVALID_CREDENTIALS}`),
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        ERROR_CODES.INVALID_CREDENTIALS,
+        details,
+      );
+    }
+
     return {
-      message: data.result?.message || 'OAuth login successful',
-      username: data.result?.username || '',
-      provider: data.result?.provider || provider,
-      isNewUser: data.result?.isNewUser || false,
+      message: result?.message || 'OAuth login successful',
+      username,
+      provider: result?.provider || provider,
+      isNewUser: result?.isNewUser || false,
     };
   },
 };

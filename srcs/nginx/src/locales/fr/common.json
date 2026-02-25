@@ -4,7 +4,9 @@
     "hasAccount": "Déjà enregistré ?",
     "noAccount": "Pas encore enregistré ?",
     "signup": "Créer un compte",
-    "login": "S'identifier"
+    "login": "S'identifier",
+    "show_password": "Afficher le mot de passe",
+    "hide_password": "Masquer le mot de passe"
   },
   "oauth": {
     "continue_google": "Continuer avec Google",
