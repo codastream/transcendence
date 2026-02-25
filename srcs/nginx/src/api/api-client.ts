@@ -35,9 +35,16 @@ api.interceptors.response.use(
       code = errorPayload?.code || ERROR_CODES.INTERNAL_ERROR;
       const translationKey = `errors.${code}`;
       message = i18next.t(translationKey) || errorPayload?.message || error.message;
-      details = errorPayload?.details || null;
-      if (errorPayload?.details) {
-        details = errorPayload.details;
+
+      // Transformer les erreurs Zod brutes en ErrorDetail
+      if (errorPayload?.details && Array.isArray(errorPayload.details)) {
+        details = errorPayload.details.map((detail: any) => ({
+          field: detail.field || (detail.path?.[0] as string) || undefined,
+          message: detail.message,
+          reason: detail.reason || detail.code || 'invalid_format',
+        }));
+      } else {
+        details = null;
       }
     }
     const frontendError = new FrontendError(message, statusCode, code, details);

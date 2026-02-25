@@ -62,4 +62,51 @@ export const authApi = {
   logout: async (): Promise<void> => {
     await api.post('/auth/logout');
   },
+
+  /**
+   * Échange un code d'autorisation OAuth contre un JWT
+   * @param provider Provider OAuth ('google' | 'school42')
+   * @param request Code d'autorisation et state
+   * @returns Informations de connexion OAuth
+   */
+  oauthCallback: async (
+    provider: 'google' | 'school42',
+    request: { code: string; state?: string },
+  ): Promise<{
+    message: string;
+    username: string;
+    provider: string;
+    isNewUser: boolean;
+  }> => {
+    const { data } = await api.post(`/auth/oauth/${provider}/callback`, {
+      code: request.code,
+      state: request.state,
+    });
+
+    const result = data?.result;
+    const username = result?.username;
+
+    if (!username) {
+      const details: ErrorDetail[] = [
+        {
+          field: 'username',
+          message: 'Missing username in OAuth callback response',
+          reason: LOG_REASONS.UNKNOWN,
+        },
+      ];
+      throw new FrontendError(
+        i18next.t(`errors.${ERROR_CODES.INVALID_CREDENTIALS}`),
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        ERROR_CODES.INVALID_CREDENTIALS,
+        details,
+      );
+    }
+
+    return {
+      message: result?.message || 'OAuth login successful',
+      username,
+      provider: result?.provider || provider,
+      isNewUser: result?.isNewUser || false,
+    };
+  },
 };

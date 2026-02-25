@@ -4,7 +4,26 @@
     "hasAccount": "Already have an account ?",
     "noAccount": "Don't have an account ?",
     "signup": "Signup",
-    "login": "Login"
+    "login": "Login",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
+  },
+  "oauth": {
+    "continue_google": "Continue with Google",
+    "continue_42": "Continue with 42",
+    "or_separator": "OR",
+    "connecting": "Connecting...",
+    "processing": "Processing authentication...",
+    "success": "Authentication successful!",
+    "redirecting": "Redirecting...",
+    "error": "Authentication error",
+    "back_to_login": "Back to login",
+    "error_config": "OAuth configuration missing for {{provider}}",
+    "invalid_provider": "Invalid OAuth provider",
+    "authorization_denied": "Authorization denied by user",
+    "missing_code": "Missing authorization code",
+    "invalid_state": "Invalid CSRF state - possible security issue",
+    "callback_failed": "OAuth authentication failed"
   },
   "fieldtype": {
     "email": "email",
@@ -30,6 +49,19 @@
     "invalid_format": "Check requested format",
     "too_small": "A longer value is required",
     "too_big": "A shorter value is required"
+  },
+  "validation": {
+    "password": {
+      "minLength": "At least 8 characters",
+      "lowercase": "One lowercase letter (a-z)",
+      "uppercase": "One uppercase letter (A-Z)",
+      "number": "One digit (0-9)",
+      "special": "One special character (!@#$%^&*)"
+    },
+    "username": {
+      "minLength": "4 to 20 characters",
+      "alphanumeric": "Letters, numbers and _ only"
+    }
   },
   "errors": {
     "validation_mandatory": "This field is mandatory.",

@@ -4,7 +4,26 @@
     "hasAccount": "T’es déjà dans le coup ?",
     "noAccount": "T’es un bleu ma parole !",
     "signup": "S’inscrire (et devenir un vrai)",
-    "login": "Se pointer (avec les bons papiers)"
+    "login": "Se pointer (avec les bons papiers)",
+    "show_password": "Montre le mot de passe",
+    "hide_password": "Planque le mot de passe"
+  },
+  "oauth": {
+    "continue_google": "Passe par Google",
+    "continue_42": "Passe par 42 c'est la référence",
+    "or_separator": "OU BIEN",
+    "connecting": "On s'branche...",
+    "processing": "On vérifie tes papiers...",
+    "success": "T'es dans la place, mon pote !",
+    "redirecting": "On t'embarque...",
+    "error": "Ah merde, y'a un blème",
+    "back_to_login": "Retour à l'entrée",
+    "error_config": "Y'a pas de config pour {{provider}}, on peut rien faire là",
+    "invalid_provider": "C'est quoi ce provider ? On connaît pas",
+    "authorization_denied": "T'as refusé l'autorisation, du coup on peut rien faire",
+    "missing_code": "Y'a pas de code, mon gars. C'est louche",
+    "invalid_state": "État CSRF foireux - on dirait une embrouille",
+    "callback_failed": "Raté l'authentification, mon vieux"
   },
   "fieldtype": {
     "email": "l’adresse électronique (pour les lettres, quoi)",
@@ -30,6 +49,19 @@
     "invalid_format": "T'as pas pigé le format ou quoi ?",
     "too_small": "Sois pas chiche, tu peux y aller niveau longueur",
     "too_big": "T'as dépassé les bornes, coco. Revois ça à la baisse"
+  },
+  "validation": {
+    "password": {
+      "minLength": "Au moins 8 caractères (sois pas radin)",
+      "lowercase": "Une minuscule (a-z, c'est pas compliqué)",
+      "uppercase": "Une majuscule (A-Z, pour faire classe)",
+      "number": "Un chiffre (0-9, comme ton niveau au pong)",
+      "special": "Un truc chelou (!@#$%^&*, pour les pros)"
+    },
+    "username": {
+      "minLength": "4 à 20 caractères (pas moins, pas plus)",
+      "alphanumeric": "Que des lettres, chiffres et _ (pas de fantaisies)"
+    }
   },
   "errors": {
     "validation_mandatory": "Balance l'info",
