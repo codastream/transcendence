@@ -29,6 +29,7 @@ fastify.addHook('onReady', async () => {
 fastify.register(redisPlugin);
 
 // Register WebSocket support
+// @ts-ignore - Fastify WebSocket plugin types are incompatible with Fastify v5 but work at runtime
 await fastify.register(fastifyWebsocket);
 
 // WebSocket game endpoint

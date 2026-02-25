@@ -12,7 +12,7 @@ export const NavBar = () => {
 
   const playItems = [
     { label: t('navbar.play_friend'), to: '/friends' },
-    { label: t('navbar.play_ai'), to: '/ai' },
+    { label: t('navbar.play_ai'), to: '/game/pong-ai' },
     { label: t('navbar.play_tournament'), to: '/tournaments' },
   ];
 
