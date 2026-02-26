@@ -1,7 +1,6 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
-import { MatchDTO } from '../types/game.dto.js';
 import { env } from '../config/env.js';
 import { UserEvent, TournamentDTO, ERR_DEFS } from '@transcendence/core';
 import { AppError, ErrorDetail } from '@transcendence/core';
@@ -455,4 +454,40 @@ function onMatchFinished(matchId: number) {
     createMatchStmt.run(match.tournament_id, winner1, winner2, randomUUID(), 'FINAL', now);
     createMatchStmt.run(match.tournament_id, loser1, loser2, randomUUID(), 'LITTLE_FINAL', now);
   })();
+}
+
+// ---- STATS ----
+const getTournamentStatsStmt = db.prepare(`
+SELECT
+  t.id                                          AS tournament_id,
+  t.status,
+  t.created_at,
+  COALESCE(creator.username, 'unknown')         AS creator,
+  COUNT(DISTINCT tp.player_id)                  AS player_count,
+  COUNT(DISTINCT m.id)                          AS match_count,
+  COALESCE(winner_p.username, 'in progress')    AS winner
+FROM tournament t
+LEFT JOIN tournament_player tp  ON t.id = tp.tournament_id
+LEFT JOIN player creator        ON creator.id = t.creator_id
+LEFT JOIN match m               ON m.tournament_id = t.id
+LEFT JOIN (
+  SELECT tp2.tournament_id, p2.username
+  FROM tournament_player tp2
+  JOIN player p2 ON p2.id = tp2.player_id
+  WHERE tp2.final_position = 1
+) winner_p ON winner_p.tournament_id = t.id
+GROUP BY t.id, t.status, t.created_at, creator.username, winner_p.username
+ORDER BY t.created_at DESC;
+`);
+
+export function getTournamentStats() {
+  try {
+    return getTournamentStatsStmt.all();
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: 'getTournamentStats' }] },
+      err,
+    );
+  }
 }

@@ -2,7 +2,6 @@ import { Route, Routes } from 'react-router-dom';
 import { MyProfilePage } from './pages/MyProfilePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { GamePage } from './pages/GamePage';
-import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
 import { WelcomePage } from './pages/WelcomePage';
@@ -13,6 +12,7 @@ import { PlayAiPage } from './pages/PlayAiPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
+import { StatsPage } from './pages/StatsPage';
 
 export const App = () => {
   return (
@@ -49,6 +49,7 @@ export const App = () => {
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
           <Route path="/game/pong-ai" element={<PlayAiPage />} />
+          <Route path="/stats" element={<StatsPage />} />
         </Route>
 
         {/* Catch-all — toute URL non reconnue */}
