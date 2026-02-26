@@ -6,9 +6,11 @@ import { handleClientMessage } from '../service/game.communication.js';
 import { GameSettings } from '../core/game.types.js';
 import { WebSocket } from 'ws';
 import * as db from '../core/game.database.js';
-import { LOG_REASONS, AppError } from '@transcendence/core';
+import { AppError } from '@transcendence/core';
 import { cleanupConnection } from '../service/game.connections.js';
 import { WS_CLOSE } from '../core/game.state.js';
+
+type TournamentParams = { id: string };
 
 export async function deleteSession(this: FastifyInstance, req: FastifyRequest) {
   const params = req.params as { sessionId: string };
@@ -99,8 +101,10 @@ export async function newGameSession(this: FastifyInstance, req: FastifyRequest)
   };
   const idHeader = (req.headers as any)['x-user-id'];
   const userId = idHeader ? Number(idHeader) : null;
-  const sessionId = randomUUID();
-
+  let sessionId = null;
+  if (body.gameMode === 'tournament')
+    sessionId = db.getSessionGame(body.tournamentId || null, userId);
+  else sessionId = randomUUID();
   this.log.info(`Creating new session with mode: ${body.gameMode}`);
   const sessionData = getSessionData.call(this, null, sessionId, body.gameMode);
   if (!sessionData) {
@@ -111,8 +115,6 @@ export async function newGameSession(this: FastifyInstance, req: FastifyRequest)
       wsUrl: `/game/ws/${sessionId}`,
     };
   }
-  // const tournamentId = (this as any).tournamentId || null;
-  // let sessionId = db.getSessionGame(tournamentId, userId);
   if (sessionData.game) sessionData.game.preview();
   return {
     status: 'success',
@@ -176,10 +178,6 @@ export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
 export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
   const tournaments = db.listTournaments();
   return reply.code(200).send(tournaments);
-}
-
-interface TournamentParams {
-  id: string;
 }
 
 export async function joinTournament(
@@ -280,4 +278,9 @@ export async function showTournament(
   const result = db.showTournament(tourId);
   if (result.length === 0) return reply.code(404).send(`tournament don't exist`);
   return reply.code(200).send(result);
+}
+
+export async function getTournamentStats(req: FastifyRequest, reply: FastifyReply) {
+  const stats = db.getTournamentStats();
+  return reply.code(200).send(stats);
 }

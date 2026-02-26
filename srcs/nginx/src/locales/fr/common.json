@@ -4,7 +4,26 @@
     "hasAccount": "Déjà enregistré ?",
     "noAccount": "Pas encore enregistré ?",
     "signup": "Créer un compte",
-    "login": "S'identifier"
+    "login": "S'identifier",
+    "show_password": "Afficher le mot de passe",
+    "hide_password": "Masquer le mot de passe"
+  },
+  "oauth": {
+    "continue_google": "Continuer avec Google",
+    "continue_42": "Continuer avec 42",
+    "or_separator": "OU",
+    "connecting": "Connexion...",
+    "processing": "Authentification en cours...",
+    "success": "Authentification réussie !",
+    "redirecting": "Redirection...",
+    "error": "Erreur d'authentification",
+    "back_to_login": "Retour à la connexion",
+    "error_config": "Configuration OAuth manquante pour {{provider}}",
+    "invalid_provider": "Provider OAuth invalide",
+    "authorization_denied": "Autorisation refusée par l'utilisateur",
+    "missing_code": "Code d'autorisation manquant",
+    "invalid_state": "État CSRF invalide - problème de sécurité potentiel",
+    "callback_failed": "Échec de l'authentification OAuth"
   },
   "fieldtype": {
     "email": "courriel",
@@ -30,6 +49,19 @@
     "invalid_format": "Vérifiez le format demandé",
     "too_small": "La valeur doit être plus longue",
     "too_big": "La valeur doit être plus courte"
+  },
+  "validation": {
+    "password": {
+      "minLength": "Au moins 8 caractères",
+      "lowercase": "Une minuscule (a-z)",
+      "uppercase": "Une majuscule (A-Z)",
+      "number": "Un chiffre (0-9)",
+      "special": "Un caractère spécial (!@#$%^&*)"
+    },
+    "username": {
+      "minLength": "4 à 20 caractères",
+      "alphanumeric": "Lettres, chiffres et _ uniquement"
+    }
   },
   "errors": {
     "validation_mandatory": "Ce champ est obligatoire.",

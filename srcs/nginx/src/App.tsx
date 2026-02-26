@@ -2,16 +2,17 @@ import { Route, Routes } from 'react-router-dom';
 import { MyProfilePage } from './pages/MyProfilePage';
 import { ProfilePage } from './pages/ProfilePage';
 import { GamePage } from './pages/GamePage';
-import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
 import { WelcomePage } from './pages/WelcomePage';
 import { HomePage } from './pages/HomePage';
+import { OAuthCallback } from './pages/OAuthCallback';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PlayAiPage } from './pages/PlayAiPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
+import { StatsPage } from './pages/StatsPage';
 
 export const App = () => {
   return (
@@ -23,6 +24,9 @@ export const App = () => {
         {/* Routes réservées aux non-authentifiés */}
         <Route element={<PublicRoute />}>
           <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/login" element={<WelcomePage />} />
+          <Route path="/register" element={<WelcomePage defaultMode="register" />} />
+          <Route path="/auth/oauth/:provider/callback" element={<OAuthCallback />} />
         </Route>
 
         {/* Routes protégées — authentification requise */}
@@ -45,6 +49,7 @@ export const App = () => {
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
           <Route path="/game/pong-ai" element={<PlayAiPage />} />
+          <Route path="/stats" element={<StatsPage />} />
         </Route>
 
         {/* Catch-all — toute URL non reconnue */}

@@ -36,8 +36,6 @@ const GameStatusBar = ({
 
   const [gameLogs, setGameLogs] = useState<string[]>([]);
 
-  const [gameLogs, setGameLogs] = useState<string[]>([]);
-
   const addGameLog = (message: string) => {
     setGameLogs((prevLogs) => [...prevLogs, message]);
   };
