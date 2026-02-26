@@ -459,25 +459,20 @@ function onMatchFinished(matchId: number) {
 // ---- STATS ----
 const getTournamentStatsStmt = db.prepare(`
 SELECT
-  t.id                                          AS tournament_id,
-  t.status,
-  t.created_at,
-  COALESCE(creator.username, 'unknown')         AS creator,
-  COUNT(DISTINCT tp.player_id)                  AS player_count,
-  COUNT(DISTINCT m.id)                          AS match_count,
-  COALESCE(winner_p.username, 'in progress')    AS winner
-FROM tournament t
-LEFT JOIN tournament_player tp  ON t.id = tp.tournament_id
-LEFT JOIN player creator        ON creator.id = t.creator_id
-LEFT JOIN match m               ON m.tournament_id = t.id
-LEFT JOIN (
-  SELECT tp2.tournament_id, p2.username
-  FROM tournament_player tp2
-  JOIN player p2 ON p2.id = tp2.player_id
-  WHERE tp2.final_position = 1
-) winner_p ON winner_p.tournament_id = t.id
-GROUP BY t.id, t.status, t.created_at, creator.username, winner_p.username
-ORDER BY t.created_at DESC;
+  p.id                                                                        AS player_id,
+  COALESCE(p.username, 'unknown')                                             AS username,
+  COUNT(DISTINCT tp.tournament_id)                                            AS tournaments_played,
+  COUNT(DISTINCT CASE WHEN tp.final_position = 1 THEN tp.tournament_id END)  AS tournaments_won,
+  COUNT(DISTINCT m.id)                                                        AS matches_played,
+  COUNT(DISTINCT CASE WHEN m.winner_id = p.id THEN m.id END)                 AS matches_won
+FROM player p
+LEFT JOIN tournament_player tp
+  ON tp.player_id = p.id
+LEFT JOIN match m
+  ON m.tournament_id IS NOT NULL
+ AND (m.player1 = p.id OR m.player2 = p.id)
+GROUP BY p.id, p.username
+ORDER BY tournaments_won DESC, matches_won DESC, tournaments_played DESC;
 `);
 
 export function getTournamentStats() {

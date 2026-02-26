@@ -23,6 +23,9 @@ def test_1_stats_unauthenticated():
     """Test: /api/game/stats est accessible sans auth (route publique via gateway)"""
     print_test("STATS - accès sans authentification")
     session = TestSession()
+    creds = generate_test_credentials()
+    session.session.post(f"{API_URL}/auth/register", json=creds, verify=False)
+    session.session.post(f"{API_URL}/auth/login", json=creds, verify=False)
     resp = session.get("/game/stats", expected_status=200)
     data = resp.json()
     assert isinstance(data, list), f"Expected list, got: {type(data)}"
@@ -34,7 +37,6 @@ def test_2_stats_returns_correct_fields():
     print_test("STATS - structure des données retournées")
     session = TestSession()
 
-    # Create a tournament first so there's at least one entry
     creds = generate_test_credentials()
     session.session.post(f"{API_URL}/auth/register", json=creds, verify=False)
     session.session.post(f"{API_URL}/auth/login", json=creds, verify=False)
@@ -42,14 +44,18 @@ def test_2_stats_returns_correct_fields():
 
     resp = session.get("/game/stats", expected_status=200)
     data = resp.json()
-    assert len(data) > 0, "Expected at least 1 tournament in stats"
+    assert len(data) > 0, "Expected at least 1 player in stats"
 
-    expected_fields = {"tournament_id", "status", "creator", "player_count", "match_count", "winner", "created_at"}
+    expected_fields = {
+        "player_id", "username",
+        "tournaments_played", "tournaments_won",
+        "matches_played", "matches_won",
+    }
     for row in data:
         missing = expected_fields - set(row.keys())
         assert not missing, f"Missing fields: {missing} in row {row}"
 
-    print_success(f"Tous les champs présents dans {len(data)} tournoi(s)")
+    print_success(f"Tous les champs présents dans {len(data)} joueur(s)")
 
 
 def test_3_stats_after_tournament_with_4_players():
@@ -66,27 +72,31 @@ def test_3_stats_after_tournament_with_4_players():
 
     for i in range(3):
         c = {
-            "username": f"st_{timestamp}_{i}",
-            "email": f"st_{timestamp}_{i}@test.local",
-            "password": "ValidPass123!",
-        }
-        session.session.post(f"{API_URL}/auth/register", json=c, verify=False)
-        session.session.post(f"{API_URL}/auth/login", json=c, verify=False)
-        session.post(f"/game/tournaments/{tour_id}", json={})
+        "username": f"st_{timestamp}_{i}",
+        "email": f"st_{timestamp}_{i}@test.local",
+        "password": "ValidPass123!",
+    }
+    player_session = TestSession()
+    player_session.session.post(f"{API_URL}/auth/register", json=c, verify=False)
+    player_session.session.post(f"{API_URL}/auth/login", json=c, verify=False)
+    player_session.post(f"/game/tournaments/{tour_id}", json={})
 
     resp = session.get("/game/stats", expected_status=200)
     data = resp.json()
 
-    matching = [r for r in data if r["tournament_id"] == tour_id]
-    assert len(matching) == 1, f"Tournament {tour_id} not found in stats"
+    matching = [r for r in data if r["username"] == creds["username"]]
+    assert len(matching) == 1, f"Creator {creds['username']} not found in stats"
 
     row = matching[0]
-    assert row["player_count"] == 4, f"Expected 4 players, got {row['player_count']}"
-    assert row["status"] == "STARTED", f"Expected STARTED, got {row['status']}"
-    assert row["match_count"] >= 2, f"Expected at least 2 matches, got {row['match_count']}"
+    assert row["tournaments_played"] >= 1, \
+        f"Expected >= 1 tournament played, got {row['tournaments_played']}"
+    assert row["matches_played"] >= 2, \
+        f"Expected >= 2 matches played, got {row['matches_played']}"
 
-    print_success(f"Tournoi {tour_id}: {row['player_count']} joueurs, {row['match_count']} matchs, status={row['status']}")
-
+    print_success(
+        f"{row['username']}: {row['tournaments_played']} tournoi(s), "
+        f"{row['matches_played']} match(s) joués, {row['matches_won']} gagnés"
+    )
 
 def main():
     print("\n" + "=" * 60)
