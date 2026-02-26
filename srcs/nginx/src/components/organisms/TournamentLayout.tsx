@@ -1,8 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import Background from '../atoms/Background';
 import { NavBar } from '../molecules/NavBar';
-import { Player } from '../../types/types';
-import { FriendsList } from '../molecules/FriendsList';
 import { Footer } from '../molecules/Footer';
 
 const colors = {

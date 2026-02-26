@@ -30,6 +30,7 @@ interface SignupState {
     username?: string;
     password?: string;
     form?: string;
+    acceptTerms?: string;
   };
   success?: boolean;
 }
@@ -162,11 +163,11 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
 
       {/* Separator */}
       <div className="relative flex items-center py-1">
-        <div className="flex-grow border-t border-gray-300"></div>
-        <span className="flex-shrink mx-2 text-gray-600 text-[10px] font-bold tracking-widest bg-gradient-to-r from-gray-100 to-gray-50 px-1.5 py-0.5 rounded-full border border-gray-200 shadow-sm">
+        <div className="grow border-t border-gray-300"></div>
+        <span className="shrink mx-2 text-gray-600 text-[10px] font-bold tracking-widest bg-gradient-to-r from-gray-100 to-gray-50 px-1.5 py-0.5 rounded-full border border-gray-200 shadow-sm">
           {t('oauth.or_separator')}
         </span>
-        <div className="flex-grow border-t border-gray-300"></div>
+        <div className="grow border-t border-gray-300"></div>
       </div>
 
       {/* Traditional Registration Form */}

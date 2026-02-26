@@ -6,7 +6,11 @@
     "signup": "Créer un compte",
     "login": "S'identifier",
     "show_password": "Afficher le mot de passe",
-    "hide_password": "Masquer le mot de passe"
+    "hide_password": "Masquer le mot de passe",
+    "i_have_read": "J'ai lu",
+    "and": "et",
+    "tos": "les conditions générales",
+    "privacy_policy": "la politique de confidentialité"
   },
   "oauth": {
     "continue_google": "Continuer avec Google",
