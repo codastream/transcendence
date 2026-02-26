@@ -26,13 +26,19 @@ export const useKeyboardControls = ({
             break;
           case 's':
           case 'S':
-            wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }));
+            wsRef.current.send(
+              JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }),
+            );
             break;
           case 'ArrowUp':
-            wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'up' }));
+            wsRef.current.send(
+              JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'up' }),
+            );
             break;
           case 'ArrowDown':
-            wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'down' }));
+            wsRef.current.send(
+              JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'down' }),
+            );
             break;
         }
       } else if (gameMode === 'ai') {
@@ -50,7 +56,9 @@ export const useKeyboardControls = ({
           case 'ArrowDown':
             event.preventDefault();
             if (event.repeat) break;
-            wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }));
+            wsRef.current.send(
+              JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }),
+            );
             break;
         }
       }
@@ -62,11 +70,13 @@ export const useKeyboardControls = ({
       if (gameMode === 'local') {
         const keys = ['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'];
         if (keys.includes(event.key)) {
-          wsRef.current.send(JSON.stringify({
-            type: 'paddle',
-            paddle: event.key === 'ArrowUp' || event.key === 'ArrowDown' ? 'right' : 'left',
-            direction: 'stop',
-          }));
+          wsRef.current.send(
+            JSON.stringify({
+              type: 'paddle',
+              paddle: event.key === 'ArrowUp' || event.key === 'ArrowDown' ? 'right' : 'left',
+              direction: 'stop',
+            }),
+          );
         }
       } else if (gameMode === 'ai') {
         const keys = ['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'];

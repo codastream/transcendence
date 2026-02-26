@@ -9,6 +9,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useKeyboardControls } from '../hooks/input.tsx';
 import { useGameSessions, UseGameSessionsReturn } from '../hooks/GameSessions';
 import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 export interface Paddle {
   y: number;
@@ -75,7 +76,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const [currentSessionId, setSessionId] = useState<string | null>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null); // Use ref instead of state
-
+  const { tournamentId } = useParams<{ tournamentId?: string }>();
   const navigate = useNavigate();
 
   useKeyboardControls({
@@ -87,9 +88,19 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const createLocalSession = async () => {
     setIsLoading(true);
     console.log('Fetching sessions from backend...');
+    // Build request body conditionally
+    const requestBody = {
+      gameMode: gameMode,
+      ...(tournamentId ? { tournamentId } : {}),
+    };
+
     const res = await fetch('/api/game/create-session', {
       method: 'POST',
       credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
     });
     const data = await res.json();
     if (res.ok && data.sessionId) {

@@ -46,9 +46,7 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
     socket.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
   }
 
-  this.log.info(
-    `[${sessionId}] Player ${players.get(socket)} connected. Total: ${players.size}`,
-  );
+  this.log.info(`[${sessionId}] Player ${players.get(socket)} connected. Total: ${players.size}`);
 
   // Auto-start the game once both players are in
   if (players.size === 2) {

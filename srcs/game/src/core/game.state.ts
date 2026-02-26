@@ -9,6 +9,7 @@ export const gameSessions = new Map<
     game: PongGame;
     interval: NodeJS.Timeout | null;
     players: Map<any, 'A' | 'B'>; // sockets
+    gameMode: string;
   }
 >();
 

@@ -36,6 +36,10 @@ export const App = () => {
             path="/game/local"
             element={<GamePage sessionId={null} gameMode={'local'} />}
           ></Route>
+          <Route
+            path="/game/tournament/:tournamentId"
+            element={<GamePage sessionId={null} gameMode={'tournament'} />}
+          ></Route>
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />

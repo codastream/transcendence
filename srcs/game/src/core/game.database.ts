@@ -5,6 +5,7 @@ import { MatchDTO } from '../types/game.dto.js';
 import { env } from '../config/env.js';
 import { UserEvent, TournamentDTO, ERR_DEFS } from '@transcendence/core';
 import { AppError, ErrorDetail } from '@transcendence/core';
+import { randomUUID } from 'crypto';
 
 // DB path
 const DEFAULT_DIR = path.join(process.cwd(), 'data');
@@ -33,31 +34,39 @@ CREATE TABLE IF NOT EXISTS match(
     tournament_id INTEGER, -- NULL if free match
     player1 INTEGER NOT NULL,
     player2 INTEGER NOT NULL,
+    sessionId TEXT,-- NULL if match not started, otherwise the sessionId of the game instance
     score_player1 INTEGER NOT NULL DEFAULT 0,
     score_player2 INTEGER NOT NULL DEFAULT 0,
-    winner_id INTEGER NOT NULL,
+    winner_id INTEGER, -- NULL if match not finished, otherwise the id of the winner
     round TEXT, --NULL | SEMI_1 | SEMI_2 | LITTLE_FINAL | FINAL
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
+    FOREIGN KEY (player1) REFERENCES player(id) ON DELETE CASCADE,
+    FOREIGN KEY (player2) REFERENCES player(id) ON DELETE CASCADE,
+    FOREIGN KEY (winner_id) REFERENCES player(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS tournament(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     creator_id INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'PENDING', -- PENDING | STARTED | FINISHED
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (creator_id) REFERENCES player(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS tournament_player(
     tournament_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
-    final_position INTEGER,
+    final_position INTEGER, -- NULL | 1 | 2 | 3 | 4
+    FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES player(id) ON DELETE CASCADE,
     PRIMARY KEY (tournament_id, player_id)
 );
 
 CREATE TABLE IF NOT EXISTS player (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL,
-    avatar TEXT,
+    avatar TEXT,-- NULL if not synchronised with user service
     updated_at INTEGER NOT NULL
 );
 
@@ -66,6 +75,12 @@ ON match(tournament_id);
 
 CREATE INDEX IF NOT EXISTS idx_tournament_player_tid
 ON tournament_player(tournament_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_match_unique_round
+ON match(tournament_id, round);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tournament_player_limit
+ON tournament_player(tournament_id, player_id);
 `);
 } catch (err: unknown) {
   throw new AppError(
@@ -74,11 +89,6 @@ ON tournament_player(tournament_id);
     err,
   );
 }
-
-const addMatchStmt = db.prepare(`
-INSERT INTO match(tournament_id, player1, player2, score_player1, score_player2, winner_id, created_at)
-VALUES (?,?,?,?,?,?,?)
-`);
 
 const createTournamentStmt = db.prepare(`
 INSERT INTO tournament(creator_id, created_at)
@@ -157,26 +167,10 @@ SELECT *
 FROM player
 WHERE id = ?`);
 
-export function addMatch(match: MatchDTO): number {
-  try {
-    const idmatch = addMatchStmt.run(
-      match.tournament_id,
-      match.player1,
-      match.player2,
-      match.score_player1,
-      match.score_player2,
-      match.winner_id,
-      match.created_at,
-    );
-    return Number(idmatch.lastInsertRowid);
-  } catch (err: unknown) {
-    throw new AppError(
-      ERR_DEFS.DB_INSERT_ERROR,
-      { details: [{ field: `addMatch to tournament ${match.tournament_id}` }] },
-      err,
-    );
-  }
-}
+const getPalyerStatsStmt = db.prepare(`
+SELECT *
+FROM match
+WHERE player1 = ? OR player2 = ?`);
 
 export function createTournament(player_id: number): number {
   try {
@@ -264,6 +258,7 @@ export function joinTournament(player_id: number, tournament_id: number) {
       addPlayerTournament(player_id, tournament_id);
       if (nbPlayers === 3) {
         changeStatusTournamentStmt.run('STARTED', tournament_id);
+        initializeTournamentMatchs(tournament_id);
       }
     });
     transaction();
@@ -275,6 +270,48 @@ export function joinTournament(player_id: number, tournament_id: number) {
       err,
     );
   }
+}
+
+const createMatchStmt = db.prepare(`
+INSERT INTO match(tournament_id, player1, player2, sessionId, round, created_at)
+VALUES(?,?,?,?,?,?)
+`);
+
+const getPlayersIdTournamentStmt = db.prepare(`
+SELECT player_id
+FROM tournament_player tp
+WHERE tournament_id = ?
+`);
+
+function initializeTournamentMatchs(tournament_id: number) {
+  const players = getPlayersIdTournamentStmt.all(tournament_id) as { player_id: number }[];
+  if (players.length != 4) {
+    const errorDetail: ErrorDetail = {
+      field: `Invalid player count: ${tournament_id}`,
+      message: 'Tournament invalid player count',
+      reason: 'tournament_count_error',
+    };
+    throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
+  }
+  const date = Date.now();
+  const session1 = randomUUID();
+  const session2 = randomUUID();
+  createMatchStmt.run(
+    tournament_id,
+    players[0].player_id,
+    players[1].player_id,
+    session1,
+    'SEMI_1',
+    date,
+  );
+  createMatchStmt.run(
+    tournament_id,
+    players[2].player_id,
+    players[3].player_id,
+    session2,
+    'SEMI_2',
+    date,
+  );
 }
 
 export function showTournament(tournament_id: number) {
@@ -301,4 +338,121 @@ export function getUser(id: number) {
     if (err instanceof AppError) throw err;
     throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: `getUser ${id}` }] }, err);
   }
+}
+
+export function getPlayerStats(player_id: number) {
+  try {
+    const result = getPalyerStatsStmt.all(player_id);
+    return result;
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: `getPlayerStats ${player_id}` }] },
+      err,
+    );
+  }
+}
+
+const getMatchSmt = db.prepare(`
+SELECT sessionId , round, player1, player2, id
+FROM match
+WHERE tournament_id = ?
+`);
+
+const createPlayer1Match = db.prepare(`
+INSERT INTO match(tournament_id, player1, round, sessionId, created_at)
+VALUES (?,?,?,?,?)
+`);
+const createPlayer2Match = db.prepare(`
+UPDATE match
+SET player2 = ?
+WHERE id = ?
+`);
+
+export function getSessionGame(tournamentId: number | null, userId: number | null): string | null {
+  try {
+    const tournamentHaveMatch = getMatchSmt.all(tournamentId) as {
+      sessionId: string | null;
+      round: string;
+      player1: number;
+      player2: number | null;
+      id: number | null;
+    }[];
+    const nbMatch = tournamentHaveMatch.length;
+    if (nbMatch === 0)
+      createPlayer1Match.run(tournamentId, userId, 'SEMI_1', randomUUID(), Date.now());
+    else if (nbMatch === 1 && tournamentHaveMatch[0].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
+    else if (nbMatch === 1 && tournamentHaveMatch[0].player2 != null)
+      createPlayer1Match.run(tournamentId, userId, 'SEMI_2', randomUUID(), Date.now());
+    else if (nbMatch === 2 && tournamentHaveMatch[1].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[1].id);
+    else if (nbMatch === 2 && tournamentHaveMatch[1].player2 != null)
+      createPlayer1Match.run(tournamentId, userId, 'LITTLE_FINAL', randomUUID(), Date.now());
+    else if (nbMatch === 3 && tournamentHaveMatch[2].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
+    else if (nbMatch === 3 && tournamentHaveMatch[2].player2 != null)
+      createPlayer1Match.run(tournamentId, userId, 'FINAL', randomUUID(), Date.now());
+    else if (nbMatch === 4 && tournamentHaveMatch[3].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
+    else throw new Error(`Maximum number of match reached`);
+    const sessionId = nbMatch > 0 ? tournamentHaveMatch[nbMatch - 1].sessionId : null;
+    return sessionId;
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_INSERT_ERROR,
+      { details: [{ field: `getSessionGame tournamentId:${tournamentId} userId:${userId}` }] },
+      err,
+    );
+  }
+}
+
+const getMatchByIdStmt = db.prepare(`
+  SELECT tournament_id, player1, player2, round, winner_id
+  FROM match
+  WHERE id = ?`);
+
+const countFinishedSemisStmt = db.prepare<[number], CountResult>(`
+SELECT COUNT(*) AS count
+FROM match
+WHERE tournament_id = ?
+  AND round IN ('SEMI_1', 'SEMI_2')
+  AND winner_id IS NOT NULL;
+`);
+
+const getMatchByRound = db.prepare<[number, string], MathcRoundResult>(`
+SELECT player1, player2, winner_id
+FROM match
+WHERE tournament_id = ?
+  AND round = ?;
+`);
+
+function onMatchFinished(matchId: number) {
+  db.transaction(() => {
+    const match = getMatchByIdStmt.get(matchId) as {
+      tournament_id: number;
+      player1: number;
+      round: string;
+      winner_id: number;
+    };
+    if (!match) throw new Error('Match not found');
+    if (match.round !== 'SEMI_1' && match.round !== 'SEMI_2') return;
+    const semisFinished = countFinishedSemisStmt.get(match.tournament_id)!.count;
+    if (semisFinished !== 2) return;
+
+    // Récupérer gagnants et perdants
+    const semi1 = getMatchByRound.get(match.tournament_id, 'SEMI_1');
+    const semi2 = getMatchByRound.get(match.tournament_id, 'SEMI_2');
+
+    const winner1 = semi1?.winner_id;
+    const winner2 = semi2?.winner_id;
+
+    const loser1 = semi1?.player1 === winner1 ? semi1?.player2 : semi1?.player1;
+    const loser2 = semi2?.player1 === winner2 ? semi2?.player2 : semi2?.player1;
+
+    const now = Date.now();
+
+    createMatchStmt.run(match.tournament_id, winner1, winner2, randomUUID(), 'FINAL', now);
+    createMatchStmt.run(match.tournament_id, loser1, loser2, randomUUID(), 'LITTLE_FINAL', now);
+  })();
 }
