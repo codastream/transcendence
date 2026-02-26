@@ -1,5 +1,4 @@
 import { MatchStatus } from '../../types/types';
-import { useTranslation } from 'react-i18next';
 
 interface MatchNodeProps {
   label: string;
@@ -10,7 +9,6 @@ interface MatchNodeProps {
 
 export function MatchNode({ label, status, highlight = false, onStart }: MatchNodeProps) {
   const canStart = status === 'ready';
-  const { t } = useTranslation();
 
   return (
     <div
@@ -23,24 +21,6 @@ export function MatchNode({ label, status, highlight = false, onStart }: MatchNo
     >
       {/* Label */}
       <span>{label}</span>
-
-      {/* Start button */}
-      <button
-        onClick={onStart}
-        disabled={!canStart}
-        className={`
-          px-4 py-1.5 rounded-full text-xs font-semibold
-          transition-all
-          ${
-            canStart
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 active:scale-100'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }
-        `}
-        aria-disabled={!canStart}
-      >
-        {t('game.start')}
-      </button>
     </div>
   );
 }

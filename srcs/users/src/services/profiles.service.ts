@@ -4,6 +4,7 @@ import {
   LOG_RESOURCES,
   type ProfileCreateInDTO,
   type ProfileSimpleDTO,
+  type ProfileDTO,
   AppError,
 } from '@transcendence/core';
 import { Trace } from '../utils/decorators.js';
@@ -12,7 +13,7 @@ import path from 'node:path';
 import type { MultipartFile } from '@fastify/multipart';
 import { mkdir } from 'node:fs/promises';
 import { fileTypeFromBuffer } from 'file-type';
-import { mapProfileToDTO } from '../utils/mappers.js';
+import { mapProfileToDTO, mapProfileToIdDTO } from '../utils/mappers.js';
 
 async function getProfileOrThrow(username: string): Promise<UserProfile> {
   const profile = await profileRepository.findProfileByUsername(username);
@@ -48,6 +49,12 @@ export class ProfileService {
   async getByUsernameQuery(query: string): Promise<ProfileSimpleDTO[] | null> {
     const rawProfiles = await profileRepository.findProfilesByUsernameQuery(query);
     return rawProfiles?.map((p) => mapProfileToDTO(p));
+  }
+
+  @Trace
+  async getProfileByUsername(username: string): Promise<ProfileDTO | null> {
+    const profileData = await getProfileOrThrow(username);
+    return mapProfileToIdDTO(profileData);
   }
 
   @Trace

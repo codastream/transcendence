@@ -7,6 +7,7 @@ import { buildApp } from '../src/app.js';
 vi.mock('../src/services/profiles.service.js', () => ({
   profileService: {
     getByUsername: vi.fn(),
+    getProfileByUsername: vi.fn(),
     getByUsernameQuery: vi.fn(),
     createProfile: vi.fn(),
     updateAvatar: vi.fn(),
@@ -52,11 +53,12 @@ describe('Profile Controller unit tests', () => {
     await app.ready();
   });
 
+  // Augmentation du timeout à 30 secondes pour l'environnement CI
   afterAll(async () => {
     if (app) {
       await app.close();
     }
-  });
+  }, 30000); // <--- Ajoute ce paramètre ici
 
   afterEach(() => {
     vi.clearAllMocks();

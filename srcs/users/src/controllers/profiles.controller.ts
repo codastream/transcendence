@@ -9,14 +9,17 @@ import {
   ProfileCreateInDTO,
   usernameDTO,
   UserNameDTO,
+  USER_EVENT,
 } from '@transcendence/core';
 import { MultipartFile } from '@fastify/multipart';
+import { userBus } from '../events/user.bus';
 
 export class ProfileController {
   async createProfile(req: FastifyRequest, reply: FastifyReply) {
     req.log.trace({ event: `${LOG_ACTIONS.CREATE}_${LOG_RESOURCES.PROFILE}`, payload: req.body });
 
     const profile = await profileService.createProfile(req.body as ProfileCreateInDTO);
+    userBus.emit(USER_EVENT.CREATED, profile);
     const profileSimpleDTO = mappers.mapProfileToDTO(profile);
     return reply.status(201).send(profileSimpleDTO);
   }
@@ -57,6 +60,7 @@ export class ProfileController {
       param: username,
     });
     const profileSimpleDTO = await profileService.updateAvatar(username, data);
+    userBus.emit(USER_EVENT.UPDATED, username);
     return reply.status(200).send(profileSimpleDTO);
   }
 

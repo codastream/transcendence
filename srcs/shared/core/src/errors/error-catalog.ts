@@ -194,4 +194,35 @@ export const ERR_DEFS = {
     'Invalid format',
     HTTP_STATUS.BAD_REQUEST,
   ),
+  // Game service
+  USER_NOTFOUND_ERRORS: serviceError(
+    ERROR_CODES.NOT_FOUND,
+    LOG_REASONS.DATABASE.DB_SELECT,
+    `User doesn't exist`,
+    HTTP_STATUS.NOT_FOUND,
+  ),
+  DB_SELECT_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_SELECT,
+    `Database select critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
+  DB_INSERT_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_INSERT,
+    `Database insert critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
+  DB_UPDATE_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_UPDATE,
+    `Database update critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
+  DB_DELETE_ERROR: serviceError(
+    ERROR_CODES.INTERNAL_ERROR,
+    LOG_REASONS.DATABASE.DB_DELETE,
+    `Database delete critical Error`,
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  ),
 } as const;

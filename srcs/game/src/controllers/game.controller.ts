@@ -1,10 +1,12 @@
-import { FastifyInstance, FastifyRequest } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { randomUUID } from 'crypto';
 import { gameSessions } from '../core/game.state.js';
 import { getGame as getSessionData } from '../service/game.init.js';
 import { handleClientMessage } from '../service/game.communication.js';
 import { GameSettings } from '../core/game.types.js';
 import { WebSocket } from 'ws';
+import * as db from '../core/game.database.js';
+import { LOG_REASONS, AppError } from '@transcendence/core';
 
 // Controller - get sessionId from body
 export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
@@ -117,6 +119,51 @@ export async function webSocketConnect(
   handleClientMessage.call(this, socket, sessionId);
 }
 
+export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
+  const idHeader = (req.headers as any)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  if (!userId)
+    return reply.code(500).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
+  const userExist = db.getUser(userId);
+  if (!userExist)
+    return reply.code(500).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
+  const tournament_id = db.createTournament(userId);
+  return reply.code(200).send(tournament_id);
+}
+
+export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tournaments = db.listTournaments();
+  return reply.code(200).send(tournaments);
+}
+
+interface TournamentParams {
+  id: string;
+}
+
+export async function joinTournament(
+  req: FastifyRequest<{ Params: TournamentParams }>,
+  reply: FastifyReply,
+) {
+  const tourId = Number(req.params.id);
+  const idHeader = (req.headers as any)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  if (!userId)
+    return reply.code(500).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
+  try {
+    db.joinTournament(userId, tourId);
+  } catch (err: unknown) {
+    if (err instanceof AppError) {
+      const isTournamentFull = err.context?.details?.some(
+        (d: any) => d.reason === 'tournament_full',
+      );
+      if (isTournamentFull) return reply.code(409).send({ message: err.message });
+    } else {
+      throw err;
+    }
+  }
+  return reply.code(200).send({ joining: tourId });
+}
+
 // RL API: Reset game session
 export async function resetGame(this: FastifyInstance, req: FastifyRequest) {
   const body = req.body as { sessionId?: string };
@@ -181,4 +228,14 @@ export async function getGameState(this: FastifyInstance, req: FastifyRequest) {
     return { status: 'failure', message: `Session ${sessionId} not found` };
   }
   return { status: 'success', state: sessionData.game.getState() };
+}
+
+export async function showTournament(
+  req: FastifyRequest<{ Params: TournamentParams }>,
+  reply: FastifyReply,
+) {
+  const tourId = Number(req.params.id);
+  const result = db.showTournament(tourId);
+  if (result.length === 0) return reply.code(404).send(`tournament don't exist`);
+  return reply.code(200).send(result);
 }
