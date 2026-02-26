@@ -486,3 +486,32 @@ export function getTournamentStats() {
     );
   }
 }
+
+// ---- HISTORY ----
+const getMatchHistoryStmt = db.prepare(`
+SELECT
+  m.id,
+  m.tournament_id,
+  m.round,
+  m.score_player1,
+  m.score_player2,
+  m.winner_id,
+  m.created_at,
+  p1.username  AS username_player1,
+  p2.username  AS username_player2,
+  pw.username  AS username_winner
+FROM match m
+LEFT JOIN player p1 ON p1.id = m.player1
+LEFT JOIN player p2 ON p2.id = m.player2
+LEFT JOIN player pw ON pw.id = m.winner_id
+ORDER BY m.created_at DESC
+LIMIT 100;
+`);
+
+export function getMatchHistory() {
+  try {
+    return getMatchHistoryStmt.all();
+  } catch (err: unknown) {
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: 'getMatchHistory' }] }, err);
+  }
+}
