@@ -1,9 +1,4 @@
 services:
-  game-service:
-    environment:
-      GAME_DB_PATH: ":memory:"
-      NODE_ENV: test
-
   test-runner:
     image: node:20-alpine
     working_dir: /repo
