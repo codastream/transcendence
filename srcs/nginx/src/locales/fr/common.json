@@ -140,5 +140,30 @@
     "waitiing": "Attente...",
     "creating": "Création du tournoi...",
     "tournament_full": "Ce tournoi est déjà complet (maximum 4 joueurs)."
+  },
+  "stats": {
+    "title": "Statistiques des joueurs",
+    "loading": "Chargement...",
+    "empty": "Aucun joueur pour l'instant.",
+    "player": "Joueur",
+    "tournaments_played": "Tournois joués",
+    "tournaments_won": "Tournois gagnés",
+    "matches_played": "Matchs joués",
+    "matches_won": "Matchs gagnés"
+  },
+  "history": {
+    "title": "Historique des matchs",
+    "empty": "Aucun match pour l'instant.",
+    "round": "Tour",
+    "player1": "Joueur 1",
+    "score": "Score",
+    "player2": "Joueur 2",
+    "winner": "Gagnant",
+    "tournament": "Tournoi",
+    "free_match": "Match libre",
+    "semi1": "Demi-finale 1",
+    "semi2": "Demi-finale 2",
+    "little_final": "Petite finale",
+    "final": "Finale"
   }
 }
