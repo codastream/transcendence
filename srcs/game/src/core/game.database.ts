@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS match(
     sessionId TEXT,-- NULL if match not started, otherwise the sessionId of the game instance
     score_player1 INTEGER NOT NULL DEFAULT 0,
     score_player2 INTEGER NOT NULL DEFAULT 0,
-    winner_id INTEGER NOT NULL,
+    winner_id INTEGER, -- NULL if match not finished, otherwise the id of the winner
     round TEXT, --NULL | SEMI_1 | SEMI_2 | LITTLE_FINAL | FINAL
     created_at INTEGER NOT NULL,
     FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
@@ -89,11 +89,6 @@ ON tournament_player(tournament_id, player_id);
     err,
   );
 }
-
-const addMatchStmt = db.prepare(`
-INSERT INTO match(tournament_id, player1, player2, score_player1, score_player2, winner_id, created_at)
-VALUES (?,?,?,?,?,?,?)
-`);
 
 const createTournamentStmt = db.prepare(`
 INSERT INTO tournament(creator_id, created_at)
@@ -176,27 +171,6 @@ const getPalyerStatsStmt = db.prepare(`
 SELECT *
 FROM match
 WHERE player1 = ? OR player2 = ?`);
-
-export function addMatch(match: MatchDTO): number {
-  try {
-    const idmatch = addMatchStmt.run(
-      match.tournament_id,
-      match.player1,
-      match.player2,
-      match.score_player1,
-      match.score_player2,
-      match.winner_id,
-      match.created_at,
-    );
-    return Number(idmatch.lastInsertRowid);
-  } catch (err: unknown) {
-    throw new AppError(
-      ERR_DEFS.DB_INSERT_ERROR,
-      { details: [{ field: `addMatch to tournament ${match.tournament_id}` }] },
-      err,
-    );
-  }
-}
 
 export function createTournament(player_id: number): number {
   try {
@@ -284,6 +258,7 @@ export function joinTournament(player_id: number, tournament_id: number) {
       addPlayerTournament(player_id, tournament_id);
       if (nbPlayers === 3) {
         changeStatusTournamentStmt.run('STARTED', tournament_id);
+        initializeTournamentMatchs(tournament_id);
       }
     });
     transaction();
@@ -295,6 +270,47 @@ export function joinTournament(player_id: number, tournament_id: number) {
       err,
     );
   }
+}
+
+const createMatchStmt = db.prepare(`
+INSERT INTO(tournanent_id, player1, player2, sessionId, round, create_at)
+VALUES(?,?,?,?,?)`);
+
+const getPlayersIdTournamentStmt = db.prepare(`
+SELECT player_id
+FROM tournament_player tp
+WHERE tournament_id = ?
+  `);
+
+function initializeTournamentMatchs(tournament_id: number) {
+  const players = getPlayersIdTournamentStmt.all(tournament_id) as { player_id: number }[];
+  if (players.length != 4) {
+    const errorDetail: ErrorDetail = {
+      field: `Invalid player count: ${tournament_id}`,
+      message: 'Tournament invalid player count',
+      reason: 'tournament_count_error',
+    };
+    throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
+  }
+  const date = Date.now();
+  const session1 = randomUUID();
+  const session2 = randomUUID();
+  createMatchStmt.run(
+    tournament_id,
+    players[0].player_id,
+    players[1].player_id,
+    session1,
+    'SEMI_1',
+    date,
+  );
+  createMatchStmt.run(
+    tournament_id,
+    players[2].player_id,
+    players[3].player_id,
+    session2,
+    'SEMI_2',
+    date,
+  );
 }
 
 export function showTournament(tournament_id: number) {
@@ -388,4 +404,54 @@ export function getSessionGame(tournamentId: number | null, userId: number | nul
       err,
     );
   }
+}
+
+const getMatchByIdStmt = db.prepare(`
+  SELECT tournament_id, player1, player2, round, winner_id
+  FROM match
+  WHERE id = ?`);
+
+const countFinishedSemisStmt = db.prepare<[number], CountResult>(`
+SELECT COUNT(*) AS count
+FROM match
+WHERE tournament_id = ?
+  AND round IN ('SEMI_1', 'SEMI_2')
+  AND winner_id IS NOT NULL;
+`);
+
+const getMatchByRound = db.prepare<[number, string], MathcRoundResult>(`
+SELECT player1, player2, winner_id
+FROM match
+WHERE tournament_id = ?
+  AND round = ?;
+`);
+
+function onMatchFinished(matchId: number) {
+  db.transaction(() => {
+    const match = getMatchByIdStmt.get(matchId) as {
+      tournament_id: number;
+      player1: number;
+      round: string;
+      winner_id: number;
+    };
+    if (!match) throw new Error('Match not found');
+    if (match.round !== 'SEMI_1' && match.round !== 'SEMI_2') return;
+    const semisFinished = countFinishedSemisStmt.get(match.tournament_id)!.count;
+    if (semisFinished !== 2) return;
+
+    // Récupérer gagnants et perdants
+    const semi1 = getMatchByRound.get(match.tournament_id, 'SEMI_1');
+    const semi2 = getMatchByRound.get(match.tournament_id, 'SEMI_2');
+
+    const winner1 = semi1?.winner_id;
+    const winner2 = semi2?.winner_id;
+
+    const loser1 = semi1?.player1 === winner1 ? semi1?.player2 : semi1?.player1;
+    const loser2 = semi2?.player1 === winner2 ? semi2?.player2 : semi2?.player1;
+
+    const now = Date.now();
+
+    createMatchStmt.run(match.tournament_id, winner1, winner2, randomUUID(), 'FINAL', now);
+    createMatchStmt.run(match.tournament_id, loser1, loser2, randomUUID(), 'LITTLE_FINAL', now);
+  })();
 }

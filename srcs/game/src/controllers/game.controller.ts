@@ -178,10 +178,6 @@ export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
   return reply.code(200).send(tournaments);
 }
 
-interface TournamentParams {
-  id: string;
-}
-
 export async function joinTournament(
   req: FastifyRequest<{ Params: TournamentParams }>,
   reply: FastifyReply,
