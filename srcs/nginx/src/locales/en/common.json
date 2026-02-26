@@ -6,7 +6,11 @@
     "signup": "Signup",
     "login": "Login",
     "show_password": "Show password",
-    "hide_password": "Hide password"
+    "hide_password": "Hide password",
+    "i_have_read": "I have read",
+    "and": "and",
+    "tos": "terms of service",
+    "privacy_policy": "privacy policy"
   },
   "oauth": {
     "continue_google": "Continue with Google",

@@ -18,6 +18,7 @@ import {
   WelcomeSchool42OAuthButton,
 } from '../../atoms/welcome/WelcomeOAuthButton';
 import { ValidationChecklist } from '../../atoms/welcome/ValidationChecklist';
+import Checkbox from '../../atoms/Checkbox';
 
 interface SignupState {
   fields?: {
@@ -50,7 +51,7 @@ const adjustErrorMessage = (
 
 async function signupAction(prevState: SignupState | null, formData: FormData) {
   const data = Object.fromEntries(formData);
-  const { email, username, password } = data as Record<string, string>;
+  const { email, username, password, acceptTerms } = data as Record<string, string>;
 
   const errors: Record<string, string> = {};
 
@@ -68,6 +69,10 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
       errors,
       success: false,
     };
+  }
+
+  if (!acceptTerms) {
+    errors.acceptTerms = i18next.t('errors.must_accept_terms');
   }
 
   try {
@@ -139,6 +144,7 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
   // States pour la validation en temps réel
   const [username, setUsername] = useState(state?.fields?.username || '');
   const [password, setPassword] = useState('');
+  const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {
     if (state?.success && state.fields?.username) {
@@ -194,6 +200,13 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
         validationContent={<ValidationChecklist value={password} type="password" />}
       />
 
+      <Checkbox
+        name="acceptTerms"
+        accepted={accepted}
+        onCheck={setAccepted}
+        errorMessage={state?.errors?.acceptTerms}
+      />
+
       <WelcomeButton className="mt-1" type="submit">
         {isPending ? t('form.processing') : t('auth.signup')}
       </WelcomeButton>
@@ -209,7 +222,7 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
         <button
           type="button"
           onClick={onToggleForm}
-          className="text-[#0088ff] hover:text-[#00ff9f] underline decoration-2 underline-offset-2 transition-colors font-semibold"
+          className="text-[#0088ff] hover:text-[#3040ca] underline decoration-1 underline-offset-2 transition-colors font-semibold"
         >
           {t('auth.login')}
         </button>
