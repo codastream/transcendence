@@ -7,11 +7,14 @@ import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
 import { WelcomePage } from './pages/WelcomePage';
 import { HomePage } from './pages/HomePage';
+import { OAuthCallback } from './pages/OAuthCallback';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { PlayAiPage } from './pages/PlayAiPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
+import TosPage from './pages/TosPage';
+import PrivacyPage from './pages/PrivacyPage';
 
 export const App = () => {
   return (
@@ -19,10 +22,15 @@ export const App = () => {
       <Routes>
         {/* Route publique sans guard — animation d'intro */}
         <Route path="/" element={<AnimationPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/tos" element={<TosPage />} />
 
         {/* Routes réservées aux non-authentifiés */}
         <Route element={<PublicRoute />}>
           <Route path="/welcome" element={<WelcomePage />} />
+          <Route path="/login" element={<WelcomePage />} />
+          <Route path="/register" element={<WelcomePage defaultMode="register" />} />
+          <Route path="/auth/oauth/:provider/callback" element={<OAuthCallback />} />
         </Route>
 
         {/* Routes protégées — authentification requise */}

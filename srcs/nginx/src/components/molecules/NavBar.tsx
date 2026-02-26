@@ -28,12 +28,14 @@ export const NavBar = () => {
 
   return (
     <nav
-      className={`mb-3 bg-teal-800/30 p-5 w-full flex flex-row ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
+      className={`mb-2 bg-teal-800/30 p-5 w-full flex flex-row sm:gap-4 ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
     >
       <div className="lg:text-3xl hidden sm:block group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
-        <span>Sp</span>
-        <span className="lowercase inline-block duration-500 group-hover:rotate-180">i</span>
-        <span>n Pong</span>
+        <Link to="/home">
+          <span>Sp</span>
+          <span className="lowercase inline-block duration-500 group-hover:rotate-180">i</span>
+          <span>n Pong</span>
+        </Link>
       </div>
       {user && isLoggedIn && (
         <>
