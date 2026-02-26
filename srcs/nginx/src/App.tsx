@@ -13,6 +13,7 @@ import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
 import { StatsPage } from './pages/StatsPage';
+import { HistoryPage } from './pages/HistoryPage';
 
 export const App = () => {
   return (
@@ -50,6 +51,7 @@ export const App = () => {
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
           <Route path="/game/pong-ai" element={<PlayAiPage />} />
           <Route path="/stats" element={<StatsPage />} />
+          <Route path="/history" element={<HistoryPage />} />
         </Route>
 
         {/* Catch-all — toute URL non reconnue */}
