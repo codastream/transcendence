@@ -10,15 +10,17 @@ import { randomUUID } from 'crypto';
 const DEFAULT_DIR = path.join(process.cwd(), 'data');
 const DB_PATH = env.GAME_DB_PATH || path.join(DEFAULT_DIR, 'game.db');
 
-// Check dir
-try {
-  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
-} catch (err: unknown) {
-  throw new AppError(
-    ERR_DEFS.SERVICE_GENERIC,
-    { details: [{ field: `Failed to ensure DB directory` }] },
-    err,
-  );
+// Only create directory for real file paths, not :memory:
+if (DB_PATH !== ':memory:') {
+  try {
+    fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.SERVICE_GENERIC,
+      { details: [{ field: `Failed to ensure DB directory` }] },
+      err,
+    );
+  }
 }
 
 export const db = new Database(DB_PATH);

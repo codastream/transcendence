@@ -131,6 +131,9 @@ services:
     container_name: ${GAME_SERVICE_NAME}
     expose:
       - '${GAME_SERVICE_PORT}'
+    environment:
+      - GAME_DB_PATH=:memory:
+      - NODE_ENV=test
     env_file:
       - path: ./.env
       - path: ./.env.game
