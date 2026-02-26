@@ -284,3 +284,8 @@ export async function getTournamentStats(req: FastifyRequest, reply: FastifyRepl
   const stats = db.getTournamentStats();
   return reply.code(200).send(stats);
 }
+
+export async function getMatchHistory(req: FastifyRequest, reply: FastifyReply) {
+  const history = db.getMatchHistory();
+  return reply.code(200).send(history);
+}
