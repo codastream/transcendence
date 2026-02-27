@@ -1,9 +1,9 @@
 {
-  "tagline": "Ce jeu, mon gars, ça va t’en boucher un coin !",
+  "tagline": "Ce jeu, mon gars, ça va t'en boucher un coin !",
   "auth": {
-    "hasAccount": "T’es déjà dans le coup ?",
-    "noAccount": "T’es un bleu ma parole !",
-    "signup": "S’inscrire (et devenir un vrai)",
+    "hasAccount": "T'es déjà dans le coup ?",
+    "noAccount": "T'es un bleu ma parole !",
+    "signup": "S'inscrire (et devenir un vrai)",
     "login": "Se pointer (avec les bons papiers)",
     "show_password": "Montre le mot de passe",
     "hide_password": "Planque le mot de passe",
@@ -30,12 +30,12 @@
     "callback_failed": "Raté l'authentification, mon vieux"
   },
   "fieldtype": {
-    "email": "l’adresse électronique (pour les lettres, quoi)",
+    "email": "l'adresse électronique (pour les lettres, quoi)",
     "username": "ton blaze",
     "password": "le code secret (faut pas le balancer à tout le monde, hein)",
     "username-email": "ton blaze ou ton adresse mail",
     "username-choose": "choisis-toi un blaze qui en jette",
-    "password-choose": "trouve toi un code secret (pas ‘1234’, hein, on est pas des amateurs)"
+    "password-choose": "trouve toi un code secret (pas '1234', hein, on est pas des amateurs)"
   },
   "form": {
     "processing": "On gère ça, mon pote…"
@@ -241,22 +241,22 @@
   },
   "errors": {
     "validation_mandatory": "Balance l'info",
-    "validation_error": "T’as tout foiré, mon pote. Vérifie tes papiers et recommence, sinon ça va barder.",
-    "unauthorized": "Faut te pointer correctement, sinon t’entres pas.",
-    "invalid_credentials": "T’as dû te gourer dans ton blaze ou ton code. Revoie ta copie.",
-    "forbidden": "Là, mon pote, t’as pas le niveau. Faut une autorisation et t'es pas sur la liste",
-    "not_found": "On a rien trouvé, mon vieux. T’es sûr de l’adresse ou du numéro ?",
-    "conflict": "Y’a déjà un gars avec ce blaze ou cette adresse. Trouve-toi un truc unique, sinon ça va chauffer.",
-    "rate_limit_exceeded": "T’as trop tiré sur la corde, là. Reviens dans quelques minutes, on sera plus cool.",
-    "mfa_required": "Faut un double contrôle, mon gars. Sors ton code MFA ou configure-le, sinon c’est mort.",
+    "validation_error": "T'as tout foiré, mon pote. Vérifie tes papiers et recommence, sinon ça va barder.",
+    "unauthorized": "Faut te pointer correctement, sinon t'entres pas.",
+    "invalid_credentials": "T'as dû te gourer dans ton blaze ou ton code. Revoie ta copie.",
+    "forbidden": "Là, mon pote, t'as pas le niveau. Faut une autorisation et t'es pas sur la liste",
+    "not_found": "On a rien trouvé, mon vieux. T'es sûr de l'adresse ou du numéro ?",
+    "conflict": "Y'a déjà un gars avec ce blaze ou cette adresse. Trouve-toi un truc unique, sinon ça va chauffer.",
+    "rate_limit_exceeded": "T'as trop tiré sur la corde, là. Reviens dans quelques minutes, on sera plus cool.",
+    "mfa_required": "Faut un double contrôle, mon gars. Sors ton code MFA ou configure-le, sinon c'est mort.",
     "invalid_mfa_code": "Ton code MFA, il est foireux. Vérifie et retente.",
-    "internal_error": "Putain, y’a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous.",
+    "internal_error": "Putain, y'a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous.",
     "friend_self_add": "Tu peux pas t'ajouter toi-meme, vieux. Choisis un autre tandem.",
     "friend_already": "T'es déjà pote, mon vieux !"
   },
   "navbar": {
     "home": "Le bercail",
-    "about": "C’est quoi ce b%@#*l ?",
+    "about": "C'est quoi ce b%@#*l ?",
     "play": "C'est parti!",
     "play_friend": "Affronter un pote",
     "play_ai": "Se frotter au machin",
@@ -286,11 +286,12 @@
   "footer": {
     "copyright": "© 2026 – C'est à nous.",
     "privacyPolicy": "La loi du milieu (on balance rien, t'es en sécurité)",
-    "termsOfService": "Les règles du jeu (lis ça, sinon t’es un rigolo)"
+    "termsOfService": "Les règles du jeu (lis ça, sinon t'es un rigolo)"
   },
   "game": {
     "playWithAI": "Défie le machin",
-    "playWithFriends": "Joue avec tes potes",
+    "playRemote": "Joue a 2 sur cette becane",
+    "playLocal": "Joue avec tes potes en remote",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
     "participate": "Tu cherches des embrouilles!",
@@ -315,5 +316,30 @@
     "waitiing": "On t'attend...",
     "creating": "Création de la vendetta...",
     "tournament_full": "Cette vendetta est complete(maximum 4 truands)."
+  },
+  "stats": {
+    "title": "Le palmarès des joueurs",
+    "loading": "On compile les stats, laisse nous faire...",
+    "empty": "Y'a personne pour l'instant, c'est le désert ici.",
+    "player": "Le gars",
+    "tournaments_played": "Vendettas jouées",
+    "tournaments_won": "Vendettas gagnées",
+    "matches_played": "Matchs joués",
+    "matches_won": "Matchs remportés"
+  },
+  "history": {
+    "title": "Les combats passés",
+    "empty": "Aucun combat pour l'instant, c'est calme.",
+    "round": "Tour",
+    "player1": "Le gars 1",
+    "score": "Score",
+    "player2": "Le gars 2",
+    "winner": "Le vainqueur",
+    "tournament": "Vendetta",
+    "free_match": "Match impro",
+    "semi1": "Demi 1",
+    "semi2": "Demi 2",
+    "little_final": "Les losers",
+    "final": "Le combat final"
   }
 }

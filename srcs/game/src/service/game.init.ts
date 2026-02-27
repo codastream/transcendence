@@ -7,16 +7,25 @@ import { WebSocket } from 'ws';
 
 // return the sessionData (incuding the game var) for a sessionId. If no Data at this sessionId, create new sessionData.
 // If a socket is given, add it to the players list of the sessionData, if not, just return the sessionData at sessionId.
-export function getGame(this: FastifyInstance, socket: WebSocket | null, sessionId: any): any {
+export function getGame(
+  this: FastifyInstance,
+  socket: WebSocket | null,
+  sessionId: any,
+  sessionMode: string | null,
+): any {
   let sessionData = gameSessions.get(sessionId);
 
   if (!sessionData) {
+    if (!sessionMode) {
+      return null;
+    }
     let game = new PongGame(sessionId);
     sessionData = {
       id: sessionId,
       game: game,
       interval: null,
       players: new Map(),
+      gameMode: sessionMode,
     };
     gameSessions.set(sessionId, sessionData);
     this.log.info(`[${sessionId}] Game session created via WebSocket`);

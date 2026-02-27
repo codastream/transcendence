@@ -17,6 +17,18 @@ export function registerGameRoutes(app: FastifyInstance) {
     return res;
   });
 
+  app.delete('/del/:sessionId', async (request, reply) => {
+    app.log.info({ event: 'game_delete_session', remote: 'game', url: '/del/:sessionId' });
+    const { sessionId } = request.params as { sessionId: string };
+    const res = await proxyRequest(
+      app,
+      request,
+      reply,
+      `${GATEWAY_CONFIG.SERVICES.GAME}/del/${sessionId}`,
+    );
+    return res;
+  });
+
   app.post('/settings', async (request, reply) => {
     app.log.info({ event: 'game_settings', remote: 'game', url: '/settings' });
     const res = await proxyRequest(
@@ -39,17 +51,17 @@ export function registerGameRoutes(app: FastifyInstance) {
     return res;
   });
 
-  // // WebSocket proxy route for /api/game/ws
-  app.get('/ws', { websocket: true }, (connection: any, request: FastifyRequest) => {
-    webSocketProxyRequest(app, connection, request, '/ws');
-  });
+  // // // WebSocket proxy route for /api/game/ws
+  // app.get('/ws', { websocket: true }, (connection: any, request: FastifyRequest) => {
+  //   webSocketProxyRequest(app, connection, request, '/ws');
+  // });
 
   // WebSocket proxy route for /api/game/:sessionId (dynamic session IDs)
   // add ws because /:sessionId  intercept all routes
   app.get('/ws/:sessionId', { websocket: true }, (connection: any, request: FastifyRequest) => {
     const { sessionId } = request.params as { sessionId: string };
     const socket = connection.socket ?? connection; // handles both version of ws
-    webSocketProxyRequest(app, socket, request, `/${sessionId}`);
+    webSocketProxyRequest(app, socket, request, `/ws/${sessionId}`);
   });
 
   app.all('/*', async (request, reply) => {

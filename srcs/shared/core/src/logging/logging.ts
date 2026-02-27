@@ -116,6 +116,7 @@ export const LOG_REASONS = {
   },
   TOURNAMENT: {
     FULL: 'tournament_full',
+    COUNT: 'tournament_count_error',
     DOESNT_EXIST: 'tournament_doesnt_exist',
   },
   UNKNOWN: 'unknown_reason',

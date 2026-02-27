@@ -5,9 +5,9 @@ include make/config.mk
 all : volumes certs colima install build
 	$(D_COMPOSE) up -d
 
-
 dev: volumes colima build-dev
 	$(D_COMPOSE_DEV) up -d
+
 ai: volumes certs colima
 	npm i
 	COMPOSE_PROFILES=ai $(D_COMPOSE) build

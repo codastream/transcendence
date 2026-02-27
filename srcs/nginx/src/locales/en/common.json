@@ -273,8 +273,9 @@
     "termsOfService": "Terms of Service"
   },
   "game": {
-    "playWithAI": "Play with AI",
-    "playWithFriends": "Play with Friends",
+    "playWithAi": "Play with AI",
+    "playRemote": "Remote Game",
+    "playLocal": "Local Game",
     "tournament": "Tournament",
     "game": "Game",
     "participate": "Participate",
@@ -299,5 +300,30 @@
     "waitiing": "Waiting...",
     "creating": "Creating tournament...",
     "tournament_full": "This tournament is full(maximum 4 players)."
+  },
+  "stats": {
+    "title": "Player Statistics",
+    "loading": "Loading...",
+    "empty": "No players yet.",
+    "player": "Player",
+    "tournaments_played": "Tournaments Played",
+    "tournaments_won": "Tournaments Won",
+    "matches_played": "Matches Played",
+    "matches_won": "Matches Won"
+  },
+  "history": {
+    "title": "Match History",
+    "empty": "No matches yet.",
+    "round": "Round",
+    "player1": "Player 1",
+    "score": "Score",
+    "player2": "Player 2",
+    "winner": "Winner",
+    "tournament": "Tournament",
+    "free_match": "Free",
+    "semi1": "Semi-final 1",
+    "semi2": "Semi-final 2",
+    "little_final": "3rd Place",
+    "final": "Final"
   }
 }
