@@ -15,6 +15,8 @@ import { PublicRoute } from './router/PublicRoute';
 import { StatsPage } from './pages/StatsPage';
 import { HistoryPage } from './pages/HistoryPage';
 import TournamentLayout from './components/organisms/TournamentLayout';
+import TosPage from './pages/TosPage';
+import PrivacyPage from './pages/PrivacyPage';
 
 export const App = () => {
   return (
@@ -22,6 +24,8 @@ export const App = () => {
       <Routes>
         {/* Route publique sans guard — animation d'intro */}
         <Route path="/" element={<AnimationPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/tos" element={<TosPage />} />
 
         {/* Routes réservées aux non-authentifiés */}
         <Route element={<PublicRoute />}>
@@ -51,8 +55,6 @@ export const App = () => {
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
           <Route path="/game/pong-ai" element={<PlayAiPage />} />
-
-          {/* Stats & History — wrapped with TournamentLayout for consistent styling */}
           <Route element={<TournamentLayout />}>
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/history" element={<HistoryPage />} />

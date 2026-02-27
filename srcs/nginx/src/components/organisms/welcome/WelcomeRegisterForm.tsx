@@ -18,6 +18,7 @@ import {
   WelcomeSchool42OAuthButton,
 } from '../../atoms/welcome/WelcomeOAuthButton';
 import { ValidationChecklist } from '../../atoms/welcome/ValidationChecklist';
+import Checkbox from '../../atoms/Checkbox';
 
 interface SignupState {
   fields?: {
@@ -29,6 +30,7 @@ interface SignupState {
     username?: string;
     password?: string;
     form?: string;
+    acceptTerms?: string;
   };
   success?: boolean;
 }
@@ -50,7 +52,7 @@ const adjustErrorMessage = (
 
 async function signupAction(prevState: SignupState | null, formData: FormData) {
   const data = Object.fromEntries(formData);
-  const { email, username, password } = data as Record<string, string>;
+  const { email, username, password, acceptTerms } = data as Record<string, string>;
 
   const errors: Record<string, string> = {};
 
@@ -68,6 +70,10 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
       errors,
       success: false,
     };
+  }
+
+  if (!acceptTerms) {
+    errors.acceptTerms = i18next.t('errors.must_accept_terms');
   }
 
   try {
@@ -139,6 +145,7 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
   // States pour la validation en temps réel
   const [username, setUsername] = useState(state?.fields?.username || '');
   const [password, setPassword] = useState('');
+  const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {
     if (state?.success && state.fields?.username) {
@@ -156,11 +163,11 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
 
       {/* Separator */}
       <div className="relative flex items-center py-1">
-        <div className="flex-grow border-t border-gray-300"></div>
-        <span className="flex-shrink mx-2 text-gray-600 text-[10px] font-bold tracking-widest bg-gradient-to-r from-gray-100 to-gray-50 px-1.5 py-0.5 rounded-full border border-gray-200 shadow-sm">
+        <div className="grow border-t border-gray-300"></div>
+        <span className="shrink mx-2 text-gray-600 text-[10px] font-bold tracking-widest bg-gradient-to-r from-gray-100 to-gray-50 px-1.5 py-0.5 rounded-full border border-gray-200 shadow-sm">
           {t('oauth.or_separator')}
         </span>
-        <div className="flex-grow border-t border-gray-300"></div>
+        <div className="grow border-t border-gray-300"></div>
       </div>
 
       {/* Traditional Registration Form */}
@@ -194,6 +201,13 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
         validationContent={<ValidationChecklist value={password} type="password" />}
       />
 
+      <Checkbox
+        name="acceptTerms"
+        accepted={accepted}
+        onCheck={setAccepted}
+        errorMessage={state?.errors?.acceptTerms}
+      />
+
       <WelcomeButton className="mt-1" type="submit">
         {isPending ? t('form.processing') : t('auth.signup')}
       </WelcomeButton>
@@ -209,7 +223,7 @@ export const WelcomeRegisterForm = ({ onToggleForm }: { onToggleForm?: () => voi
         <button
           type="button"
           onClick={onToggleForm}
-          className="text-[#0088ff] hover:text-[#00ff9f] underline decoration-2 underline-offset-2 transition-colors font-semibold"
+          className="text-[#0088ff] hover:text-[#3040ca] underline decoration-1 underline-offset-2 transition-colors font-semibold"
         >
           {t('auth.login')}
         </button>

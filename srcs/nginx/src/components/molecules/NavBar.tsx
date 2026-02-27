@@ -39,15 +39,9 @@ export const NavBar = () => {
       </div>
       {user && isLoggedIn && (
         <>
-          <Link to="/game/local">
-            <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7}></MenuElement>
-          </Link>
-          <Link to="/stats">
-            <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
-          </Link>
-          <Link to="/me">
-            <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
-          </Link>
+          <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7}></MenuElement>
+          <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
+          <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
         </>
       )}
 
