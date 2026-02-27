@@ -11,6 +11,7 @@ import { TwoFactorPage } from './pages/TwoFactorPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
+import { TwoFactorRoute } from './router/TwoFactorRoute';
 
 export const App = () => {
   return (
@@ -25,6 +26,10 @@ export const App = () => {
           <Route path="/login" element={<WelcomePage />} />
           <Route path="/register" element={<WelcomePage defaultMode="register" />} />
           <Route path="/auth/oauth/:provider/callback" element={<OAuthCallback />} />
+        </Route>
+
+        {/* Route 2FA — accès contrôlé par TwoFactorRoute (pending2FA requis) */}
+        <Route element={<TwoFactorRoute />}>
           <Route path="/2fa" element={<TwoFactorPage />} />
         </Route>
 

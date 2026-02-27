@@ -21,55 +21,81 @@
  * - Navigation gérée automatiquement par PublicRoute
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../providers/AuthProvider';
-import { twoFactorService } from '../services/twoFactorService';
 import { authApi } from '../api/auth-api';
-import { FrontendError, ERROR_CODES, HTTP_STATUS } from '@transcendence/core';
+import { FrontendError, ERROR_CODES } from '@transcendence/core';
 import Background from '../components/atoms/Background';
 import { NavBar } from '../components/molecules/NavBar';
-import i18next from 'i18next';
 
 const colors = {
   start: '#00ff9f',
   end: '#0088ff',
 };
 
+interface ErrorKey {
+  key: string;
+  params?: Record<string, unknown>;
+}
+
 interface TwoFactorState {
   code: string;
-  error: string | null;
+  error: ErrorKey | null;
   isSubmitting: boolean;
-  success: boolean;
-  username: string | null;
+  showApps: boolean;
+  showHelp: boolean;
 }
+
+const TOTP_APPS = [
+  {
+    name: 'Google Authenticator',
+    icon: '🔐',
+    platforms: 'iOS & Android',
+    url: 'https://support.google.com/accounts/answer/1066447',
+  },
+  {
+    name: 'Authy',
+    icon: '🛡️',
+    platforms: 'iOS, Android & Desktop',
+    url: 'https://authy.com/download/',
+  },
+  {
+    name: 'Microsoft Authenticator',
+    icon: '🪟',
+    platforms: 'iOS & Android',
+    url: 'https://www.microsoft.com/fr-fr/security/mobile-authenticator-app',
+  },
+  {
+    name: 'Bitwarden Authenticator',
+    icon: '🔒',
+    platforms: 'iOS & Android',
+    url: 'https://bitwarden.com/products/authenticator/',
+  },
+];
 
 export const TwoFactorPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, clearPending2FA, pending2FA } = useAuth();
 
   const [state, setState] = useState<TwoFactorState>({
     code: '',
     error: null,
     isSubmitting: false,
-    success: false,
-    username: null,
+    showApps: false,
+    showHelp: false,
   });
 
-  // Vérification de la présence d'un contexte 2FA valide
+  // Timer de redirection après erreur fatale — annulé proprement au démontage
+  // (fermeture d'onglet, navigation extérieure, etc.)
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    const context = twoFactorService.getPendingContext();
-
-    if (!context) {
-      // Pas de contexte valide → redirection vers welcome
-      navigate('/welcome', { replace: true });
-      return;
-    }
-
-    // Contexte valide → on peut afficher la page
-  }, [navigate]);
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +104,7 @@ export const TwoFactorPage = () => {
     if (state.code.length !== 6 || !/^\d{6}$/.test(state.code)) {
       setState((prev) => ({
         ...prev,
-        error: t('2fa.invalid_code_format'),
+        error: { key: `errors.${ERROR_CODES.INVALID_CODE_FORMAT}` },
       }));
       return;
     }
@@ -86,55 +112,65 @@ export const TwoFactorPage = () => {
     setState((prev) => ({ ...prev, isSubmitting: true, error: null }));
 
     try {
-      // Appel API pour valider le code OTP
       const username = await authApi.verify2FALogin(state.code);
 
-      // Succès : effacer le contexte temporaire
-      twoFactorService.clearPendingContext();
+      // Lire la destination avant de clear le contexte
+      const from = pending2FA?.from;
+      clearPending2FA();
+      login({ username, avatarUrl: null });
 
-      // Marquer comme succès avec le username
-      setState((prev) => ({ ...prev, success: true, username, isSubmitting: false }));
+      // Destination : page originale si disponible, /home sinon
+      const destination = from?.pathname ? `${from.pathname}${from.search ?? ''}` : '/home';
+      navigate(destination, { replace: true });
     } catch (err: unknown) {
-      let errorMessage = i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
+      let errorKey: ErrorKey = { key: `errors.${ERROR_CODES.INTERNAL_ERROR}` };
 
       if (err instanceof FrontendError) {
-        if (err.statusCode === HTTP_STATUS.UNAUTHORIZED) {
-          errorMessage = t('2fa.invalid_code');
-        } else if (err.statusCode === HTTP_STATUS.BAD_REQUEST) {
-          errorMessage = t('2fa.invalid_code_format');
-        } else {
-          errorMessage = err.message || errorMessage;
+        switch (err.code) {
+          // Erreurs fatales — session détruite côté serveur
+          case ERROR_CODES.LOGIN_SESSION_EXPIRED:
+          case ERROR_CODES.TOO_MANY_ATTEMPTS: {
+            clearPending2FA();
+            errorKey = { key: `errors.${err.code}` };
+            setState((prev) => ({ ...prev, error: errorKey, isSubmitting: false, code: '' }));
+            // Laisser 2,5s à l'utilisateur pour lire le message
+            // Le timer est annulé proprement si le composant se démonte
+            redirectTimerRef.current = setTimeout(() => {
+              navigate('/welcome', { replace: true });
+            }, 2500);
+            return;
+          }
+
+          // Code incorrect — afficher tentatives restantes
+          case ERROR_CODES.INVALID_2FA_CODE: {
+            const remaining =
+              typeof err.meta?.remainingAttempts === 'number' ? err.meta.remainingAttempts : null;
+            errorKey =
+              remaining !== null
+                ? { key: '2fa.invalid_code_with_attempts', params: { count: remaining } }
+                : { key: `errors.${ERROR_CODES.INVALID_2FA_CODE}` };
+            break;
+          }
+
+          case ERROR_CODES.INVALID_CODE_FORMAT:
+          case ERROR_CODES.MISSING_PARAMETERS:
+            errorKey = { key: `errors.${ERROR_CODES.INVALID_CODE_FORMAT}` };
+            break;
+
+          default:
+            errorKey = { key: `errors.${ERROR_CODES.INTERNAL_ERROR}` };
+            break;
         }
       }
 
-      setState((prev) => ({
-        ...prev,
-        error: errorMessage,
-        isSubmitting: false,
-        code: '', // Reset le code en cas d'erreur
-      }));
+      setState((prev) => ({ ...prev, error: errorKey, isSubmitting: false, code: '' }));
     }
   };
 
   const handleCancel = () => {
-    // Effacer le contexte temporaire
-    twoFactorService.clearPendingContext();
-    // Redirection vers welcome
+    clearPending2FA();
     navigate('/welcome', { replace: true });
   };
-
-  // Effet pour déclencher le login après succès
-  useEffect(() => {
-    if (state.success && state.username) {
-      login({
-        username: state.username,
-        avatarUrl: null,
-      });
-      // PublicRoute gère la redirection automatique vers /home
-    }
-  }, [state.success, state.username, login]);
-
-  const context = twoFactorService.getPendingContext();
 
   return (
     <div className="w-full h-full relative">
@@ -171,9 +207,9 @@ export const TwoFactorPage = () => {
               </h1>
               <p className="text-sm text-gray-600">
                 {t('2fa.subtitle')}
-                {context?.username && (
+                {pending2FA?.username && (
                   <span className="block mt-1 font-semibold text-cyan-600">
-                    {context.username}
+                    {pending2FA.username}
                   </span>
                 )}
               </p>
@@ -183,9 +219,75 @@ export const TwoFactorPage = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* OTP Input */}
               <div>
-                <label htmlFor="otp-code" className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('2fa.code_label')}
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label htmlFor="otp-code" className="block text-sm font-medium text-gray-700">
+                    {t('2fa.code_label')}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setState((prev) => ({ ...prev, showApps: !prev.showApps, showHelp: false }))
+                    }
+                    className="inline-flex items-center gap-1 text-xs text-cyan-600 hover:text-cyan-800 font-medium transition-colors"
+                  >
+                    <svg
+                      className="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
+                      />
+                    </svg>
+                    {t('2fa.apps_button')}
+                  </button>
+                </div>
+
+                {/* Apps popover */}
+                {state.showApps && (
+                  <div className="mb-3 bg-cyan-50 border border-cyan-200 rounded-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <p className="text-xs font-semibold text-cyan-700 mb-2">
+                      {t('2fa.apps_title')}
+                    </p>
+                    <div className="space-y-2">
+                      {TOTP_APPS.map((app) => (
+                        <a
+                          key={app.name}
+                          href={app.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 p-2 rounded-lg bg-white hover:bg-cyan-100 transition-colors group"
+                        >
+                          <span className="text-base">{app.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-gray-800 group-hover:text-cyan-700 transition-colors">
+                              {app.name}
+                            </p>
+                            <p className="text-xs text-gray-500">{app.platforms}</p>
+                          </div>
+                          <svg
+                            className="w-3 h-3 text-gray-400 group-hover:text-cyan-600 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <input
                   id="otp-code"
                   type="text"
@@ -198,7 +300,7 @@ export const TwoFactorPage = () => {
                   }
                   disabled={state.isSubmitting}
                   autoFocus
-                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border-2 border-gray-300 rounded-xl focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest text-gray-900 bg-white border-2 border-gray-300 rounded-xl focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   placeholder="000000"
                 />
               </div>
@@ -206,7 +308,7 @@ export const TwoFactorPage = () => {
               {/* Error Message */}
               {state.error && (
                 <div className="bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm font-medium animate-in fade-in slide-in-from-top-2 duration-300">
-                  {state.error}
+                  {t(state.error.key, state.error.params)}
                 </div>
               )}
 
@@ -230,9 +332,62 @@ export const TwoFactorPage = () => {
               </div>
             </form>
 
-            {/* Info */}
-            <div className="mt-6 text-center text-xs text-gray-500">
-              <p>{t('2fa.help_text')}</p>
+            {/* Info + Help */}
+            <div className="mt-6 space-y-3">
+              <div className="text-center text-xs text-gray-500">
+                <p>{t('2fa.help_text')}</p>
+              </div>
+
+              {/* Code oublié */}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setState((prev) => ({ ...prev, showHelp: !prev.showHelp, showApps: false }))
+                  }
+                  className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-800 font-medium transition-colors"
+                >
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  {t('2fa.forgot_code')}
+                </button>
+
+                {state.showHelp && (
+                  <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl p-3 text-left animate-in fade-in slide-in-from-top-2 duration-200">
+                    <p className="text-xs text-amber-800 mb-2">{t('2fa.forgot_help_text')}</p>
+                    <a
+                      href="/faq"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2 transition-colors"
+                    >
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {t('2fa.faq_link')}
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@ import {
   WelcomeGoogleOAuthButton,
   WelcomeSchool42OAuthButton,
 } from '../../atoms/welcome/WelcomeOAuthButton';
-import { useTwoFactorRedirect } from '../../../hooks/useTwoFactorRedirect';
+import { useLocation } from 'react-router-dom';
 
 interface LoginState {
   fields?: {
@@ -116,16 +116,12 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
 /**
  * WelcomeLoginForm - Formulaire de connexion pour WelcomePage
  * Style: Atome avec gradient cyan/bleu
- *
- * Gère le flux 2FA automatiquement via useTwoFactorRedirect()
  */
 export const WelcomeLoginForm = ({ onToggleForm }: { onToggleForm?: () => void }) => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(loginAction, null);
-  const { login, triggerTwoFactor } = useAuth();
-
-  // Hook de redirection automatique vers /2fa
-  useTwoFactorRedirect();
+  const { login, setPending2FA } = useAuth();
+  const location = useLocation();
 
   // Effet pour login normal (sans 2FA)
   useEffect(() => {
@@ -137,12 +133,16 @@ export const WelcomeLoginForm = ({ onToggleForm }: { onToggleForm?: () => void }
   // Effet pour déclencher le flux 2FA
   useEffect(() => {
     if (state && 'require2FA' in state && state.require2FA && state.twoFactorContext) {
-      triggerTwoFactor({
+      const from = (location.state as { from?: { pathname: string; search?: string } } | null)
+        ?.from;
+      setPending2FA({
         username: state.twoFactorContext.username,
-        expiresIn: state.twoFactorContext.expiresIn,
+        provider: 'local',
+        expiresAt: Date.now() + state.twoFactorContext.expiresIn * 1000,
+        from: from ?? null,
       });
     }
-  }, [state, triggerTwoFactor]);
+  }, [state, setPending2FA, location.state]);
 
   return (
     <form action={formAction} className="flex flex-col gap-2">

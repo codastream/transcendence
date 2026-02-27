@@ -29,12 +29,6 @@ export enum Roles {
   ADMIN = 'admin',
 }
 
-export interface TwoFactorContext {
-  username: string;
-  provider?: 'google' | 'school42';
-  expiresIn: number;
-}
-
 export interface AuthContextType {
   user: ProfileSimpleDTO | null;
   isLoggedIn: boolean;
@@ -44,9 +38,11 @@ export interface AuthContextType {
   updateUser: (newUser: ProfileSimpleDTO) => void;
   markAnimAsSeen: () => void;
   hasSeenAnim: boolean;
-  twoFactorContext: TwoFactorContext | null;
-  triggerTwoFactor: (context: TwoFactorContext) => void;
-  clearTwoFactor: () => void;
+  pending2FA: import('./twoFactor.types').TwoFactorPendingContext | null;
+  /** true si pending2FA existe et n'est pas expiré */
+  hasPending2FA: boolean;
+  setPending2FA: (ctx: import('./twoFactor.types').TwoFactorPendingContext) => void;
+  clearPending2FA: () => void;
 }
 
 export interface AuthProviderProps {

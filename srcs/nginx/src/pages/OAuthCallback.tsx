@@ -13,8 +13,6 @@
  * - useEffect surveille success → appelle login()
  * - PublicRoute gère la navigation automatiquement
  * - Aucune logique métier dans le composant
- *
- * Gère le flux 2FA automatiquement via useTwoFactorRedirect()
  */
 
 import { useEffect, useState } from 'react';
@@ -24,7 +22,6 @@ import Background from '../components/atoms/Background';
 import { NavBar } from '../components/molecules/NavBar';
 import { oauthCallbackAction, OAuthCallbackState } from '../api/oauthActions';
 import { useAuth } from '../providers/AuthProvider';
-import { useTwoFactorRedirect } from '../hooks/useTwoFactorRedirect';
 
 const colors = {
   start: '#00ff9f',
@@ -38,12 +35,9 @@ export const OAuthCallback = () => {
   const navigate = useNavigate();
   const { provider } = useParams<{ provider: OAuthProvider }>();
   const [searchParams] = useSearchParams();
-  const { login, triggerTwoFactor } = useAuth();
+  const { login, setPending2FA } = useAuth();
 
-  // Hook de redirection automatique vers /2fa
-  useTwoFactorRedirect();
-
-  // État local
+  // State local
   const [state, setState] = useState<OAuthCallbackState>({
     status: 'loading',
   });
@@ -86,13 +80,14 @@ export const OAuthCallback = () => {
   // Effet pour déclencher le flux 2FA
   useEffect(() => {
     if (state.status === 'require2fa' && state.twoFactorContext) {
-      triggerTwoFactor({
+      setPending2FA({
         username: state.twoFactorContext.username,
         provider: state.twoFactorContext.provider,
-        expiresIn: state.twoFactorContext.expiresIn,
+        expiresAt: Date.now() + state.twoFactorContext.expiresIn * 1000,
+        from: null,
       });
     }
-  }, [state.status, state.twoFactorContext, triggerTwoFactor]);
+  }, [state.status, state.twoFactorContext, setPending2FA]);
 
   return (
     <div className="w-full h-full relative">

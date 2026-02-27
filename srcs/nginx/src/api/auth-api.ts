@@ -14,11 +14,7 @@ import {
 } from '@transcendence/core';
 import api from './api-client';
 import i18next from 'i18next';
-import {
-  Setup2FAResponse,
-  TwoFactorStatus,
-  Require2FAResponse,
-} from '../types/twoFactor.types';
+import { Setup2FAResponse, TwoFactorStatus, Require2FAResponse } from '../types/twoFactor.types';
 
 /**
  * Type de retour pour login : soit username, soit signal 2FA requis
@@ -184,7 +180,7 @@ export const authApi = {
    */
   verify2FALogin: async (code: string): Promise<usernameDTO> => {
     const { data } = await api.post('/auth/2fa/verify', { code });
-    return data.user?.username;
+    return data.result?.username;
   },
 
   /**

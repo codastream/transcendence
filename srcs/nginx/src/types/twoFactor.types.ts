@@ -13,9 +13,11 @@ export interface TwoFactorPendingContext {
   /** Username de l'utilisateur en cours d'authentification */
   username: string;
   /** Provider OAuth si authentification via OAuth, null sinon */
-  provider?: 'google' | 'school42' | null;
+  provider?: 'local' | 'google' | 'school42' | null;
   /** Timestamp d'expiration du contexte (en ms) */
   expiresAt: number;
+  /** Destination originale à restaurer après 2FA (issue de location.state.from) */
+  from?: { pathname: string; search?: string } | null;
 }
 
 /**

@@ -115,7 +115,7 @@ export async function registerHandler(
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: {
         message: "Une erreur interne s'est produite. Veuillez réessayer plus tard.",
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -505,7 +505,7 @@ export async function setup2FAHandler(
   if (!token) {
     logger.warn({ event: '2fa_setup_token_missing' });
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
-      error: { message: 'Authentication required', code: 'TOKEN_MISSING' },
+      error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
     });
   }
 
@@ -521,7 +521,7 @@ export async function setup2FAHandler(
       return reply.code(HTTP_STATUS.CONFLICT).send({
         error: {
           message: '2FA is already enabled. Disable it first to reconfigure.',
-          code: 'TOTP_ALREADY_ENABLED',
+          code: ERROR_CODES.TOTP_ALREADY_ENABLED,
         },
       });
     }
@@ -553,12 +553,12 @@ export async function setup2FAHandler(
 
     if (err.message && err.message.includes('jwt')) {
       return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
-        error: { message: 'Invalid or expired token', code: 'INVALID_TOKEN' },
+        error: { message: 'Invalid or expired token', code: ERROR_CODES.INVALID_TOKEN },
       });
     }
 
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
-      error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' },
+      error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
   }
 }
@@ -581,7 +581,7 @@ export async function verify2FASetupHandler(
   if (!setupToken || !code) {
     logger.warn({ event: '2fa_setup_verify_missing_data' });
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
-      error: { message: 'Code is required', code: 'MISSING_PARAMETERS' },
+      error: { message: 'Code is required', code: ERROR_CODES.MISSING_PARAMETERS },
     });
   }
 
@@ -589,7 +589,7 @@ export async function verify2FASetupHandler(
   if (!/^\d{6}$/.test(code)) {
     logger.warn({ event: '2fa_setup_verify_invalid_format' });
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
-      error: { message: 'Code must be 6 digits', code: 'INVALID_CODE_FORMAT' },
+      error: { message: 'Code must be 6 digits', code: ERROR_CODES.INVALID_CODE_FORMAT },
     });
   }
 
@@ -602,7 +602,7 @@ export async function verify2FASetupHandler(
       return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
         error: {
           message: 'Setup session expired or invalid. Please restart the setup process.',
-          code: 'SETUP_SESSION_EXPIRED',
+          code: ERROR_CODES.SETUP_SESSION_EXPIRED,
         },
       });
     }
@@ -617,7 +617,7 @@ export async function verify2FASetupHandler(
       return reply.code(HTTP_STATUS.TOO_MANY_REQUESTS).send({
         error: {
           message: `Too many failed attempts (${attempts}/${AUTH_CONFIG.MAX_LOGIN_TOKEN_ATTEMPTS}). Please restart the setup process.`,
-          code: 'TOO_MANY_ATTEMPTS',
+          code: ERROR_CODES.TOO_MANY_ATTEMPTS,
         },
       });
     }
@@ -640,7 +640,7 @@ export async function verify2FASetupHandler(
       return reply.code(HTTP_STATUS.BAD_REQUEST).send({
         error: {
           message: `Invalid 2FA code. ${remainingAttempts} attempt(s) remaining.`,
-          code: 'INVALID_2FA_CODE',
+          code: ERROR_CODES.INVALID_2FA_CODE,
           remainingAttempts,
         },
       });
@@ -657,7 +657,7 @@ export async function verify2FASetupHandler(
     if (!user) {
       logger.error({ event: '2fa_setup_verify_user_not_found', userId });
       return reply.code(HTTP_STATUS.NOT_FOUND).send({
-        error: { message: 'User not found', code: 'USER_NOT_FOUND' },
+        error: { message: 'User not found', code: ERROR_CODES.USER_NOT_FOUND_2FA },
       });
     }
 
@@ -681,7 +681,7 @@ export async function verify2FASetupHandler(
   } catch (err: any) {
     logger.error({ event: '2fa_setup_verify_error', err: err?.message || err });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
-      error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' },
+      error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
   }
 }
@@ -706,7 +706,7 @@ export async function verify2FAHandler(
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
       error: {
         message: 'Code is required and login session must be active',
-        code: 'MISSING_PARAMETERS',
+        code: ERROR_CODES.MISSING_PARAMETERS,
       },
     });
   }
@@ -715,7 +715,7 @@ export async function verify2FAHandler(
   if (!/^\d{6}$/.test(code)) {
     logger.warn({ event: '2fa_verify_invalid_format' });
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
-      error: { message: 'Code must be 6 digits', code: 'INVALID_CODE_FORMAT' },
+      error: { message: 'Code must be 6 digits', code: ERROR_CODES.INVALID_CODE_FORMAT },
     });
   }
 
@@ -728,7 +728,7 @@ export async function verify2FAHandler(
       return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
         error: {
           message: 'Login session expired. Please login again.',
-          code: 'LOGIN_SESSION_EXPIRED',
+          code: ERROR_CODES.LOGIN_SESSION_EXPIRED,
         },
       });
     }
@@ -743,7 +743,7 @@ export async function verify2FAHandler(
       return reply.code(HTTP_STATUS.TOO_MANY_REQUESTS).send({
         error: {
           message: `Too many failed attempts (${attempts}/${AUTH_CONFIG.MAX_LOGIN_TOKEN_ATTEMPTS}). Please login again.`,
-          code: 'TOO_MANY_ATTEMPTS',
+          code: ERROR_CODES.TOO_MANY_ATTEMPTS,
         },
       });
     }
@@ -766,7 +766,7 @@ export async function verify2FAHandler(
       return reply.code(HTTP_STATUS.BAD_REQUEST).send({
         error: {
           message: `Invalid 2FA code. ${remainingAttempts} attempt(s) remaining.`,
-          code: 'INVALID_2FA_CODE',
+          code: ERROR_CODES.INVALID_2FA_CODE,
           remainingAttempts,
         },
       });
@@ -778,7 +778,7 @@ export async function verify2FAHandler(
     if (!user) {
       logger.error({ event: '2fa_verify_user_not_found', userId });
       return reply.code(HTTP_STATUS.NOT_FOUND).send({
-        error: { message: 'User not found', code: 'USER_NOT_FOUND' },
+        error: { message: 'User not found', code: ERROR_CODES.USER_NOT_FOUND_2FA },
       });
     }
 
@@ -805,7 +805,7 @@ export async function verify2FAHandler(
   } catch (err: any) {
     logger.error({ event: '2fa_verify_error', err: err?.message || err });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
-      error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' },
+      error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
   }
 }
@@ -825,7 +825,7 @@ export async function disable2FAHandler(
   if (!token) {
     logger.warn({ event: '2fa_disable_token_missing' });
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
-      error: { message: 'Authentication required', code: 'TOKEN_MISSING' },
+      error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
     });
   }
 
@@ -841,7 +841,7 @@ export async function disable2FAHandler(
       return reply.code(HTTP_STATUS.BAD_REQUEST).send({
         error: {
           message: '2FA is not enabled for this account',
-          code: '2FA_NOT_ENABLED',
+          code: ERROR_CODES.TWO_FA_NOT_ENABLED,
         },
       });
     }
@@ -862,12 +862,12 @@ export async function disable2FAHandler(
 
     if (err.message && err.message.includes('jwt')) {
       return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
-        error: { message: 'Invalid or expired token', code: 'INVALID_TOKEN' },
+        error: { message: 'Invalid or expired token', code: ERROR_CODES.INVALID_TOKEN },
       });
     }
 
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
-      error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' },
+      error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
   }
 }
@@ -934,7 +934,7 @@ export async function isUserOnlineHandler(
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
       error: {
         message: 'User name is required',
-        code: 'MISSING_USER_NAME',
+        code: ERROR_CODES.MISSING_USER_NAME,
       },
     });
   }
