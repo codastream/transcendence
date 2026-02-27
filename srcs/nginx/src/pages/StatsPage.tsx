@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   PlayerStat,
   StatsTableDesktop,
@@ -7,7 +6,6 @@ import {
 } from '../components/atoms/PlayerStats';
 // import api from '../api/api-client';
 
-// ── Types (local, kept for mock builder) ──────────────────────────────────
 interface match {
   id: number;
   tournament_id: number | null;
@@ -24,7 +22,6 @@ interface tournament_stats {
   final_position: number;
 }
 
-// ── Mock data ──────────────────────────────────────────────────────────────
 const MOCK_MATCH_STATS: match[] = [
   { id: 1, tournament_id: 1, player1: 1, player2: 2, score_player1: 5, score_player2: 2, winner_id: 1 },
   { id: 2, tournament_id: 1, player1: 3, player2: 4, score_player1: 5, score_player2: 0, winner_id: 3 },
@@ -70,7 +67,6 @@ function buildMockStats(): PlayerStat[] {
 }
 
 export const StatsPage = () => {
-  const { t } = useTranslation();
   const [stats] = useState<PlayerStat[]>(buildMockStats());
 
   // useEffect(() => {
@@ -90,16 +86,13 @@ export const StatsPage = () => {
   // }, []);
 
   return (
-    <div className="flex flex-col w-full max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-100 mb-6 tracking-wide uppercase">
-        📊 {t('stats.title', 'Player Statistics')}
-      </h1>
+    <>
       <div className="hidden md:block w-full">
         <StatsTableDesktop stats={stats} />
       </div>
-      <div className="md:hidden space-y-4 w-full">
+      <div className="md:hidden w-full">
         <StatsListMobile stats={stats} />
       </div>
-    </div>
+    </>
   );
 };

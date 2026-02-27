@@ -14,69 +14,59 @@ export interface PlayerStat {
 export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
   const { t } = useTranslation();
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-700">
-      <table className="min-w-full text-sm text-slate-200">
-        <thead className="bg-teal-800/40 text-slate-300 uppercase text-xs tracking-wider">
-          <tr>
-            <th className="px-4 py-3 text-left">{t('stats.player', 'Player')}</th>
-            <th className="px-4 py-3 text-center">
-              {t('stats.tournaments_played', 'Tournaments Played')}
-            </th>
-            <th className="px-4 py-3 text-center">
-              {t('stats.tournaments_won', 'Tournaments Won')}
-            </th>
-            <th className="px-4 py-3 text-center">
-              {t('stats.matches_played', 'Matches Played')}
-            </th>
-            <th className="px-4 py-3 text-center">
-              {t('stats.matches_won', 'Matches Won')}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {stats.length === 0 && (
-            <tr>
-              <td colSpan={5} className="px-4 py-6 text-center text-slate-400 text-sm">
-                {t('stats.empty', 'No players yet.')}
-              </td>
-            </tr>
-          )}
-          {stats.map((row, i) => (
-            <tr
-              key={row.player_id}
-              className={`border-t border-slate-700/50 hover:bg-teal-800/10 transition-colors ${
-                i % 2 === 0 ? 'bg-slate-900/60' : 'bg-slate-800/40'
-              }`}
-            >
-              <td className="px-4 py-3 font-medium text-slate-100">{row.username}</td>
-              <td className="px-4 py-3 text-center text-slate-300">
-                {row.tournaments_played}
-              </td>
-              <td className="px-4 py-3 text-center">
-                <span
-                  className={
-                    row.tournaments_won > 0 ? 'text-teal-300 font-semibold' : 'text-slate-400'
-                  }
-                >
-                  {row.tournaments_won}
-                </span>
-              </td>
-              <td className="px-4 py-3 text-center text-slate-300">
-                {row.matches_played}
-              </td>
-              <td className="px-4 py-3 text-center">
-                <span
-                  className={
-                    row.matches_won > 0 ? 'text-teal-300 font-semibold' : 'text-slate-400'
-                  }
-                >
-                  {row.matches_won}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="w-[70%] max-w-5xl mx-auto my-12">
+      <div className="bg-white/70 rounded-3xl shadow-2xl p-8 border border-cyan-300">
+        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700 font-quantico">
+          {t('stats.title', 'Player Statistics')}
+        </h2>
+        <div className="overflow-hidden rounded-2xl">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="text-left text-sm text-gray-500 border-b">
+                <th className="py-4 px-4">{t('stats.player', 'Player')}</th>
+                <th className="py-4 px-4">{t('stats.tournaments_played', 'Tournaments Played')}</th>
+                <th className="py-4 px-4">{t('stats.tournaments_won', 'Tournaments Won')}</th>
+                <th className="py-4 px-4">{t('stats.matches_played', 'Matches Played')}</th>
+                <th className="py-4 px-4 text-right">{t('stats.matches_won', 'Matches Won')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {stats.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="py-10 text-center text-gray-500">
+                    {t('stats.empty', 'No players yet.')}
+                  </td>
+                </tr>
+              )}
+              {stats.map((row) => (
+                <tr key={row.player_id} className="hover:bg-white/20 transition-colors">
+                  <td className="py-4 px-4 font-bold text-gray-700">{row.username}</td>
+                  <td className="py-4 px-4 text-gray-600">{row.tournaments_played}</td>
+                  <td className="py-4 px-4">
+                    <span
+                      className={
+                        row.tournaments_won > 0 ? 'font-medium text-emerald-600' : 'text-gray-500'
+                      }
+                    >
+                      {row.tournaments_won}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4 text-gray-600">{row.matches_played}</td>
+                  <td className="py-4 px-4 text-right">
+                    <span
+                      className={
+                        row.matches_won > 0 ? 'font-medium text-emerald-600' : 'text-gray-500'
+                      }
+                    >
+                      {row.matches_won}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
@@ -86,16 +76,18 @@ export const StatsListMobile = ({ stats }: { stats: PlayerStat[] }) => {
   const { t } = useTranslation();
   if (stats.length === 0)
     return (
-      <p className="text-slate-400 text-sm">{t('stats.empty', 'No players yet.')}</p>
+      <p className="text-center text-gray-500 py-10">
+        {t('stats.empty', 'No players yet.')}
+      </p>
     );
   return (
     <>
       {stats.map((row) => (
         <div
           key={row.player_id}
-          className="bg-slate-800/60 rounded-lg border border-slate-700 p-4 space-y-3"
+          className="bg-white/80 backdrop-blur rounded-2xl p-4 m-4 shadow flex flex-col gap-3"
         >
-          <div className="text-slate-100 font-semibold text-base">{row.username}</div>
+          <div className="font-semibold text-gray-700 text-base">{row.username}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             {[
               {
@@ -119,11 +111,11 @@ export const StatsListMobile = ({ stats }: { stats: PlayerStat[] }) => {
                 highlight: row.matches_won > 0,
               },
             ].map(({ label, value, highlight }) => (
-              <div key={label} className="bg-slate-700/50 rounded p-2 text-center">
-                <div className="text-slate-400 text-xs mb-1">{label}</div>
+              <div key={label} className="bg-white/60 rounded-xl p-2 text-center">
+                <div className="text-gray-500 text-xs mb-1">{label}</div>
                 <div
                   className={
-                    highlight ? 'text-teal-300 font-semibold' : 'text-slate-100 font-semibold'
+                    highlight ? 'text-emerald-600 font-semibold' : 'text-gray-700 font-semibold'
                   }
                 >
                   {value}

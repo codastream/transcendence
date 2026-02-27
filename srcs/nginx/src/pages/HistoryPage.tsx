@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import {
   MatchHistory,
   HistoryTableDesktop,
@@ -7,7 +6,6 @@ import {
 } from '../components/atoms/MatchHistory';
 // import api from '../api/api-client';
 
-// ── Mock data ──────────────────────────────────────────────────────────────
 const MOCK_HISTORY: MatchHistory[] = [
   {
     id: 3,
@@ -60,7 +58,6 @@ const MOCK_HISTORY: MatchHistory[] = [
 ];
 
 export const HistoryPage = () => {
-  const { t } = useTranslation();
   const [history] = useState<MatchHistory[]>(MOCK_HISTORY);
 
   // useEffect(() => {
@@ -76,16 +73,13 @@ export const HistoryPage = () => {
   // }, []);
 
   return (
-    <div className="flex flex-col w-full max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-100 mb-6 tracking-wide uppercase">
-        🕹️ {t('history.title', 'Match History')}
-      </h1>
+    <>
       <div className="hidden md:block w-full">
         <HistoryTableDesktop history={history} />
       </div>
-      <div className="md:hidden space-y-4 w-full">
+      <div className="md:hidden w-full">
         <HistoryListMobile history={history} />
       </div>
-    </div>
+    </>
   );
 };
