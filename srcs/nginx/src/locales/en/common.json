@@ -47,7 +47,9 @@
   "global": {
     "loading": "Loading...",
     "not_found": "Not found",
-    "disabled": "disabled"
+    "disabled": "disabled",
+    "save": "save",
+    "cancel": "cancel"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -254,7 +256,8 @@
   "profile": {
     "profile": "Profile",
     "2fa": "2FA",
-    "update_avatar": "Update avatar"
+    "update_avatar": "Update avatar",
+    "update_username": "Update username"
   },
   "friends": {
     "friends": "Friends",

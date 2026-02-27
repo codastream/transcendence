@@ -98,6 +98,7 @@ export type {
 export type {
   ProfileDTO,
   ProfileSimpleDTO,
+  ProfileWithAuthDTO,
   // ProfileAuthDTO,
   ProfileDataDTO,
   // ProfileStoredDTO,

@@ -5,9 +5,11 @@ import { LOG_EVENTS, LOG_REASONS } from './logging';
 export type EventValue = DeepValues<typeof LOG_EVENTS>;
 
 export interface LogDetail {
+  resource?: string;
   field?: string;
   value?: string;
   expected?: string;
+  extraInfo?: string;
 }
 
 export type ReasonValue = DeepValues<typeof LOG_REASONS>;
