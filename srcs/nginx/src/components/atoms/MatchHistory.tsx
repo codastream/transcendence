@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import { DataTable, DataCardList } from '../molecules/DataTable';
 
-// ── Types ──────────────────────────────────────────────────────────────────
 export interface MatchHistory {
   id: number;
   tournament_id: number | null;
@@ -21,77 +21,69 @@ const roundLabel: Record<string, string> = {
   FINAL: 'Final',
 };
 
-// ── Desktop table ──────────────────────────────────────────────────────────
 export const HistoryTableDesktop = ({ history }: { history: MatchHistory[] }) => {
   const { t } = useTranslation();
   return (
-    <div className="w-[70%] max-w-5xl mx-auto my-12">
-      <div className="bg-white/70 rounded-3xl shadow-2xl p-8 border border-cyan-300">
-        <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700 font-quantico">
-          {t('history.title', 'Match History')}
-        </h2>
-        <div className="overflow-hidden rounded-2xl">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="text-left text-sm text-gray-500 border-b">
-                <th className="py-4 px-4">Round</th>
-                <th className="py-4 px-4">Player 1</th>
-                <th className="py-4 px-4 text-center">Score</th>
-                <th className="py-4 px-4">Player 2</th>
-                <th className="py-4 px-4">Winner</th>
-                <th className="py-4 px-4 text-right">Tournament</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-10 text-center text-gray-500">
-                    {t('history.empty', 'No matches yet.')}
-                  </td>
-                </tr>
-              )}
-              {history.map((m) => (
-                <tr key={m.id} className="hover:bg-white/20 transition-colors">
-                  <td className="py-4 px-4 text-gray-600">
-                    {m.round ? (roundLabel[m.round] ?? m.round) : '—'}
-                  </td>
-                  <td className="py-4 px-4 font-bold text-gray-700">{m.username_player1}</td>
-                  <td className="py-4 px-4 text-center font-bold text-teal-600">
-                    {m.score_player1 ?? '—'} – {m.score_player2 ?? '—'}
-                  </td>
-                  <td className="py-4 px-4 font-bold text-gray-700">{m.username_player2}</td>
-                  <td className="py-4 px-4 font-medium text-emerald-600">
-                    {m.username_winner ?? '—'}
-                  </td>
-                  <td className="py-4 px-4 text-right text-gray-500 text-sm">
-                    {m.tournament_id ? `#${m.tournament_id}` : 'Free'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+    <DataTable<MatchHistory>
+      title={t('history.title', 'Match History')}
+      rowKey={(m) => m.id}
+      rows={history}
+      emptyMessage={t('history.empty', 'No matches yet.')}
+      columns={[
+        {
+          header: 'Round',
+          cell: (m) => (
+            <span className="text-gray-600">
+              {m.round ? (roundLabel[m.round] ?? m.round) : '—'}
+            </span>
+          ),
+        },
+        {
+          header: 'Player 1',
+          cell: (m) => <span className="font-bold text-gray-700">{m.username_player1}</span>,
+        },
+        {
+          header: 'Score',
+          className: 'text-center',
+          cell: (m) => (
+            <span className="font-bold text-teal-600">
+              {m.score_player1 ?? '—'} – {m.score_player2 ?? '—'}
+            </span>
+          ),
+        },
+        {
+          header: 'Player 2',
+          cell: (m) => <span className="font-bold text-gray-700">{m.username_player2}</span>,
+        },
+        {
+          header: 'Winner',
+          cell: (m) => (
+            <span className="font-medium text-emerald-600">{m.username_winner ?? '—'}</span>
+          ),
+        },
+        {
+          header: 'Tournament',
+          className: 'text-right',
+          cell: (m) => (
+            <span className="text-sm text-gray-500">
+              {m.tournament_id ? `#${m.tournament_id}` : 'Free'}
+            </span>
+          ),
+        },
+      ]}
+    />
   );
 };
 
-// ── Mobile cards ───────────────────────────────────────────────────────────
 export const HistoryListMobile = ({ history }: { history: MatchHistory[] }) => {
   const { t } = useTranslation();
-  if (history.length === 0)
-    return (
-      <p className="text-center text-gray-500 py-10">
-        {t('history.empty', 'No matches yet.')}
-      </p>
-    );
   return (
-    <>
-      {history.map((m) => (
-        <div
-          key={m.id}
-          className="bg-white/80 backdrop-blur rounded-2xl p-4 m-4 shadow flex flex-col gap-3"
-        >
+    <DataCardList<MatchHistory>
+      rows={history}
+      rowKey={(m) => m.id}
+      emptyMessage={t('history.empty', 'No matches yet.')}
+      renderCard={(m) => (
+        <>
           <div className="flex justify-between items-center">
             <span className="font-semibold text-gray-700">
               {m.round ? (roundLabel[m.round] ?? m.round) : 'Free match'}
@@ -110,8 +102,8 @@ export const HistoryListMobile = ({ history }: { history: MatchHistory[] }) => {
           {m.username_winner && (
             <div className="text-sm font-medium text-emerald-600">🏆 {m.username_winner}</div>
           )}
-        </div>
-      ))}
-    </>
+        </>
+      )}
+    />
   );
 };
