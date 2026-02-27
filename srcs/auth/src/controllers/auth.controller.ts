@@ -1096,7 +1096,48 @@ export async function oauthCallbackHandler(
       isNewUser: result.isNewUser,
     });
 
-    // Marquer l'utilisateur comme en ligne
+    // Vérifier si la 2FA est activée
+    const has2FA = totpService.isTOTPEnabled(result.userId);
+
+    if (has2FA) {
+      // 2FA activée : créer un loginToken temporaire et interrompre le flux
+      const loginToken = authService.createLoginToken(result.userId);
+      logger.info({ event: 'oauth_2fa_required', provider, userId: result.userId });
+
+      reply.setCookie(
+        '2fa_login_token',
+        loginToken,
+        getCookieOptions(AUTH_CONFIG.COOKIE_2FA_MAX_AGE_SECONDS),
+      );
+
+      // Marquer l'utilisateur comme en ligne
+      try {
+        await onlineService.updateOnlineStatus(result.userId, true);
+      } catch (onlineStatusError) {
+        logger.error({
+          event: 'oauth_online_status_update_failed',
+          provider,
+          userId: result.userId,
+          error:
+            onlineStatusError instanceof Error
+              ? onlineStatusError.message
+              : String(onlineStatusError),
+        });
+      }
+
+      return reply.code(HTTP_STATUS.OK).send({
+        result: {
+          require2FA: true,
+          message: 'Authentification 2FA requise',
+          details:
+            "Veuillez entrer le code à 6 chiffres depuis votre application d'authentification (Google Authenticator, etc.)",
+          expiresIn: AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS,
+          username: result.username,
+        },
+      });
+    }
+
+    // Pas de 2FA : marquer l'utilisateur comme en ligne
     try {
       await onlineService.updateOnlineStatus(result.userId, true);
     } catch (onlineStatusError) {
