@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { PlayerStat, StatsTableDesktop, StatsListMobile } from '../components/atoms/PlayerStats';
+import { useTranslation } from 'react-i18next';
+import {
+  PlayerStat,
+  StatsTableDesktop,
+  StatsListMobile,
+} from '../components/atoms/PlayerStats';
 // import api from '../api/api-client';
 
 // ── Types (local, kept for mock builder) ──────────────────────────────────
@@ -65,6 +70,7 @@ function buildMockStats(): PlayerStat[] {
 }
 
 export const StatsPage = () => {
+  const { t } = useTranslation();
   const [stats] = useState<PlayerStat[]>(buildMockStats());
 
   // useEffect(() => {
@@ -84,13 +90,16 @@ export const StatsPage = () => {
   // }, []);
 
   return (
-    <>
+    <div className="flex flex-col w-full max-w-4xl px-4 py-8">
+      <h1 className="text-2xl font-bold text-slate-100 mb-6 tracking-wide uppercase">
+        📊 {t('stats.title', 'Player Statistics')}
+      </h1>
       <div className="hidden md:block w-full">
         <StatsTableDesktop stats={stats} />
       </div>
       <div className="md:hidden space-y-4 w-full">
         <StatsListMobile stats={stats} />
       </div>
-    </>
+    </div>
   );
 };

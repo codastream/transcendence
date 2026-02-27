@@ -14,6 +14,7 @@ import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
 import { StatsPage } from './pages/StatsPage';
 import { HistoryPage } from './pages/HistoryPage';
+import TournamentLayout from './components/organisms/TournamentLayout';
 
 export const App = () => {
   return (
@@ -36,22 +37,26 @@ export const App = () => {
           <Route
             path="/game/remote"
             element={<GamePage sessionId={null} gameMode={'remote'} />}
-          ></Route>
+          />
           <Route
             path="/game/local"
             element={<GamePage sessionId={null} gameMode={'local'} />}
-          ></Route>
+          />
           <Route
             path="/game/tournament/:tournamentId"
             element={<GamePage sessionId={null} gameMode={'tournament'} />}
-          ></Route>
+          />
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
           <Route path="/game/pong-ai" element={<PlayAiPage />} />
-          <Route path="/stats" element={<StatsPage />} />
-          <Route path="/history" element={<HistoryPage />} />
+
+          {/* Stats & History — wrapped with TournamentLayout for consistent styling */}
+          <Route element={<TournamentLayout />}>
+            <Route path="/stats" element={<StatsPage />} />
+            <Route path="/history" element={<HistoryPage />} />
+          </Route>
         </Route>
 
         {/* Catch-all — toute URL non reconnue */}
