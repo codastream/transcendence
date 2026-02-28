@@ -47,7 +47,23 @@ api.interceptors.response.use(
         details = null;
       }
     }
-    const frontendError = new FrontendError(message, statusCode, code, details);
+
+    // Extraire les champs extra du payload (ex: remainingAttempts pour 2FA)
+    const meta: Record<string, unknown> = {};
+    if (error.response) {
+      const errorPayload = error.response.data?.error || error.response.data;
+      if (errorPayload?.remainingAttempts !== undefined) {
+        meta.remainingAttempts = errorPayload.remainingAttempts;
+      }
+    }
+
+    const frontendError = new FrontendError(
+      message,
+      statusCode,
+      code,
+      details,
+      Object.keys(meta).length ? meta : undefined,
+    );
 
     return Promise.reject(frontendError);
   },
