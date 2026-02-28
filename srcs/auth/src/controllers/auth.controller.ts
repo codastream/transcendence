@@ -500,21 +500,18 @@ export async function setup2FAHandler(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const token = request.cookies?.token || request.headers.authorization?.replace('Bearer ', '');
+  const idHeader = (request.headers as any)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  const username = (request.headers as any)['x-user-name'] || null;
 
-  if (!token) {
-    logger.warn({ event: '2fa_setup_token_missing' });
+  if (!userId || !username) {
+    logger.warn({ event: '2fa_setup_missing_headers' });
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
     });
   }
 
   try {
-    // Vérifier et décoder le token JWT
-    const decoded = this.jwt.verify(token) as { sub: number; username: string };
-    const userId = decoded.sub;
-    const username = decoded.username;
-
     // Vérifier si 2FA déjà activée
     if (totpService.isTOTPEnabled(userId)) {
       logger.warn({ event: '2fa_setup_already_enabled', userId, username });
@@ -550,13 +547,6 @@ export async function setup2FAHandler(
     });
   } catch (err: any) {
     logger.error({ event: '2fa_setup_error', err: err?.message || err });
-
-    if (err.message && err.message.includes('jwt')) {
-      return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
-        error: { message: 'Invalid or expired token', code: ERROR_CODES.INVALID_TOKEN },
-      });
-    }
-
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
@@ -820,21 +810,18 @@ export async function disable2FAHandler(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const token = request.cookies?.token || request.headers.authorization?.replace('Bearer ', '');
+  const idHeader = (request.headers as any)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  const username = (request.headers as any)['x-user-name'] || null;
 
-  if (!token) {
-    logger.warn({ event: '2fa_disable_token_missing' });
+  if (!userId || !username) {
+    logger.warn({ event: '2fa_disable_missing_headers' });
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
     });
   }
 
   try {
-    // Vérifier et décoder le token JWT
-    const decoded = this.jwt.verify(token) as { sub: number; username: string };
-    const userId = decoded.sub;
-    const username = decoded.username;
-
     // Vérifier si 2FA est actuellement activée
     if (!totpService.isTOTPEnabled(userId)) {
       logger.warn({ event: '2fa_disable_not_enabled', userId, username });
@@ -859,13 +846,42 @@ export async function disable2FAHandler(
     });
   } catch (err: any) {
     logger.error({ event: '2fa_disable_error', err: err?.message || err });
+    return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+      error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
+    });
+  }
+}
 
-    if (err.message && err.message.includes('jwt')) {
-      return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
-        error: { message: 'Invalid or expired token', code: ERROR_CODES.INVALID_TOKEN },
-      });
-    }
+export async function status2FAHandler(
+  this: FastifyInstance,
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  const idHeader = (request.headers as any)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  const username = (request.headers as any)['x-user-name'] || null;
 
+  if (!userId || !username) {
+    logger.warn({ event: '2fa_status_missing_headers' });
+    return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
+      error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
+    });
+  }
+
+  try {
+    // Vérifier le statut 2FA
+    const is2FAEnabled = totpService.isTOTPEnabled(userId);
+
+    logger.info({ event: '2fa_status_checked', userId, username, is2FAEnabled });
+
+    return reply.code(HTTP_STATUS.OK).send({
+      result: {
+        is2FAEnabled,
+        username,
+      },
+    });
+  } catch (err: any) {
+    logger.error({ event: '2fa_status_error', err: err?.message || err });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });

@@ -160,7 +160,10 @@ export const authApi = {
    */
   setup2FA: async (): Promise<Setup2FAResponse> => {
     const { data } = await api.post('/auth/2fa/setup');
-    return data.result;
+    return {
+      ...data.result,
+      qrCodeUrl: data.result.qrCode,
+    };
   },
 
   /**
@@ -168,7 +171,7 @@ export const authApi = {
    * @param code - Code OTP à 6 chiffres
    */
   verify2FASetup: async (code: string): Promise<{ message: string }> => {
-    const { data } = await api.post('/auth/2fa/verify-setup', { code });
+    const { data } = await api.post('/auth/2fa/setup/verify', { code });
     return data.result;
   },
 
@@ -185,10 +188,9 @@ export const authApi = {
 
   /**
    * Désactive le 2FA pour l'utilisateur connecté
-   * @param password - Mot de passe de confirmation
    */
-  disable2FA: async (password: string): Promise<{ message: string }> => {
-    const { data } = await api.post('/auth/2fa/disable', { password });
+  disable2FA: async (): Promise<{ message: string }> => {
+    const { data } = await api.post('/auth/2fa/disable');
     return data.result;
   },
 
@@ -197,6 +199,9 @@ export const authApi = {
    */
   get2FAStatus: async (): Promise<TwoFactorStatus> => {
     const { data } = await api.get('/auth/2fa/status');
-    return data.result;
+    return {
+      ...data.result,
+      enabled: data.result.is2FAEnabled,
+    };
   },
 };

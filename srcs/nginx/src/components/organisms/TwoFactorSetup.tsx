@@ -22,7 +22,6 @@ interface TwoFactorSetupState {
   qrCodeUrl: string | null;
   secret: string | null;
   verifyCode: string;
-  disablePassword: string;
   error: string | null;
   success: string | null;
   isSubmitting: boolean;
@@ -38,7 +37,6 @@ export const TwoFactorSetup = () => {
     qrCodeUrl: null,
     secret: null,
     verifyCode: '',
-    disablePassword: '',
     error: null,
     success: null,
     isSubmitting: false,
@@ -95,7 +93,7 @@ export const TwoFactorSetup = () => {
     if (state.verifyCode.length !== 6 || !/^\d{6}$/.test(state.verifyCode)) {
       setState((prev) => ({
         ...prev,
-        error: t('2fa.invalid_code_format'),
+        error: t('errors.invalid_code_format'),
       }));
       return;
     }
@@ -111,7 +109,7 @@ export const TwoFactorSetup = () => {
         qrCodeUrl: null,
         secret: null,
         verifyCode: '',
-        success: t('2fa.setup_success'),
+        success: t('2fa.setup.setup_success'),
         isSubmitting: false,
       }));
     } catch (err: unknown) {
@@ -128,19 +126,16 @@ export const TwoFactorSetup = () => {
     }
   };
 
-  const handleDisable = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleDisable = async () => {
     setState((prev) => ({ ...prev, error: null, isSubmitting: true }));
 
     try {
-      await authApi.disable2FA(state.disablePassword);
+      await authApi.disable2FA();
       setState((prev) => ({
         ...prev,
         status: 'disabled',
         disableStep: 'idle',
-        disablePassword: '',
-        success: t('2fa.disable_success'),
+        success: t('2fa.setup.disable_success'),
         isSubmitting: false,
       }));
     } catch (err: unknown) {
@@ -152,7 +147,6 @@ export const TwoFactorSetup = () => {
         ...prev,
         error: errorMessage,
         isSubmitting: false,
-        disablePassword: '',
       }));
     }
   };
@@ -172,7 +166,6 @@ export const TwoFactorSetup = () => {
     setState((prev) => ({
       ...prev,
       disableStep: 'idle',
-      disablePassword: '',
       error: null,
     }));
   };
@@ -272,10 +265,7 @@ export const TwoFactorSetup = () => {
           {/* Formulaire de vérification */}
           <form onSubmit={handleVerifySetup} className="space-y-4">
             <div>
-              <label
-                htmlFor="verify-code"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
+              <label htmlFor="verify-code" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('2fa.setup.verify_code')}
               </label>
               <input
@@ -332,32 +322,11 @@ export const TwoFactorSetup = () => {
         </div>
       )}
 
-      {/* Formulaire de désactivation */}
+      {/* Confirmation de désactivation */}
       {state.disableStep === 'confirming' && (
-        <form onSubmit={handleDisable} className="space-y-4">
+        <div className="space-y-4">
           <div className="bg-yellow-50 border-2 border-yellow-300 text-yellow-800 px-4 py-3 rounded-lg text-sm">
             {t('2fa.setup.disable_warning')}
-          </div>
-
-          <div>
-            <label htmlFor="disable-password" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('2fa.setup.password_required')}
-            </label>
-            <input
-              id="disable-password"
-              type="password"
-              value={state.disablePassword}
-              onChange={(e) =>
-                setState((prev) => ({
-                  ...prev,
-                  disablePassword: e.target.value,
-                }))
-              }
-              disabled={state.isSubmitting}
-              autoFocus
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder={t('2fa.setup.password_placeholder')}
-            />
           </div>
 
           <div className="flex gap-3">
@@ -370,14 +339,15 @@ export const TwoFactorSetup = () => {
               {t('2fa.setup.cancel')}
             </button>
             <button
-              type="submit"
-              disabled={state.isSubmitting || state.disablePassword.length === 0}
+              type="button"
+              onClick={handleDisable}
+              disabled={state.isSubmitting}
               className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {state.isSubmitting ? t('2fa.setup.disabling') : t('2fa.setup.confirm_disable')}
             </button>
           </div>
-        </form>
+        </div>
       )}
     </div>
   );
