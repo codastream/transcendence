@@ -5,8 +5,9 @@ import { DataError, ServiceError } from '../types/errors.js';
 import { APP_ERRORS } from '../utils/error-catalog.js';
 import { EVENTS, REASONS, UserRole } from '../utils/constants.js';
 import { logger } from '../index.js';
-import { AppError, ERR_DEFS } from '@transcendence/core';
+import { AppError, ERR_DEFS, UserDTO, UserFullDTO } from '@transcendence/core';
 import * as onlineService from './online.service.js';
+import { toFullUserDTO, toUserDTO } from 'src/utils/mapper.js';
 
 const SALT_ROUNDS = 10;
 
@@ -22,8 +23,15 @@ export function findByEmail(email: string) {
   return db.findUserByEmail(email);
 }
 
-export function findUserById(id: number) {
-  return db.findUserById(id);
+export function findUserById(id: number): UserFullDTO | null {
+  const userRow = db.findUserById(id);
+  if (!userRow) return null;
+  return toFullUserDTO(userRow);
+}
+
+export async function findUserByIdOrThrow(id: number): Promise<UserDTO> {
+  const userRow = await db.findUserByIdOrThrow(id);
+  return toUserDTO(userRow);
 }
 
 export async function createUser(user: {
@@ -187,6 +195,31 @@ export function getUserRole(userId: number): string {
  */
 export function updateUserRole(userId: number, role: UserRole): void {
   db.updateUserRole(userId, role);
+}
+
+/**
+ * Updates an user's username
+ * @param userId User ID
+ * @param newEmail New Username
+ */
+export async function updateUserUsernameAndFetch(
+  userId: number,
+  newUsername: string,
+): Promise<UserDTO> {
+  await db.updateUserUsername(userId, newUsername);
+  const user = await findUserByIdOrThrow(userId);
+  return user;
+}
+
+/**
+ * Updates an user's email
+ * @param userId User ID
+ * @param newEmail New Email
+ */
+export async function updateUserEmailAndFetch(userId: number, newEmail: string): Promise<UserDTO> {
+  await db.updateUserRole(userId, newEmail);
+  const user = await findUserByIdOrThrow(userId);
+  return user;
 }
 
 /**

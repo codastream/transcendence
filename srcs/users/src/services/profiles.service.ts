@@ -6,6 +6,7 @@ import {
   type ProfileSimpleDTO,
   type ProfileDTO,
   AppError,
+  USER_EVENT,
 } from '@transcendence/core';
 import { Trace } from '../utils/decorators.js';
 import { profileRepository } from '../data/profiles.data.js';
@@ -14,6 +15,7 @@ import type { MultipartFile } from '@fastify/multipart';
 import { mkdir } from 'node:fs/promises';
 import { fileTypeFromBuffer } from 'file-type';
 import { mapProfileToDTO, mapProfileToIdDTO } from '../utils/mappers.js';
+import { userBus } from '../events/user.bus.js';
 
 async function getProfileOrThrow(username: string): Promise<UserProfile> {
   const profile = await profileRepository.findProfileByUsername(username);
@@ -60,7 +62,7 @@ export class ProfileService {
   }
 
   @Trace
-  async getById(authId: number): Promise<ProfileSimpleDTO | null> {
+  async getProfileByIdOrThrow(authId: number): Promise<UserProfile | null> {
     const profile = await profileRepository.findProfileById(authId);
     if (!profile) {
       throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
@@ -94,6 +96,7 @@ export class ProfileService {
       profile.authId,
       newUsername,
     );
+    userBus.emit(USER_EVENT.UPDATED, profile.authId);
     return updatedProfile;
   }
 

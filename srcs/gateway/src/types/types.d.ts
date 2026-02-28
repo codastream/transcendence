@@ -1,23 +1,22 @@
 import '@fastify/jwt';
 import { fastify } from 'fastify';
-// import { UserPayload } from './user.types.ts';
+import { UserRequestDTO } from '@transcendence/core';
 
 /**
  * sub is used by JWT as number
  */
 export interface UserPayload {
   username: string;
-  sub: string | number;
+  sub: number;
   id?: string;
   role?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
   email?: string;
 }
 
 declare module '@fastify/jwt' {
   interface FastifyJWT {
-    user: UserPayload;
+    payload: UserPayload; // token as decoded
+    user: UserRequestDTO; // mapped user for request
   }
 }
 

@@ -11,6 +11,7 @@ export const LOG_EVENTS = {
   LIFECYCLE: {
     UP: 'lc_service_up',
     DOWN: 'lc_service_down',
+    REPLY_SENT_SKIP: 'lc_already_sent_reply',
     // infra
     REDIS_CONNECT: 'lc_redis_connected',
     REDIS_DISCONNECT: 'lc_redis_disconnected',
@@ -42,7 +43,9 @@ export const LOG_EVENTS = {
 
   APPLICATION: {
     DATA_FAIL: 'data_failure',
+    HANDLED_ERROR: 'app_handled_error',
     // service specific errors
+    RATE_LIMIT: 'app_rate_limit',
     AUTH_FAIL: 'app_auth_failed',
     VALIDATION_FAIL: 'app_validation_failed',
   },

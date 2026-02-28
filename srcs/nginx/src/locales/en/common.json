@@ -257,7 +257,8 @@
     "profile": "Profile",
     "2fa": "2FA",
     "update_avatar": "Update avatar",
-    "update_username": "Update username"
+    "update_username": "Update username",
+    "delete": "Delete profile"
   },
   "friends": {
     "friends": "Friends",

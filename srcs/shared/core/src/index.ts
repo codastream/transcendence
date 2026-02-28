@@ -29,9 +29,22 @@ export {
   type ErrorDefinition,
   type ErrorCode,
   type HttpStatus,
-  mapZodIssuesToErrorDetails,
-  mapToFrontendError,
 } from './errors/error-types.js';
+
+export {
+  appErrorToFrontend,
+  appErrorToLog,
+  appErrorToReplyPayload,
+  fastifyValidationErrorToFrontend,
+  fastifyValidationErrorToLog,
+  fastifyErrorToReplyPayload,
+  rateLimitErrorToLog,
+  rateLimitErrorToReplyPayload,
+  panicErrorToLog,
+  replySentToLog,
+  zodIssueToErrorDetail,
+  type FastifyValidationError,
+} from './errors/error-mappers.js';
 
 // ============================================================================
 // Logging
@@ -51,10 +64,15 @@ export {
   emailSchema,
   passwordSchema,
   IdSchema,
-  roleSchema,
 } from './schemas/base.schema.js';
 export { UserNameSchema } from './schemas/user.schema.js';
-export { UserSchema, UserLoginSchema, UserRegisterSchema } from './schemas/auth.schema.js';
+export {
+  UserRoleSchema,
+  UserSchema,
+  UserFullSchema,
+  UserLoginSchema,
+  UserRegisterSchema,
+} from './schemas/auth.schema.js';
 export {
   // ProfileSchema,
   ProfileSimpleSchema,
@@ -81,12 +99,17 @@ export type {
   usernameDTO,
   emailDTO,
   IdDTO,
-  RoleDTO,
   TargetUserIdDTO as targetUserIdDTO,
   statusUpdateDTO,
 } from './schemas/base.schema.js';
 export type { UserNameDTO, UserRequestDTO } from './schemas/user.schema.js';
-export type { UserDTO, UserLoginDTO, UserRegisterDTO } from './schemas/auth.schema.js';
+export type {
+  UserDTO,
+  UserRole,
+  UserFullDTO,
+  UserLoginDTO,
+  UserRegisterDTO,
+} from './schemas/auth.schema.js';
 export type {
   FriendshipFullDTO,
   FriendshipUnifiedDTO,
@@ -99,11 +122,10 @@ export type {
   ProfileDTO,
   ProfileSimpleDTO,
   ProfileWithAuthDTO,
-  // ProfileAuthDTO,
   ProfileDataDTO,
-  // ProfileStoredDTO,
   ProfileCreateInDTO,
 } from './schemas/profile.schema.js';
+export type { TournamentDTO, PlayerDTO } from './schemas/game.schema.js';
 
 //=================================
 // Enum and Interface
@@ -111,5 +133,3 @@ export type {
 
 export type { UserEvent } from './schemas/user.schema.js';
 export { USER_EVENT } from './schemas/user.schema.js';
-export type { TournamentDTO } from './schemas/game.schema.js';
-export type { PlayerDTO } from './schemas/game.schema.js';

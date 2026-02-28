@@ -22,7 +22,7 @@ export const profileApi = {
     const fullProfile = {
       username: profile.username,
       avatarUrl: profile.avatarUrl,
-      authId: authUser.authId,
+      id: authUser.id,
       email: authUser.email,
     };
     console.log(fullProfile);

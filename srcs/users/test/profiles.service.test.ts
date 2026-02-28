@@ -113,7 +113,7 @@ describe('ProfileService', () => {
     it('returns the profile when found', async () => {
       vi.mocked(profileRepository.findProfileById).mockResolvedValue(mockProfile);
 
-      const result = await profileService.getById(mockProfile.authId);
+      const result = await profileService.getProfileByIdOrThrow(mockProfile.authId);
 
       expect(profileRepository.findProfileById).toHaveBeenCalledWith(mockProfile.authId);
       expect(result).toEqual(mockProfile);
@@ -122,7 +122,7 @@ describe('ProfileService', () => {
     it('throws AppError when profile id is unknown', async () => {
       vi.mocked(profileRepository.findProfileById).mockResolvedValue(null);
 
-      await expect(profileService.getById(999)).rejects.toMatchObject({
+      await expect(profileService.getProfileByIdOrThrow(999)).rejects.toMatchObject({
         code: ERR_DEFS.RESOURCE_NOT_FOUND.code,
         statusCode: ERR_DEFS.RESOURCE_NOT_FOUND.statusCode,
       });

@@ -8,11 +8,11 @@ import { initAdminUser, initInviteUser } from './utils/init-users.js';
 import * as totpService from './services/totp.service.js';
 import * as onlineService from './services/online.service.js';
 import { loggerConfig } from './config/logger.config.js';
-import { AUTH_CONFIG, EVENTS, REASONS } from './utils/constants.js';
-import { AppBaseError } from './types/errors.js';
+import { AUTH_CONFIG } from './utils/constants.js';
 import { authenv } from './config/env.js';
 import fs from 'fs';
-import { ERROR_CODES } from '@transcendence/core';
+import { errorHandler } from './utils/error-handler.js';
+import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod';
 
 const app = fastify({
   https: {
@@ -25,7 +25,9 @@ const app = fastify({
   },
   logger: loggerConfig,
   disableRequestLogging: false,
-});
+}).withTypeProvider<ZodTypeProvider>();
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
 
 export const logger = app.log;
 
@@ -61,74 +63,7 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   }
 });
 
-app.setErrorHandler((error: AppBaseError, req, reply) => {
-  // Ne pas traiter les erreurs déjà envoyées
-  if (reply.sent) {
-    req.log.debug({
-      event: 'error_handler_skipped_reply_sent',
-      method: req.method,
-      url: req.url,
-      errorCode: (error as any)?.code,
-      errorMessage: (error as any)?.message,
-    });
-    return;
-  }
-
-  // Gestion spéciale pour les erreurs de rate limiting
-  if (
-    (error as any).code === 'FST_ERR_RATE_LIMITED' ||
-    (error as any).code === 'FST_ERR_RATE_LIMIT' ||
-    (error as any).message?.includes('Rate limit exceeded')
-  ) {
-    // Calculer retry-after
-    // Le header Retry-After est déjà en secondes
-    const retryAfterHeader = reply.getHeader('Retry-After');
-    const retryAfterSeconds = retryAfterHeader ? Math.ceil(Number(retryAfterHeader)) : 60; // Fallback
-
-    const timeUnit = retryAfterSeconds === 1 ? 'second' : 'seconds';
-
-    req.log.warn({
-      event: 'rate_limit_429_sent',
-      ip: req.ip,
-      url: req.url,
-      method: req.method,
-      errorCode: (error as any).code,
-      retryAfter: `${retryAfterSeconds}s`,
-    });
-
-    // Envoi de la réponse 429 et stop
-    return reply.code(429).send({
-      error: {
-        message: `Too many requests, please try again in ${retryAfterSeconds} ${timeUnit}`,
-        code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
-        retryAfter: `${retryAfterSeconds}s`,
-      },
-    });
-  }
-
-  // autres erreurs statusCode
-  const statusCode = (error as any)?.statusCode || 500;
-
-  req.log.error(
-    {
-      err: error,
-      event: error?.context?.event || EVENTS.CRITICAL.BUG,
-      reason: error?.context?.reason || REASONS.UNKNOWN,
-      statusCode: statusCode,
-      errorCode: (error as any)?.code,
-      errorName: (error as any)?.name,
-    },
-    'Error',
-  );
-
-  reply.code(statusCode).send({
-    error: {
-      message: (error as any)?.message || 'Internal server error',
-      code: (error as any)?.code || EVENTS.CRITICAL.BUG,
-      reason: error?.context?.reason || REASONS.UNKNOWN,
-    },
-  });
-});
+app.setErrorHandler(errorHandler);
 
 // Register shared plugins once
 app.register(fastifyCookie);

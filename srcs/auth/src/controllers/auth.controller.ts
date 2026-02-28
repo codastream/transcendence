@@ -10,12 +10,14 @@ import { logger } from '../index.js';
 import { generateJWT } from '../services/jwt.service.js';
 import {
   AppError,
+  appErrorToFrontend,
   ERROR_CODES,
   HTTP_STATUS,
-  mapToFrontendError,
-  mapZodIssuesToErrorDetails,
+  zodIssueToErrorDetail,
 } from '@transcendence/core';
 import * as oauthService from '../services/oauth.service.js';
+import { patchEmailSchema, patchUsernameSchema } from '../routes/auth.routes.js';
+import z from 'zod';
 
 /**
  * Configuration des cookies avec security enforcée en production
@@ -132,7 +134,7 @@ export async function registerHandler(
     req.log.error({ event: 'register_error', username, email, err: err?.message || err });
     if (err instanceof AppError) {
       return reply.code(err.statusCode).send({
-        error: mapToFrontendError(err),
+        error: appErrorToFrontend(err),
       });
     }
     // Add errors handling
@@ -194,7 +196,7 @@ export async function loginHandler(
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
       error: {
         code: ERROR_CODES.VALIDATION_ERROR,
-        details: mapZodIssuesToErrorDetails(validation.error.issues),
+        details: validation.error.issues.map((issue) => zodIssueToErrorDetail(issue)),
       },
     });
   }
@@ -352,6 +354,36 @@ export async function logoutHandler(
     // Ne pas relancer l'erreur : le statut en ligne est non critique
   }
   return reply.clearCookie('token').send({ result: { message: 'Logged out successfully' } });
+}
+
+export async function patchUsernameHandler(
+  this: FastifyInstance,
+  request: FastifyRequest<{ Body: z.infer<typeof patchUsernameSchema.body> }>,
+  reply: FastifyReply,
+) {
+  const { id } = request.user;
+  const { newUsername } = request.body;
+  request.log.trace({ event: 'patch_username' });
+  const updatedUser = await authService.updateUserUsernameAndFetch(id, newUsername);
+  return reply.send({
+    message: 'Update success',
+    user: updatedUser,
+  });
+}
+
+export async function patchEmailHandler(
+  this: FastifyInstance,
+  request: FastifyRequest<{ Body: z.infer<typeof patchEmailSchema.body> }>,
+  reply: FastifyReply,
+) {
+  const { id } = request.user;
+  const { newEmail } = request.body;
+  request.log.trace({ event: 'patch_email' });
+  const updatedUser = await authService.updateUserEmailAndFetch(id, newEmail);
+  return reply.send({
+    message: 'Update success',
+    user: updatedUser,
+  });
 }
 
 // Appeler depuis gateway pour vérifier la validité du token cookie
@@ -1023,7 +1055,7 @@ export async function deleteUserHandler(
     });
 
     if (error instanceof AppError) {
-      const frontendError = mapToFrontendError(error);
+      const frontendError = appErrorToFrontend(error);
       return reply.code(frontendError.statusCode).send({
         error: {
           message: frontendError.message,
@@ -1073,7 +1105,7 @@ export async function oauthCallbackHandler(
       error: {
         message: 'Invalid OAuth callback parameters',
         code: ERROR_CODES.VALIDATION_ERROR,
-        details: mapZodIssuesToErrorDetails(validation.error.issues),
+        details: validation.error.issues.map((issue) => zodIssueToErrorDetail(issue)),
       },
     });
   }
@@ -1156,7 +1188,7 @@ export async function oauthCallbackHandler(
 
     // Gestion de AppError (si applicable)
     if (error instanceof AppError) {
-      const frontendError = mapToFrontendError(error);
+      const frontendError = appErrorToFrontend(error);
       logger.error({
         event: 'oauth_error_app_error',
         code: frontendError.code,

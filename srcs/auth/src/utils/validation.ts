@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { RESERVED_USERNAMES, AUTH_CONFIG } from './constants.js';
 
+const PROVIDERS = ['google', 'school42'] as const;
+
 // Validation centralisée avec règles métier Transcendence
 export const ValidationSchemas = {
   // Auth schemas
@@ -59,8 +61,8 @@ export const ValidationSchemas = {
   oauthCallback: z.object({
     code: z.string().min(1, 'Authorization code is required'),
     state: z.string().optional(),
-    provider: z.enum(['google', 'school42'], {
-      errorMap: () => ({ message: 'Provider must be either "google" or "school42"' }),
+    provider: z.enum(PROVIDERS, {
+      error: 'Provider must be either "google" or "school42"',
     }),
   }),
 };

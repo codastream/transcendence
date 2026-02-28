@@ -59,7 +59,6 @@ export class ProfileController {
       param: username,
     });
     const profileSimpleDTO = await profileService.updateUsername(username, newUsername);
-    userBus.emit(USER_EVENT.UPDATED, username);
     return reply.status(200).send(profileSimpleDTO);
   }
 

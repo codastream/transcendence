@@ -9,8 +9,9 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "source": "./src/index.ts"
     }
   },
   "scripts": {
@@ -19,10 +20,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@types/node": "^24.10.4",
+    "@types/node": "^24.10.4"
+  },
+  "peerDependencies": {
     "zod": "^4.2.1"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "fastify": "^5.6.2"
   }
 }

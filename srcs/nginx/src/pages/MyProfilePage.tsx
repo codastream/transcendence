@@ -25,7 +25,7 @@ const toggle2FA = () => {};
  */
 export const MyProfilePage = () => {
   const queryClient = useQueryClient();
-  const { user: authUser, updateUser } = useAuth();
+  const { user: authUser, updateUser, logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -87,6 +87,19 @@ export const MyProfilePage = () => {
       </Page>
     );
   }
+
+  const handleDelete = async () => {
+    try {
+      await profileApi.deleteProfile(username);
+      logout();
+    } catch (error: unknown) {
+      if (error instanceof AppError) {
+        setError(error.message);
+      } else {
+        setError(ERROR_CODES.INTERNAL_ERROR);
+      }
+    }
+  };
 
   const handleUpload = async (file: File) => {
     setIsUploading(true);
@@ -199,6 +212,18 @@ export const MyProfilePage = () => {
               />
             </div>
           )}
+        </div>
+
+        {/* Section delete profile */}
+        <div className="mb-3">
+          <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">
+            {t('profile.delete')}
+          </h1>
+          <div className="flex flex-row justify-center">
+            <Button type="submit" variant="alert" onClick={() => handleDelete}>
+              {t('profile.delete')}
+            </Button>
+          </div>
         </div>
 
         {error && <p className="text-red-600">{error}</p>}

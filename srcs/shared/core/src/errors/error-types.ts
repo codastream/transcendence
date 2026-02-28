@@ -1,6 +1,5 @@
-import { ZodIssue, ZodIssueCode } from 'zod/v3';
 import { HTTP_STATUS } from '../constants/index.js';
-import { EventValue, LogContext, LogDetail, ReasonValue } from '../logging/logging-types.js';
+import { EventValue, LogContext, ReasonValue, ZodIssueCodes } from '../logging/logging-types.js';
 import { LOG_REASONS } from '../logging/logging.js';
 import { ERROR_CODES } from './error-codes.js';
 
@@ -18,21 +17,9 @@ export type FrontendReasonValue =
   | SecurityFrontReasons
   | ValidationReasons
   | ConflictReasons
-  | ZodIssueCode
+  | ZodIssueCodes
   | TournamentReasons
   | typeof LOG_REASONS.UNKNOWN;
-
-const PUBLIC_REASONS: string[] = [
-  LOG_REASONS.SECURITY.TOKEN_EXPIRED,
-  LOG_REASONS.SECURITY.RATE_LIMIT_REACHED,
-  ...Object.values(LOG_REASONS.VALIDATION),
-  ...Object.values(LOG_REASONS.CONFLICT),
-  LOG_REASONS.UNKNOWN,
-];
-
-const isFrontendReason = (reason: string): reason is FrontendReasonValue => {
-  return PUBLIC_REASONS.includes(reason);
-};
 
 export type HttpStatus = DeepValues<typeof HTTP_STATUS>;
 
@@ -41,10 +28,10 @@ export type ErrorCode = DeepValues<typeof ERROR_CODES>;
 // interface for quick error generation through error catalog
 export interface ErrorDefinition {
   code: ErrorCode;
+  statusCode?: HttpStatus;
   message: string;
   event: EventValue;
   reason: ReasonValue;
-  statusCode?: HttpStatus;
 }
 
 // attribute which will be propagated till client
@@ -52,8 +39,9 @@ export interface ErrorDetail {
   reason: FrontendReasonValue;
   field?: string;
   message?: string;
+  expected?: string;
+  received?: string;
 }
-
 export class AppError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: HttpStatus;
@@ -95,37 +83,3 @@ export class FrontendError extends Error {
     this.details = details;
   }
 }
-
-export const mapZodIssuesToErrorDetails = (issues: ZodIssue[]): ErrorDetail[] => {
-  return issues.map((issue) => ({
-    field: issue.path?.join('.'), // Ex: "email" ou "user.email"
-    reason: issue.code as ErrorDetail['reason'], // Ex: "invalid_string"
-  }));
-};
-
-export const mapToFrontendError = (error: AppError): FrontendError => {
-  let mappedDetails: ErrorDetail[] | null = null;
-  const reason = error?.context?.reason || '';
-  const safeReason: FrontendReasonValue = isFrontendReason(reason) ? reason : LOG_REASONS.UNKNOWN;
-
-  if (error.context?.zodIssues) {
-    mappedDetails = error.context.zodIssues.map((issue: ZodIssue) => ({
-      field: issue.path?.join('.') || 'unknown',
-      reason: safeReason,
-    }));
-  } else if (error.context?.details && Array.isArray(error.context.details)) {
-    mappedDetails = error.context.details.map((detail: LogDetail) => ({
-      field: detail?.field || 'unknown',
-      reason: safeReason,
-    }));
-  } else if (error.context?.field || isFrontendReason(reason)) {
-    mappedDetails = [
-      {
-        field: error.context?.field as string,
-        reason: safeReason,
-      },
-    ];
-  }
-
-  return new FrontendError(error.message, error.statusCode, error.code, mappedDetails);
-};

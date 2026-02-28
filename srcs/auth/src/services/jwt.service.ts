@@ -25,8 +25,8 @@ export function generateJWT(
   role: string,
   expiresIn: string = '1h',
 ): string {
-  const payload: JWTPayload = {
-    sub: userId,
+  const payload = {
+    id: userId,
     username: username,
     role: role,
   };

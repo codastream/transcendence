@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyRequest } from 'fastify';
 import { proxyRequest, webSocketProxyRequest } from '../utils/proxy.js';
 import { GATEWAY_CONFIG } from '../utils/constants.js';
 import { fetchOptions } from '../utils/mtlsAgent.js';
@@ -64,6 +64,7 @@ export function registerGameRoutes(app: FastifyInstance) {
       fullUrl,
       method: request.method,
       user: request.headers['x-user-name'] || null,
+      id: request.headers['x-user-id'] || null,
     });
 
     const init: RequestInit = {

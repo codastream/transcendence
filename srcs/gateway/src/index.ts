@@ -10,7 +10,6 @@ import { verifyRequestJWT } from './utils/jwt.service.js';
 import fs from 'fs';
 import { GATEWAY_CONFIG, ERROR_CODES, parseTimeWindowToSeconds } from './utils/constants.js';
 import { gatewayenv, UM_SERVICE_URL } from './config/env.js';
-import { UserPayload } from './types/types.d.js';
 import replyFrom from '@fastify/reply-from';
 import { mtlsAgent } from './utils/mtlsAgent.js';
 import { setGlobalDispatcher } from 'undici';
@@ -92,7 +91,7 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   }
 
   // Attacher les données utilisateur à la requête
-  request.user = verification.user as UserPayload;
+  request.user = verification.user;
   logger.logAuth({ url: request.url, user: request.user?.username }, true);
 });
 
@@ -114,9 +113,7 @@ export const getInternalHeaders = (req: FastifyRequest): Record<string, string> 
   }
 
   // user id
-  if (req.user?.sub !== undefined) {
-    headers['x-user-id'] = String(req.user.sub);
-  } else if (req.user?.id !== undefined) {
+  if (req.user?.id !== undefined) {
     headers['x-user-id'] = String(req.user.id);
   } else if (typeof req.headers['x-user-id'] === 'string') {
     headers['x-user-id'] = req.headers['x-user-id'];
@@ -143,7 +140,7 @@ app.decorate(
   'fetchInternal',
   async (request: FastifyRequest, url: string, init: RequestInit = {}) => {
     const userName = request.user?.username || request.headers['x-user-name'] || '';
-    const userId = request.user?.sub || request.user?.id || request.headers['x-user-id'] || '';
+    const userId = request.user?.id || request.headers['x-user-id'] || '';
 
     const headers = Object.assign({}, init.headers || {}, {
       'x-user-name': userName,

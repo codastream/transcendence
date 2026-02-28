@@ -21,12 +21,12 @@ export function checkFriendshipAbsence(
   if (friendship) {
     throw new AppError(ERR_DEFS.RESOURCE_ALREADY_EXIST, {
       userId: userId,
-      details: {
-        resource: LOG_RESOURCES.FRIEND,
-        id: friendship.id,
-        status: friendship.status,
-        targetId: targetId,
-      },
+      details: [
+        {
+          resource: LOG_RESOURCES.FRIEND,
+          extraInfo: `between ${userId} and ${targetId}`,
+        },
+      ],
     });
   }
 }
@@ -39,10 +39,12 @@ export function checkFriendshipExistence(
   if (!friendship) {
     throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
       userId: userId,
-      details: {
-        resource: LOG_RESOURCES.FRIEND,
-        targetId: targetId,
-      },
+      details: [
+        {
+          resource: LOG_RESOURCES.FRIEND,
+          extraInfo: `between ${userId} and ${targetId}`,
+        },
+      ],
     });
   }
 }
@@ -54,16 +56,16 @@ export class FriendshipService {
   ): Promise<FriendshipFullDTO> {
     if (username === targetUsername) {
       throw new AppError(ERR_DEFS.RESOURCE_INVALID_STATE, {
-        details: {
-          resource: LOG_RESOURCES.FRIEND,
-          issue: 'self binding relation',
-          username,
-          targetUsername,
-        },
+        details: [
+          {
+            resource: LOG_RESOURCES.FRIEND,
+            extraInfo: `self binding relation for ${username}`,
+          },
+        ],
       });
     }
 
-    await profileService.getById(userId);
+    await profileService.getProfileByIdOrThrow(userId);
     const fullTarget = await profileService.getByUsernameRaw(targetUsername);
 
     const existingFriendship = await friendshipRepository.findFriendshipBetween(
@@ -75,7 +77,7 @@ export class FriendshipService {
     const friendCount = await friendshipRepository.countFriendships(userId);
     if (friendCount >= CONFIG.MAX_FRIENDS) {
       throw new AppError(ERR_DEFS.RESOURCE_LIMIT_REACHED, {
-        details: { resource: LOG_RESOURCES.FRIEND, max: CONFIG.MAX_FRIENDS },
+        details: [{ resource: LOG_RESOURCES.FRIEND, extraInfo: `max ${CONFIG.MAX_FRIENDS}` }],
       });
     }
     logger.info({ userId, targetAuthId: fullTarget.authId });

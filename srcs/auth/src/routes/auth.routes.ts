@@ -15,8 +15,48 @@ import {
   isUserOnlineHandler,
   deleteUserHandler,
   oauthCallbackHandler,
+  patchUsernameHandler,
+  patchEmailHandler,
 } from '../controllers/auth.controller.js';
 import { AUTH_CONFIG } from '../utils/constants.js';
+import {
+  DetailedErrorSchema,
+  IdSchema,
+  usernameSchema,
+  UserSchema,
+  ValidationErrorSchema,
+} from '@transcendence/core';
+import z from 'zod';
+
+export const patchUsernameSchema = {
+  params: IdSchema,
+  body: z.object({
+    newUsername: usernameSchema,
+  }),
+  response: {
+    200: z.object({
+      message: z.string(),
+      user: UserSchema,
+    }),
+    400: ValidationErrorSchema,
+    404: DetailedErrorSchema,
+  },
+};
+
+export const patchEmailSchema = {
+  params: IdSchema,
+  body: z.object({
+    newEmail: z.email(),
+  }),
+  response: {
+    200: z.object({
+      message: z.string(),
+      user: UserSchema,
+    }),
+    400: ValidationErrorSchema,
+    404: DetailedErrorSchema,
+  },
+};
 
 export async function authRoutes(app: FastifyInstance) {
   app.get(
@@ -62,6 +102,9 @@ export async function authRoutes(app: FastifyInstance) {
   );
 
   app.post('/logout', logoutHandler);
+
+  app.patch('/:id/username', { schema: patchUsernameSchema }, patchUsernameHandler);
+  app.patch('/:id/email', { schema: patchEmailSchema }, patchEmailHandler);
 
   app.get('/verify', verifyHandler);
 

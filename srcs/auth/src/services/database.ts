@@ -7,10 +7,12 @@ import { DBUser } from '../types/models.js';
 import crypto from 'crypto';
 import { AUTH_CONFIG } from '../utils/constants.js';
 import { authenv } from '../config/env.js';
+import { AppError, ERR_DEFS } from '@transcendence/core';
+import { UserRow } from '../types/dto.js';
 
 // DB path from validated environment
 const DB_PATH = authenv.AUTH_DB_PATH;
-
+const { SqliteError } = Database;
 // Check dir
 try {
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
@@ -106,6 +108,8 @@ const insertUserStmt = db.prepare('INSERT INTO users (username, email, password)
 const updateUserStmt = db.prepare(
   'UPDATE users SET username = ?, email = ?, role = ? WHERE id = ?',
 );
+const updateUsernameStmt = db.prepare('UPDATE users SET username = ? WHERE id = ?');
+const updateEmailStmt = db.prepare('UPDATE users SET email = ? WHERE id = ?');
 const deleteUserStmt = db.prepare('DELETE FROM users WHERE id = ?');
 
 // OAuth statements
@@ -169,8 +173,8 @@ export function findUserByUsername(username: string): DBUser | null {
   try {
     const user = findByUsernameStmt.get(username);
     return (user as DBUser) || null;
-  } catch (err: any) {
-    throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
+  } catch (err: unknown) {
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, {}, err);
   }
 }
 
@@ -178,8 +182,8 @@ export function findUserByEmail(email: string): DBUser | null {
   try {
     const user = findByEmailStmt.get(email);
     return (user as DBUser) || null;
-  } catch (err: any) {
-    throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
+  } catch (err: unknown) {
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, {}, err);
   }
 }
 
@@ -187,21 +191,31 @@ export function findUserByIdentifier(identifier: string): DBUser | null {
   try {
     const user = findByIdentifierStmt.get(identifier, identifier);
     return (user as DBUser) || null;
-  } catch (err: any) {
-    throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
+  } catch (err: unknown) {
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, {}, err);
   }
 }
 
-export function findUserById(id: number): DBUser | null {
+export function findUserById(id: number): UserRow | null {
   try {
     const user = findByIdStmt.get(id);
-    return (user as DBUser) || null;
-  } catch (err) {
-    const error: any = new Error(
-      `Error during user lookup by ID: ${(err as any)?.message || String(err)}`,
-    );
-    error.code = 'DB_FIND_USER_BY_ID_ERROR';
-    throw error;
+    return (user as UserRow) || null;
+  } catch (err: unknown) {
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, {}, err);
+  }
+}
+
+export async function findUserByIdOrThrow(id: number): Promise<UserRow> {
+  try {
+    const user = findByIdStmt.get(id);
+    if (!user) {
+      throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
+        details: [{ resource: 'user', value: `${id}` }],
+      });
+    }
+    return user as UserRow;
+  } catch (err: unknown) {
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, {}, err);
   }
 }
 
@@ -354,6 +368,66 @@ export function updateUser(
       }
     }
     throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
+  }
+}
+
+export async function updateUserUsername(userId: number, newUsername: string): Promise<void> {
+  try {
+    const info = updateUsernameStmt.run(newUsername, userId);
+    if (info.changes === 0) {
+      const user = findByIdStmt.get(userId);
+      if (!user) {
+        throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
+          details: [{ field: 'id', value: userId }],
+        });
+      }
+    }
+  } catch (err: unknown) {
+    if (err instanceof AppError) {
+      throw err;
+    } else if (err instanceof SqliteError) {
+      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE' && err.message.includes('username')) {
+        throw new AppError(
+          ERR_DEFS.RESOURCE_CONFLICT,
+          {
+            details: [{ field: 'username', value: newUsername }],
+          },
+          err,
+        );
+      }
+    } else {
+      throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, {}, err);
+    }
+  }
+}
+
+export async function updateUserEmail(userId: number, newEmail: string): Promise<void> {
+  try {
+    const info = updateEmailStmt.run(newEmail, userId);
+    if (info.changes === 0) {
+      const user = findByIdStmt.get(userId);
+      if (!user) {
+        throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
+          details: [{ field: 'id', value: userId }],
+        });
+      }
+    }
+  } catch (err: unknown) {
+    if (err instanceof AppError) {
+      throw err;
+    } else if (err instanceof SqliteError) {
+      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE' && err.message.includes('email')) {
+        throw new AppError(
+          ERR_DEFS.RESOURCE_CONFLICT,
+          {
+            details: [{ field: 'email', value: newEmail }],
+          },
+          err,
+        );
+      }
+    } else {
+      throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, {}, err);
+    }
   }
 }
 
