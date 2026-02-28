@@ -12,6 +12,8 @@ import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
 import { TwoFactorRoute } from './router/TwoFactorRoute';
+import TosPage from './pages/TosPage';
+import PrivacyPage from './pages/PrivacyPage';
 
 export const App = () => {
   return (
@@ -19,6 +21,8 @@ export const App = () => {
       <Routes>
         {/* Route publique sans guard — animation d'intro */}
         <Route path="/" element={<AnimationPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/tos" element={<TosPage />} />
 
         {/* Routes réservées aux non-authentifiés */}
         <Route element={<PublicRoute />}>
