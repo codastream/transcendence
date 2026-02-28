@@ -27,8 +27,7 @@ export default {
         ...builtinModules,
         ...builtinModules.map((m) => `node:${m}`),
         ...Object.keys(pkg.dependencies || {}).filter(
-          (dep) =>
-            dep !== 'fastify-type-provider-zod' && dep !== 'zod' && dep !== '@transcendence/core',
+          (dep) => dep !== 'zod' && dep !== '@transcendence/core',
         ),
         '@prisma/client',
         '@prisma/adapter-better-sqlite3',

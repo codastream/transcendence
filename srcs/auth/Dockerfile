@@ -35,14 +35,12 @@ FROM node:20-alpine
 # Install runtime-only system deps (wget for healthcheck)
 RUN apk add --no-cache wget
 
-# 5) Installer UNIQUEMENT les dépendances runtime du workspace users
 COPY package-lock.json ./package-lock.json
 COPY srcs/auth/package.json ./package.json
 # audit and fund are done in builder
-RUN npm install --omit=dev --no-audit --no-fund
 
-# 6) Injecter le package interne @transcendence/core (compilé)
-RUN mkdir -p node_modules/@transcendence
+COPY --from=builder /app/node_modules ./node_modules
+
 # Copier le package core compilé
 COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json
 COPY --from=builder /app/srcs/shared/core/dist ./node_modules/@transcendence/core/dist

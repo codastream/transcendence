@@ -8,11 +8,12 @@
 import { FastifyRequest } from 'fastify';
 import { logger } from './logger.js';
 import { ERROR_CODES } from './constants.js';
-import { UserRequestDTO } from '@transcendence/core';
 import { JWTApp } from '../types/jwt.types.js';
+import { UserPayload } from '../types/types.js';
+import { UserRequestDTO } from '@transcendence/core';
 
 export interface JWTPayload {
-  sub: number;
+  id: number;
   username: string;
   role: string;
   iat?: number;
@@ -41,10 +42,10 @@ export function extractTokenFromCookies(request: FastifyRequest): string | null 
  */
 export function verifyJWT(app: JWTApp, token: string): UserRequestDTO | null {
   try {
-    const decoded = app.jwt.verify(token) as JWTPayload;
-
+    const decoded = app.jwt.verify(token) as UserPayload;
+    logger.info({ event: 'jwt_decoded_payload', decoded });
     // Vérification basique du payload
-    if (!decoded.sub || !decoded.username) {
+    if (!decoded.id || !decoded.username) {
       logger.warn({
         event: 'jwt_invalid_payload',
         reason: 'missing_required_fields',
@@ -53,7 +54,7 @@ export function verifyJWT(app: JWTApp, token: string): UserRequestDTO | null {
     }
 
     return {
-      id: decoded.sub,
+      id: decoded.id,
       username: decoded.username,
       role: decoded.role ?? 'USER',
     };
@@ -110,6 +111,8 @@ export function verifyRequestJWT(app: JWTApp, request: FastifyRequest): Verifica
       errorMessage: 'Invalid or expired token',
     };
   }
+
+  request.user = payload;
 
   return {
     valid: true,

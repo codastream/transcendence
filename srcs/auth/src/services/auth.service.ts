@@ -7,7 +7,7 @@ import { EVENTS, REASONS, UserRole } from '../utils/constants.js';
 import { logger } from '../index.js';
 import { AppError, ERR_DEFS, UserDTO, UserFullDTO } from '@transcendence/core';
 import * as onlineService from './online.service.js';
-import { toFullUserDTO, toUserDTO } from 'src/utils/mapper.js';
+import { toFullUserDTO, toUserDTO } from '../utils/mapper.js';
 
 const SALT_ROUNDS = 10;
 

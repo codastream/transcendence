@@ -7,8 +7,7 @@ import { UserRequestDTO } from '@transcendence/core';
  */
 export interface UserPayload {
   username: string;
-  sub: number;
-  id?: string;
+  id: number;
   role?: string;
   email?: string;
 }
@@ -28,7 +27,6 @@ declare module 'fastify' {
 
 declare module 'fastify' {
   interface FastifyRequest {
-    user?: UserPayload;
     from: (
       url: string,
       opts?: {

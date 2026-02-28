@@ -41,22 +41,24 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # 6) Installer UNIQUEMENT les dépendances runtime du workspace users
-COPY package-lock.json ./package-lock.json
-COPY srcs/users/package.json ./package.json
+COPY package.json package-lock.json ./
+COPY srcs/users/package.json ./srcs/users/package.json
+COPY srcs/shared/core/package.json ./srcs/shared/core/package.json
+
 # audit and fund are done in builder
-RUN npm install --omit=dev --no-audit --no-fund
+RUN npm ci --omit=dev --no-audit --no-fund --workspace=srcs/users --workspace=srcs/shared/core --include-workspace-root
 
 # 7) Injecter le package interne @transcendence/core (compilé)
-RUN mkdir -p node_modules/@transcendence
-COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json
+# RUN mkdir -p node_modules/@transcendence
+# COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json
 COPY --from=builder /app/srcs/shared/core/dist ./node_modules/@transcendence/core/dist
 
 # 8) Artifacts runtime du service
 COPY --from=builder /app/srcs/users/dist ./dist
 
 # 9) Prisma runtime (client généré)
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/srcs/users/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/srcs/users/prisma.config.ts ./prisma.config.ts
 
 # 10) Config runtime
