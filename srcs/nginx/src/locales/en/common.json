@@ -292,8 +292,6 @@
       "disable_button": "Disable 2FA",
       "disable_description": "Disable two-factor authentication on your account.",
       "disable_warning": "Warning: Disabling 2FA will make your account less secure.",
-      "password_required": "Confirm your password",
-      "password_placeholder": "Enter your password",
       "disabling": "Disabling...",
       "confirm_disable": "Confirm Disable",
       "scan_instructions": "Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)",

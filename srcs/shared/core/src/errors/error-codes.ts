@@ -24,7 +24,6 @@ export const ERROR_CODES = {
 
   // specific
   MFA_REQUIRED: 'mfa_required',
-  MFA_INVALID: 'invalid_mfa_code',
   // 2FA flow
   INVALID_2FA_CODE: 'invalid_2fa_code',
   INVALID_CODE_FORMAT: 'invalid_code_format',

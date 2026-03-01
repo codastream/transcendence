@@ -292,8 +292,6 @@
       "disable_button": "Désactiver le 2FA",
       "disable_description": "Désactiver l'authentification à deux facteurs sur votre compte.",
       "disable_warning": "Attention : Désactiver le 2FA rendra votre compte moins sécurisé.",
-      "password_required": "Confirmez votre mot de passe",
-      "password_placeholder": "Entrez votre mot de passe",
       "disabling": "Désactivation...",
       "confirm_disable": "Confirmer la désactivation",
       "scan_instructions": "Scannez ce QR code avec votre application d'authentification (Google Authenticator, Authy, etc.)",

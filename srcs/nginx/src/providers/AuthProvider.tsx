@@ -70,6 +70,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, [pending2FA, navigate]);
 
+  // ── Expiration automatique de pending2FA ─────────────────────────────────
+  // Déclenche clearPending2FA() exactement à expiresAt, ce qui force un
+  // re-render et rend hasPending2FA === false côté guard TwoFactorRoute.
+  useEffect(() => {
+    if (!pending2FA) return;
+    const remaining = pending2FA.expiresAt - Date.now();
+    if (remaining <= 0) {
+      setPending2FAState(null);
+      return;
+    }
+    const timer = setTimeout(() => setPending2FAState(null), remaining);
+    return () => clearTimeout(timer);
+  }, [pending2FA]);
+
   const [hasSeenAnim, setHasSeenAnim] = useState<boolean>(() => {
     const storedHasSeenAnim = localStorage.getItem('hasSeenAnim');
     return storedHasSeenAnim ? JSON.parse(storedHasSeenAnim) : false;
@@ -122,11 +136,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setPending2FAState(null);
   }, []);
 
-  // hasPending2FA : vrai uniquement si le contexte existe ET n'est pas expiré
-  const hasPending2FA = useMemo(() => {
-    if (!pending2FA) return false;
-    return Date.now() <= pending2FA.expiresAt;
-  }, [pending2FA]);
+  // hasPending2FA : vrai uniquement si le contexte existe ET n'est pas expiré.
+  // Calculé à chaque render (sans useMemo) pour que l'expiration soit détectée
+  // dès le prochain re-render, sans attendre un changement de pending2FA.
+  const hasPending2FA = !!pending2FA && Date.now() <= pending2FA.expiresAt;
 
   const contextValue = useMemo(
     () => ({
@@ -152,7 +165,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       updateUser,
       markAnimAsSeen,
       pending2FA,
-      hasPending2FA,
+      hasPending2FA, // recalculé à chaque render → pas besoin dans deps
       setPending2FA,
       clearPending2FA,
     ],

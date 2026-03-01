@@ -308,8 +308,6 @@
       "disable_button": "Désactiver le double contrôle",
       "disable_description": "Virer le double contrôle de ton compte.",
       "disable_warning": "Attention : sans le double contrôle, ton compte est plus facile à niquer.",
-      "password_required": "Confirme ton mot de passe",
-      "password_placeholder": "Ton mot de passe",
       "disabling": "On désactive...",
       "confirm_disable": "Confirmer la désactivation",
       "scan_instructions": "Scanne ce QR code avec ton appli (Google Authenticator, Authy, etc.)",

@@ -8,6 +8,7 @@ import {
 } from '@transcendence/core';
 import axios from 'axios';
 import i18next from 'i18next';
+import { mapErrorToI18nKey } from '../utils/auth-error-map';
 
 export const api = axios.create({
   baseURL: '/api',
@@ -33,8 +34,7 @@ api.interceptors.response.use(
         (errorPayload.status as HttpStatus) ||
         HTTP_STATUS.INTERNAL_SERVER_ERROR;
       code = errorPayload?.code || ERROR_CODES.INTERNAL_ERROR;
-      const translationKey = `errors.${code}`;
-      message = i18next.t(translationKey) || errorPayload?.message || error.message;
+      message = i18next.t(mapErrorToI18nKey(code)) || errorPayload?.message || error.message;
 
       // Transformer les erreurs Zod brutes en ErrorDetail
       if (errorPayload?.details && Array.isArray(errorPayload.details)) {

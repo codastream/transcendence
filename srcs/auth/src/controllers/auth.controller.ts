@@ -33,6 +33,18 @@ function getCookieOptions(maxAgeSeconds: number = AUTH_CONFIG.COOKIE_MAX_AGE_SEC
   };
 }
 
+/**
+ * Extrait l'identité utilisateur injectée par la gateway (hooks onRequest).
+ * Retourne null si les headers obligatoires sont absents (requête non authentifiée).
+ */
+function extractGatewayUser(request: FastifyRequest): { userId: number; username: string } | null {
+  const idHeader = (request.headers as Record<string, string | undefined>)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  const username = (request.headers as Record<string, string | undefined>)['x-user-name'] ?? null;
+  if (!userId || !username) return null;
+  return { userId, username };
+}
+
 export async function registerHandler(
   this: FastifyInstance,
   req: FastifyRequest,
@@ -500,16 +512,14 @@ export async function setup2FAHandler(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const idHeader = (request.headers as any)['x-user-id'];
-  const userId = idHeader ? Number(idHeader) : null;
-  const username = (request.headers as any)['x-user-name'] || null;
-
-  if (!userId || !username) {
+  const gatewayUser = extractGatewayUser(request);
+  if (!gatewayUser) {
     logger.warn({ event: '2fa_setup_missing_headers' });
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
     });
   }
+  const { userId, username } = gatewayUser;
 
   try {
     // Vérifier si 2FA déjà activée
@@ -545,8 +555,11 @@ export async function setup2FAHandler(
         expiresIn: AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS,
       },
     });
-  } catch (err: any) {
-    logger.error({ event: '2fa_setup_error', err: err?.message || err });
+  } catch (err: unknown) {
+    logger.error({
+      event: '2fa_setup_error',
+      err: err instanceof Error ? err.message : String(err),
+    });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
@@ -668,8 +681,11 @@ export async function verify2FASetupHandler(
           username: user.username,
         },
       });
-  } catch (err: any) {
-    logger.error({ event: '2fa_setup_verify_error', err: err?.message || err });
+  } catch (err: unknown) {
+    logger.error({
+      event: '2fa_setup_verify_error',
+      err: err instanceof Error ? err.message : String(err),
+    });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
@@ -792,8 +808,11 @@ export async function verify2FAHandler(
           username: user.username,
         },
       });
-  } catch (err: any) {
-    logger.error({ event: '2fa_verify_error', err: err?.message || err });
+  } catch (err: unknown) {
+    logger.error({
+      event: '2fa_verify_error',
+      err: err instanceof Error ? err.message : String(err),
+    });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
@@ -810,16 +829,14 @@ export async function disable2FAHandler(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const idHeader = (request.headers as any)['x-user-id'];
-  const userId = idHeader ? Number(idHeader) : null;
-  const username = (request.headers as any)['x-user-name'] || null;
-
-  if (!userId || !username) {
+  const gatewayUser = extractGatewayUser(request);
+  if (!gatewayUser) {
     logger.warn({ event: '2fa_disable_missing_headers' });
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
     });
   }
+  const { userId, username } = gatewayUser;
 
   try {
     // Vérifier si 2FA est actuellement activée
@@ -844,8 +861,11 @@ export async function disable2FAHandler(
         username,
       },
     });
-  } catch (err: any) {
-    logger.error({ event: '2fa_disable_error', err: err?.message || err });
+  } catch (err: unknown) {
+    logger.error({
+      event: '2fa_disable_error',
+      err: err instanceof Error ? err.message : String(err),
+    });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });
@@ -857,16 +877,14 @@ export async function status2FAHandler(
   request: FastifyRequest,
   reply: FastifyReply,
 ) {
-  const idHeader = (request.headers as any)['x-user-id'];
-  const userId = idHeader ? Number(idHeader) : null;
-  const username = (request.headers as any)['x-user-name'] || null;
-
-  if (!userId || !username) {
+  const gatewayUser = extractGatewayUser(request);
+  if (!gatewayUser) {
     logger.warn({ event: '2fa_status_missing_headers' });
     return reply.code(HTTP_STATUS.UNAUTHORIZED).send({
       error: { message: 'Authentication required', code: ERROR_CODES.TOKEN_MISSING },
     });
   }
+  const { userId, username } = gatewayUser;
 
   try {
     // Vérifier le statut 2FA
@@ -880,8 +898,11 @@ export async function status2FAHandler(
         username,
       },
     });
-  } catch (err: any) {
-    logger.error({ event: '2fa_status_error', err: err?.message || err });
+  } catch (err: unknown) {
+    logger.error({
+      event: '2fa_status_error',
+      err: err instanceof Error ? err.message : String(err),
+    });
     return reply.code(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
       error: { message: 'Internal server error', code: ERROR_CODES.INTERNAL_ERROR },
     });

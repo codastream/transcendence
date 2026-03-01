@@ -3,7 +3,7 @@
  *
  * Permet à l'utilisateur de :
  * - Activer le 2FA (affiche QR code + secret)
- * - Désactiver le 2FA (demande mot de passe)
+ * - Désactiver le 2FA (avec confirmation)
  * - Voir le statut actuel (activé/désactivé)
  *
  * À intégrer dans MyProfilePage ou une section Settings
@@ -13,7 +13,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authApi } from '../../api/auth-api';
 import { FrontendError, ERROR_CODES } from '@transcendence/core';
-import i18next from 'i18next';
+import Button from '../atoms/Button';
+import { Input } from '../atoms/Input';
+import { AlertMessage } from '../atoms/AlertMessage';
 
 interface TwoFactorSetupState {
   status: 'loading' | 'enabled' | 'disabled';
@@ -75,7 +77,7 @@ export const TwoFactorSetup = () => {
         isSubmitting: false,
       }));
     } catch (err: unknown) {
-      let errorMessage = i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
+      let errorMessage = t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
       if (err instanceof FrontendError) {
         errorMessage = err.message;
       }
@@ -113,7 +115,7 @@ export const TwoFactorSetup = () => {
         isSubmitting: false,
       }));
     } catch (err: unknown) {
-      let errorMessage = i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
+      let errorMessage = t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
       if (err instanceof FrontendError) {
         errorMessage = err.message;
       }
@@ -139,7 +141,7 @@ export const TwoFactorSetup = () => {
         isSubmitting: false,
       }));
     } catch (err: unknown) {
-      let errorMessage = i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
+      let errorMessage = t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
       if (err instanceof FrontendError) {
         errorMessage = err.message;
       }
@@ -190,17 +192,8 @@ export const TwoFactorSetup = () => {
       </h2>
 
       {/* Messages de succès/erreur */}
-      {state.success && (
-        <div className="mb-4 bg-green-50 border-2 border-green-300 text-green-700 px-4 py-3 rounded-lg text-sm font-medium animate-in fade-in">
-          {state.success}
-        </div>
-      )}
-
-      {state.error && (
-        <div className="mb-4 bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-lg text-sm font-medium animate-in fade-in">
-          {state.error}
-        </div>
-      )}
+      <AlertMessage type="success" message={state.success} className="mb-4" />
+      <AlertMessage type="error" message={state.error} className="mb-4" />
 
       {/* Statut actuel */}
       <div className="mb-6">
@@ -222,13 +215,15 @@ export const TwoFactorSetup = () => {
       {state.status === 'disabled' && state.setupStep === 'idle' && (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">{t('2fa.setup.description')}</p>
-          <button
+          <Button
+            type="button"
+            variant="primary"
             onClick={handleStartSetup}
             disabled={state.isSubmitting}
-            className="w-full py-3 px-4 bg-gradient-to-r from-[#00ff9f] to-[#0088ff] hover:shadow-[0_4px_20px_rgba(0,255,159,0.3)] text-white rounded-xl transition-all transform hover:scale-105 active:scale-95 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+            className="w-full"
           >
             {t('2fa.setup.enable_button')}
-          </button>
+          </Button>
         </div>
       )}
 
@@ -268,7 +263,7 @@ export const TwoFactorSetup = () => {
               <label htmlFor="verify-code" className="block text-sm font-medium text-gray-700 mb-2">
                 {t('2fa.setup.verify_code')}
               </label>
-              <input
+              <Input
                 id="verify-code"
                 type="text"
                 inputMode="numeric"
@@ -283,27 +278,28 @@ export const TwoFactorSetup = () => {
                 }
                 disabled={state.isSubmitting}
                 autoFocus
-                className="w-full px-4 py-3 text-center text-2xl font-mono tracking-widest border-2 border-gray-300 rounded-xl focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 placeholder="000000"
               />
             </div>
 
             <div className="flex gap-3">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={handleCancelSetup}
                 disabled={state.isSubmitting}
-                className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                className="flex-1"
               >
                 {t('2fa.setup.cancel')}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
+                variant="primary"
                 disabled={state.isSubmitting || state.verifyCode.length !== 6}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-[#00ff9f] to-[#0088ff] hover:shadow-[0_4px_20px_rgba(0,255,159,0.3)] text-white rounded-xl transition-all transform hover:scale-105 active:scale-95 font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="flex-1"
               >
                 {state.isSubmitting ? t('2fa.verifying') : t('2fa.setup.verify_button')}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -313,39 +309,41 @@ export const TwoFactorSetup = () => {
       {state.status === 'enabled' && state.disableStep === 'idle' && (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">{t('2fa.setup.disable_description')}</p>
-          <button
+          <Button
+            type="button"
+            variant="alert"
             onClick={() => setState((prev) => ({ ...prev, disableStep: 'confirming' }))}
-            className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all font-semibold"
+            className="w-full"
           >
             {t('2fa.setup.disable_button')}
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Confirmation de désactivation */}
       {state.disableStep === 'confirming' && (
         <div className="space-y-4">
-          <div className="bg-yellow-50 border-2 border-yellow-300 text-yellow-800 px-4 py-3 rounded-lg text-sm">
-            {t('2fa.setup.disable_warning')}
-          </div>
+          <AlertMessage type="warning" message={t('2fa.setup.disable_warning')} />
 
           <div className="flex gap-3">
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={handleCancelDisable}
               disabled={state.isSubmitting}
-              className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+              className="flex-1"
             >
               {t('2fa.setup.cancel')}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="alert"
               onClick={handleDisable}
               disabled={state.isSubmitting}
-              className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1"
             >
               {state.isSubmitting ? t('2fa.setup.disabling') : t('2fa.setup.confirm_disable')}
-            </button>
+            </Button>
           </div>
         </div>
       )}
