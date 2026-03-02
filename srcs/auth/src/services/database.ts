@@ -215,6 +215,7 @@ export async function findUserByIdOrThrow(id: number): Promise<UserRow> {
     }
     return user as UserRow;
   } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
     throw new AppError(ERR_DEFS.DB_SELECT_ERROR, {}, err);
   }
 }

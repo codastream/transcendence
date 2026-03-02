@@ -6,6 +6,7 @@ import { AUTH_CONFIG } from '../config/auth.js';
 
 export const usernameSchema = z
   .string()
+  .trim()
   .min(4, 'Username must be at least 4 characters')
   .max(20, 'Username must be at most 20 characters')
   .regex(/^[a-zA-Z0-9_]+$/, 'Username must contain only letters, numbers and underscores');

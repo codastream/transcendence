@@ -11,7 +11,7 @@ import {
   replySentToLog,
 } from '@transcendence/core';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import type { FastifyError } from 'fastify';
+import { FastifyError } from 'fastify';
 
 const RATE_LIMIT_CODES = new Set(['FST_ERR_RATE_LIMITED', 'FST_ERR_RATE_LIMIT']);
 
@@ -24,6 +24,8 @@ export async function errorHandler(
   reply: FastifyReply,
 ): Promise<void> {
   // theoretically should have been already logged while sent, no need to double log
+  req.log.error(error);
+
   if (reply.sent) {
     req.log.debug(replySentToLog(error, req));
     return;
@@ -39,14 +41,14 @@ export async function errorHandler(
   }
 
   if (error.code === 'FST_ERR_VALIDATION') {
-    req.log.error(fastifyValidationErrorToLog(error as unknown as FastifyValidationError, req));
-    const { status, body } = fastifyErrorToReplyPayload(error as unknown as FastifyValidationError);
+    req.log.error(fastifyValidationErrorToLog(error as FastifyValidationError, req));
+    const { status, body } = fastifyErrorToReplyPayload(error as FastifyValidationError);
     return reply.status(status).send(body);
   }
 
-  if (error instanceof AppError) {
-    req.log.error(appErrorToLog(error, req), error.message);
-    const { status, body } = appErrorToReplyPayload(error);
+  if ('isAppError' in error) {
+    req.log.error(appErrorToLog(error as AppError, req), error.message);
+    const { status, body } = appErrorToReplyPayload(error as AppError);
     return reply.status(status).send(body);
   }
 

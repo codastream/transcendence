@@ -46,6 +46,7 @@ export class AppError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: HttpStatus;
   public readonly context: LogContext;
+  public readonly isAppError = true;
   constructor(
     definition: ErrorDefinition,
     dynamicContext: Omit<LogContext, 'event' | 'reason'> = {},

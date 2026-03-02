@@ -221,6 +221,7 @@
       "special": "One special character (!@#$%^&*)"
     },
     "username": {
+      "required": "Username is required",
       "minLength": "4 to 20 characters",
       "alphanumeric": "Letters, numbers and _ only"
     }

@@ -18,7 +18,7 @@ export { RequestStatus, CONFIG, HTTP_STATUS } from './constants/index.js';
 // Errors
 // ============================================================================
 
-export { ERR_DEFS } from './errors/error-catalog.js';
+export { ERR_DEFS, serviceError, authError } from './errors/error-catalog.js';
 export { ERROR_CODES } from './errors/error-codes.js';
 
 export {

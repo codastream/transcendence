@@ -3,7 +3,19 @@ import { CreateProfileDTO, UserProfileDTO } from '../../types/dto.js';
 import { ServiceError } from '../../types/errors.js';
 import { EVENTS, REASONS, UM_SERVICE_URL } from '../../utils/constants.js';
 import { APP_ERRORS } from '../../utils/error-catalog.js';
-import { ERROR_CODES } from '@transcendence/core';
+import {
+  AppError,
+  emailDTO,
+  ERR_DEFS,
+  ERROR_CODES,
+  HttpStatus,
+  idDTO,
+  LOG_EVENTS,
+  LOG_REASONS,
+  ProfileSimpleDTO,
+  serviceError,
+  usernameDTO,
+} from '@transcendence/core';
 import { mtlsAgent } from '../../utils/mtlsAgent.js';
 import { MTLSRequestInit } from '../../types/https.js';
 
@@ -53,6 +65,112 @@ export async function createUserProfile(payload: CreateProfileDTO): Promise<User
     logger.error({ msg: `error POST ${UM_SERVICE_URL}/users`, error: error });
     if (error instanceof ServiceError) throw error;
     throw new ServiceError(APP_ERRORS.SERVICE_UNAVAILABLE, { originalError: error });
+  }
+}
+
+export async function updateProfileUsername(
+  userId: idDTO,
+  username: usernameDTO,
+  newUsername: usernameDTO,
+): Promise<ProfileSimpleDTO> {
+  try {
+    logger.info({
+      msg: `calling PATCH ${UM_SERVICE_URL}/${username}/username`,
+      payload: { newUsername },
+    });
+
+    const init: MTLSRequestInit = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': String(userId) || '',
+        'x-user-name': (username as string) || '',
+      },
+      body: JSON.stringify({ newUsername: newUsername }),
+      dispatcher: mtlsAgent,
+    };
+    const response = await fetch(`${UM_SERVICE_URL}/${username}/username`, init);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      let parsedMessage = 'Upstream service error';
+      try {
+        const parsed = JSON.parse(errorText);
+        parsedMessage = parsed?.message || parsedMessage;
+      } catch {
+        // keep fallback
+      }
+      throw new AppError(
+        serviceError(
+          ERROR_CODES.INTERNAL_ERROR,
+          LOG_REASONS.NETWORK.UPSTREAM_ERROR,
+          parsedMessage,
+          response.status as HttpStatus,
+          LOG_EVENTS.DEPENDENCY.FAIL,
+        ),
+        {},
+        response,
+      );
+    }
+
+    return (await response.json()) as ProfileSimpleDTO;
+  } catch (error: unknown) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(ERR_DEFS.SERVICE_UNAVAILABLE, {}, error);
+  }
+}
+
+export async function updateProfileEmail(
+  userId: idDTO,
+  username: usernameDTO,
+  newEmail: emailDTO,
+): Promise<ProfileSimpleDTO> {
+  try {
+    logger.info({
+      msg: `calling PATCH ${UM_SERVICE_URL}/${username}/email`,
+      payload: { newEmail },
+    });
+
+    const init: MTLSRequestInit = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': String(userId) || '',
+        'x-user-name': (username as string) || '',
+      },
+      body: JSON.stringify({ newEmail: newEmail }),
+      dispatcher: mtlsAgent,
+    };
+    const response = await fetch(`${UM_SERVICE_URL}/${username}/username`, init);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      let parsedMessage = 'Upstream service error';
+      try {
+        const parsed = JSON.parse(errorText);
+        parsedMessage = parsed?.message || parsedMessage;
+      } catch {
+        // keep fallback
+      }
+      throw new AppError(
+        serviceError(
+          ERROR_CODES.INTERNAL_ERROR,
+          LOG_REASONS.NETWORK.UPSTREAM_ERROR,
+          parsedMessage,
+          response.status as HttpStatus,
+          LOG_EVENTS.DEPENDENCY.FAIL,
+        ),
+        {},
+        response,
+      );
+    }
+
+    return (await response.json()) as ProfileSimpleDTO;
+  } catch (error: unknown) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(ERR_DEFS.SERVICE_UNAVAILABLE, {}, error);
   }
 }
 

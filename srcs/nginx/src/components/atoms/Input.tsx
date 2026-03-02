@@ -17,7 +17,7 @@ const ICON_MAP = {
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   containerClassName?: string;
   customType?: 'email' | 'password' | 'username';
-  errorMessage?: string;
+  errorMessage: string | null;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -61,7 +61,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={hasError ? 'true' : 'false'}
             aria-describedby={hasError ? errorId : undefined}
             className={cn(
-              'w-full rounded-md border py-2.5 text-xs md:text-sm transition-all focus:outline-none focus:ring-2',
+              'w-full bg-white/30 rounded-md border py-2.5 text-xs md:text-sm transition-all focus:outline-none focus:ring-2',
               'ring-offset-1 ring-offset-transparent',
               Icon ? 'pl-10 pr-3' : 'px-3',
               borderClass,

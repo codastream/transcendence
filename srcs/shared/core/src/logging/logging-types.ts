@@ -24,6 +24,7 @@ export interface LogContext {
   zodIssues?: z.core.$ZodIssue[];
   originalError?: unknown;
   field?: string;
+  meta?: Record<string, string>;
 }
 
 export interface RequestContext {

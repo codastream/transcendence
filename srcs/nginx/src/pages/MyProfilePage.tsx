@@ -11,6 +11,7 @@ import { Pencil } from 'lucide-react';
 import { Input } from '../components/atoms/Input';
 import Button from '../components/atoms/Button';
 import { AppError, ERROR_CODES, FrontendError } from '@transcendence/core';
+import { authApi } from '../api/auth-api';
 
 const toggle2FA = () => {};
 
@@ -30,6 +31,7 @@ export const MyProfilePage = () => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const username = authUser?.username || '';
+  const [usernameError, setUsernameError] = useState<string | null>(null);
 
   const {
     data: profile,
@@ -46,7 +48,7 @@ export const MyProfilePage = () => {
   console.log('isError:', isError);
 
   const { mutate: updateUsername, isPending } = useMutation({
-    mutationFn: (newUsername: string) => profileApi.updateUsername(username, newUsername),
+    mutationFn: (newUsername: string) => authApi.updateUsername(username, newUsername),
     onMutate: () => {
       setError(null);
     },
@@ -101,6 +103,28 @@ export const MyProfilePage = () => {
     }
   };
 
+  const handleSaveUsername = () => {
+    const newValue = inputRef.current?.value.trim();
+
+    setUsernameError(null);
+
+    if (!newValue) {
+      setUsernameError(t('validation.username.required'));
+      return;
+    }
+
+    if (newValue.length < 3) {
+      setUsernameError(t('validation.username.minLength'));
+      return;
+    }
+
+    if (newValue !== profile.username) {
+      updateUsername(newValue);
+    } else {
+      setIsEditing(false);
+    }
+  };
+
   const handleUpload = async (file: File) => {
     setIsUploading(true);
     try {
@@ -145,18 +169,16 @@ export const MyProfilePage = () => {
                   <Input
                     ref={inputRef}
                     defaultValue={profile.username}
+                    errorMessage={usernameError}
+                    onChange={() => {
+                      if (usernameError) setUsernameError(null);
+                    }}
                     className="h-20 border p-1"
                     disabled={isPending}
                   ></Input>
                   <Button
-                    onClick={() => {
-                      const newValue = inputRef.current?.value;
-                      if (newValue && newValue !== profile.username) {
-                        updateUsername(newValue);
-                      }
-                    }}
+                    onClick={handleSaveUsername}
                     variant="primary"
-                    type="submit"
                     className="px-2 py-2"
                     disabled={isPending}
                   >

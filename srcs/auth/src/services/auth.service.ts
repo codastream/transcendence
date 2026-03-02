@@ -1,6 +1,11 @@
 import bcrypt from 'bcrypt';
 import * as db from './database.js';
-import { createUserProfile, deleteUserProfile } from './external/um.service.js';
+import {
+  createUserProfile,
+  deleteUserProfile,
+  updateProfileEmail,
+  updateProfileUsername,
+} from './external/um.service.js';
 import { DataError, ServiceError } from '../types/errors.js';
 import { APP_ERRORS } from '../utils/error-catalog.js';
 import { EVENTS, REASONS, UserRole } from '../utils/constants.js';
@@ -200,13 +205,16 @@ export function updateUserRole(userId: number, role: UserRole): void {
 /**
  * Updates an user's username
  * @param userId User ID
+ * @param username User Username
  * @param newEmail New Username
  */
 export async function updateUserUsernameAndFetch(
   userId: number,
+  username: string,
   newUsername: string,
 ): Promise<UserDTO> {
   await db.updateUserUsername(userId, newUsername);
+  await updateProfileUsername(userId, username, newUsername);
   const user = await findUserByIdOrThrow(userId);
   return user;
 }
@@ -214,10 +222,17 @@ export async function updateUserUsernameAndFetch(
 /**
  * Updates an user's email
  * @param userId User ID
+ * @param username User Username
  * @param newEmail New Email
  */
-export async function updateUserEmailAndFetch(userId: number, newEmail: string): Promise<UserDTO> {
+export async function updateUserEmailAndFetch(
+  userId: number,
+  username: string,
+  newEmail: string,
+): Promise<UserDTO> {
   await db.updateUserRole(userId, newEmail);
+  await updateProfileEmail(userId, username, newEmail);
+
   const user = await findUserByIdOrThrow(userId);
   return user;
 }

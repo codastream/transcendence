@@ -361,14 +361,27 @@ export async function patchUsernameHandler(
   request: FastifyRequest<{ Body: z.infer<typeof patchUsernameSchema.body> }>,
   reply: FastifyReply,
 ) {
-  const { id } = request.user;
-  const { newUsername } = request.body;
-  request.log.trace({ event: 'patch_username' });
-  const updatedUser = await authService.updateUserUsernameAndFetch(id, newUsername);
-  return reply.send({
-    message: 'Update success',
-    user: updatedUser,
-  });
+  try {
+    const { id, username } = request.user;
+    const { newUsername } = request.body;
+    request.log.info({ event: 'patch_username', id, username, newUsername });
+    const updatedUser = await authService.updateUserUsernameAndFetch(id, username, newUsername);
+    request.log.info({ event: 'patch_username_success', id, username, newUsername });
+    return reply.send({
+      message: 'Update success',
+      user: updatedUser,
+    });
+  } catch (err: any) {
+    request.log.error({
+      event: 'patch_username_error',
+      message: err?.message,
+      stack: err?.stack,
+      name: err?.name,
+      code: err?.code,
+      raw: JSON.stringify(err),
+    });
+    throw err;
+  }
 }
 
 export async function patchEmailHandler(
@@ -376,10 +389,10 @@ export async function patchEmailHandler(
   request: FastifyRequest<{ Body: z.infer<typeof patchEmailSchema.body> }>,
   reply: FastifyReply,
 ) {
-  const { id } = request.user;
+  const { id, username } = request.user;
   const { newEmail } = request.body;
   request.log.trace({ event: 'patch_email' });
-  const updatedUser = await authService.updateUserEmailAndFetch(id, newEmail);
+  const updatedUser = await authService.updateUserEmailAndFetch(id, username, newEmail);
   return reply.send({
     message: 'Update success',
     user: updatedUser,

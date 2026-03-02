@@ -21,7 +21,6 @@ import {
 import { AUTH_CONFIG } from '../utils/constants.js';
 import {
   DetailedErrorSchema,
-  IdSchema,
   usernameSchema,
   UserSchema,
   ValidationErrorSchema,
@@ -29,7 +28,7 @@ import {
 import z from 'zod';
 
 export const patchUsernameSchema = {
-  params: IdSchema,
+  params: z.object({ usernameSchema }),
   body: z.object({
     newUsername: usernameSchema,
   }),
@@ -44,7 +43,7 @@ export const patchUsernameSchema = {
 };
 
 export const patchEmailSchema = {
-  params: IdSchema,
+  params: z.object({ usernameSchema }),
   body: z.object({
     newEmail: z.email(),
   }),
@@ -59,12 +58,9 @@ export const patchEmailSchema = {
 };
 
 export async function authRoutes(app: FastifyInstance) {
-  app.get(
-    '/',
-    async function (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-      return { message: 'Auth service is running' };
-    },
-  );
+  app.get('/', async function (this: FastifyInstance) {
+    return { message: 'Auth service is running' };
+  });
 
   app.get(
     '/health',
@@ -103,8 +99,8 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/logout', logoutHandler);
 
-  app.patch('/:id/username', { schema: patchUsernameSchema }, patchUsernameHandler);
-  app.patch('/:id/email', { schema: patchEmailSchema }, patchEmailHandler);
+  app.patch('/:username/username', { schema: patchUsernameSchema }, patchUsernameHandler);
+  app.patch('/:username/email', { schema: patchEmailSchema }, patchEmailHandler);
 
   app.get('/verify', verifyHandler);
 

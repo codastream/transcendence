@@ -1,4 +1,4 @@
-import { ReasonValue } from '../logging/logging-types.js';
+import { EventValue, ReasonValue } from '../logging/logging-types.js';
 import { LOG_EVENTS, LOG_REASONS } from '../logging/logging.js';
 import { ErrorCode, ErrorDefinition, HttpStatus } from './error-types.js';
 import { HTTP_STATUS } from '../constants/index.js';
@@ -7,7 +7,7 @@ import { ERROR_CODES } from './error-codes.js';
 // Factory pattern to centralize error generation
 
 // 401 Unauthorized or 403 Forbidden or 400 Validation on register or 409 username conflict
-const authError = (
+export const authError = (
   code: ErrorCode,
   reason: ReasonValue,
   message: string,
@@ -21,15 +21,15 @@ const authError = (
 });
 
 // 500 or 501 not implemented or 502 bad gateway (generic) or 503 Unavailable or 504 gateway timeout
-const serviceError = (
+export const serviceError = (
   code: ErrorCode,
   reason: ReasonValue,
   message: string,
   statusCode: HttpStatus,
-  event = LOG_EVENTS.APPLICATION.VALIDATION_FAIL,
+  event?: EventValue,
 ): ErrorDefinition => ({
   code: code,
-  event: event,
+  event: event ?? LOG_EVENTS.APPLICATION.HANDLED_ERROR,
   statusCode: statusCode ?? HTTP_STATUS.INTERNAL_SERVER_ERROR,
   reason,
   message,

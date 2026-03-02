@@ -11,6 +11,7 @@ import {
   UserRegisterDTO,
   UserRegisterSchema,
   FrontendReasonValue,
+  emailDTO,
 } from '@transcendence/core';
 import api from './api-client';
 import i18next from 'i18next';
@@ -52,6 +53,16 @@ export const authApi = {
     }
     const { data } = await api.post(`/auth/login`, payload);
     return data?.user?.username;
+  },
+
+  updateUsername: async (username: usernameDTO, newUsername: usernameDTO): Promise<UserDTO> => {
+    const { data } = await api.patch(`/auth/${username}/username`, { newUsername });
+    return data.user;
+  },
+
+  updateEmail: async (username: usernameDTO, newEmail: emailDTO): Promise<UserDTO> => {
+    const { data } = await api.patch(`/auth/${username}/email`, { newEmail });
+    return data.user;
   },
 
   me: async (): Promise<UserDTO> => {
