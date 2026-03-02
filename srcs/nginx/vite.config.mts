@@ -46,6 +46,7 @@ export default defineConfig(({ mode }) => {
         input: {
           main: path.resolve(__dirname, 'index.html'),
           dashboard: path.resolve(__dirname, 'src/html/dashboard.html'),
+          admin: path.resolve(__dirname, 'src/html/admin.html'),
         },
         output: {
           // Force un nom prédictible pour le script du dashboard

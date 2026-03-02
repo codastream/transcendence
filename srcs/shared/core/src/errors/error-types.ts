@@ -72,15 +72,18 @@ export class FrontendError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: HttpStatus;
   public readonly details: ErrorDetail[];
+  public readonly meta: Record<string, unknown> | undefined;
   constructor(
     message: string,
     statusCode: HttpStatus,
     code: ErrorCode,
     details: ErrorDetail[] = [],
+    meta?: Record<string, unknown>,
   ) {
     super(message);
     this.code = code;
     this.statusCode = statusCode;
     this.details = details;
+    this.meta = meta;
   }
 }

@@ -11,6 +11,7 @@ import {
   verify2FASetupHandler,
   verify2FAHandler,
   disable2FAHandler,
+  status2FAHandler,
   heartbeatHandler,
   isUserOnlineHandler,
   deleteUserHandler,
@@ -162,6 +163,8 @@ export async function authRoutes(app: FastifyInstance) {
   );
 
   app.post('/2fa/disable', disable2FAHandler);
+
+  app.get('/2fa/status', status2FAHandler);
 
   // Suppression du compte utilisateur
   app.delete(

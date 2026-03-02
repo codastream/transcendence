@@ -28,8 +28,6 @@ COPY srcs/shared/core/src ./srcs/shared/core/src
 
 # Copy only nginx frontend sources
 COPY srcs/nginx ./srcs/nginx
-COPY srcs/nginx/src/html/dashboard.html ./srcs/nginx/html/dashboard.html
-COPY srcs/nginx/src/html/admin.html ./srcs/nginx/html/admin.html
 
 # Build frontend (Vite)
 RUN npm run build --workspace srcs/shared/core
@@ -76,8 +74,9 @@ COPY srcs/nginx/conf.d/proxy_nginx_certs.conf /etc/nginx/conf.d/proxy_nginx_cert
 COPY srcs/nginx/conf.d/frontend.prod.conf /etc/nginx/snippets/frontend.conf
 
 COPY --from=builder /app/srcs/nginx/dist /usr/share/nginx/src/html
-COPY --from=builder /app/srcs/nginx/html/dashboard.html /usr/share/nginx/src/html/
-COPY --from=builder /app/srcs/nginx/html/admin.html /usr/share/nginx/src/html/
+# Copy dashboard & admin
+COPY --from=builder /app/srcs/nginx/dist/src/html/dashboard.html /usr/share/nginx/src/html/dashboard.html
+COPY --from=builder /app/srcs/nginx/dist/src/html/admin.html /usr/share/nginx/src/html/admin.html
 
 RUN mkdir -p /usr/share/nginx/html/uploads && chmod 755 /usr/share/nginx/html/uploads
 

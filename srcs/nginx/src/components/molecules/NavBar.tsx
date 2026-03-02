@@ -1,6 +1,6 @@
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Locale } from '../atoms/Locale';
 import { useAuth } from '../../providers/AuthProvider';
 import Avatar from '../atoms/Avatar';
@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 export const NavBar = () => {
   const { user, isLoggedIn, logout } = useAuth();
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const playItems = [
     { label: t('navbar.play_friend'), to: '/friends' },
@@ -23,6 +24,7 @@ export const NavBar = () => {
 
   const profileItems = [
     { label: t('navbar.profile'), to: '/me' },
+    { label: t('faq.title'), to: '/faq' },
     { label: t('navbar.profile_logout'), onClick: () => logout() },
   ];
 
@@ -39,9 +41,22 @@ export const NavBar = () => {
       </div>
       {user && isLoggedIn && (
         <>
-          <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7}></MenuElement>
-          <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
-          <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
+          <MenuElement
+            action={MenuActions.PLAY}
+            items={playItems}
+            scale={0.7}
+            onClick={() => navigate('/game/local')}
+          />
+          <MenuElement
+            action={MenuActions.STATS}
+            items={statsItems}
+            onClick={() => navigate('/stats')}
+          />
+          <MenuElement
+            action={MenuActions.PROFILE}
+            items={profileItems}
+            onClick={() => navigate('/me')}
+          />
         </>
       )}
 

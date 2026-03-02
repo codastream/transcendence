@@ -1,6 +1,6 @@
-import Toggle from '../components/atoms/Toggle';
 import FileUploader from '../components/molecules/FileUploader';
 import { Page } from '../components/organisms/PageContainer';
+import { TwoFactorSetup } from '../components/organisms/TwoFactorSetup';
 import Avatar from '../components/atoms/Avatar';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../api/profile-api';
@@ -13,8 +13,6 @@ import Button from '../components/atoms/Button';
 import { AppError, ERROR_CODES, FrontendError } from '@transcendence/core';
 import { authApi } from '../api/auth-api';
 import { ConfirmModal } from '../components/molecules/ConfirmModal';
-
-const toggle2FA = () => {};
 
 /**
  * MyProfilePage — Page privée accessible uniquement via /me.
@@ -207,12 +205,7 @@ export const MyProfilePage = () => {
         {/* Section 2FA */}
         <div className="mb-3">
           <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">{t('profile.2fa')}</h1>
-          <div className="flex flex-row justify-center">
-            <Toggle onToggle={toggle2FA} className="mr-3"></Toggle>
-            <label htmlFor="Toggle" className="text-gray-600">
-              {t('global.disabled')}
-            </label>
-          </div>
+          <TwoFactorSetup />
         </div>
 
         {/* Section upload avatar */}
