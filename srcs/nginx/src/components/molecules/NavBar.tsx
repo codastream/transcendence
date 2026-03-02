@@ -40,22 +40,9 @@ export const NavBar = () => {
       </div>
       {user && isLoggedIn && (
         <>
-          <MenuElement
-            action={MenuActions.PLAY}
-            items={playItems}
-            scale={0.7}
-            onClick={() => navigate('/game/local')}
-          />
-          <MenuElement
-            action={MenuActions.STATS}
-            items={statsItems}
-            onClick={() => navigate('/stats')}
-          />
-          <MenuElement
-            action={MenuActions.PROFILE}
-            items={profileItems}
-            onClick={() => navigate('/me')}
-          />
+          <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7} />
+          <MenuElement action={MenuActions.STATS} items={statsItems} />
+          <MenuElement action={MenuActions.PROFILE} items={profileItems} />
         </>
       )}
 
