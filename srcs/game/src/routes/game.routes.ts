@@ -11,6 +11,8 @@ import {
   showTournament,
   deleteSession,
   getMatchToPlay,
+  getTournamentStats,
+  getMatchHistory,
 } from '../controllers/game.controller.js';
 
 export async function gameRoutes(app: FastifyInstance) {
@@ -37,4 +39,6 @@ export async function gameRoutes(app: FastifyInstance) {
   );
   app.delete('/del/:sessionId', deleteSession);
   app.get('/ws/:sessionId', { websocket: true }, webSocketConnect);
+  app.get('/stats', getTournamentStats);
+  app.get('/history', getMatchHistory);
 }

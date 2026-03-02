@@ -1,7 +1,6 @@
 import Database from 'better-sqlite3';
 import fs from 'fs';
 import path from 'path';
-import { MatchDTO } from '../types/game.dto.js';
 import { env } from '../config/env.js';
 import { UserEvent, TournamentDTO,MatchToPlayDTO, ERR_DEFS } from '@transcendence/core';
 import { AppError, ErrorDetail } from '@transcendence/core';
@@ -453,4 +452,64 @@ function onMatchFinished(matchId: number) {
     createMatchStmt.run(match.tournament_id, winner1, winner2, randomUUID(), 'FINAL', now);
     createMatchStmt.run(match.tournament_id, loser1, loser2, randomUUID(), 'LITTLE_FINAL', now);
   })();
+}
+
+// ---- STATS ----
+const getTournamentStatsStmt = db.prepare(`
+SELECT
+  p.id                                                                        AS player_id,
+  COALESCE(p.username, 'unknown')                                             AS username,
+  COUNT(DISTINCT tp.tournament_id)                                            AS tournaments_played,
+  COUNT(DISTINCT CASE WHEN tp.final_position = 1 THEN tp.tournament_id END)  AS tournaments_won,
+  COUNT(DISTINCT m.id)                                                        AS matches_played,
+  COUNT(DISTINCT CASE WHEN m.winner_id = p.id THEN m.id END)                 AS matches_won
+FROM player p
+LEFT JOIN tournament_player tp
+  ON tp.player_id = p.id
+LEFT JOIN match m
+  ON m.tournament_id IS NOT NULL
+ AND (m.player1 = p.id OR m.player2 = p.id)
+GROUP BY p.id, p.username
+ORDER BY tournaments_won DESC, matches_won DESC, tournaments_played DESC;
+`);
+
+export function getTournamentStats() {
+  try {
+    return getTournamentStatsStmt.all();
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: 'getTournamentStats' }] },
+      err,
+    );
+  }
+}
+
+// ---- HISTORY ----
+const getMatchHistoryStmt = db.prepare(`
+SELECT
+  m.id,
+  m.tournament_id,
+  m.round,
+  m.score_player1,
+  m.score_player2,
+  m.winner_id,
+  m.created_at,
+  p1.username  AS username_player1,
+  p2.username  AS username_player2,
+  pw.username  AS username_winner
+FROM match m
+LEFT JOIN player p1 ON p1.id = m.player1
+LEFT JOIN player p2 ON p2.id = m.player2
+LEFT JOIN player pw ON pw.id = m.winner_id
+ORDER BY m.created_at DESC
+LIMIT 100;
+`);
+
+export function getMatchHistory() {
+  try {
+    return getMatchHistoryStmt.all();
+  } catch (err: unknown) {
+    throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: 'getMatchHistory' }] }, err);
+  }
 }
