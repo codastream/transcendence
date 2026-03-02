@@ -268,6 +268,7 @@ export const TwoFactorSetup = () => {
                 type="text"
                 inputMode="numeric"
                 pattern="\d{6}"
+                errorMessage={null}
                 maxLength={6}
                 value={state.verifyCode}
                 onChange={(e) =>
