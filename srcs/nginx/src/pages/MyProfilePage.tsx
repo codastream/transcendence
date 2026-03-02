@@ -169,8 +169,25 @@ export const MyProfilePage = () => {
 
         {/* Section 2FA */}
         <div className="mb-3">
-          <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">{t('profile.2fa')}</h1>
-          <TwoFactorSetup />
+          <div className="m-2 flex flex-row justify-center align-center">
+            <svg
+              className="w-7 h-7 mr-2 text-cyan-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+              />
+            </svg>
+            <h1 className="text-gray-600 font-bold text-xl font-quantico">{t('profile.2fa')}</h1>
+          </div>
+          <div className="flex flex-row justify-center">
+            <TwoFactorSetup />
+          </div>
         </div>
 
         {/* Section upload avatar */}
