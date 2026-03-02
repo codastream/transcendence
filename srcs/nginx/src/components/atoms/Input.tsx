@@ -17,7 +17,7 @@ const ICON_MAP = {
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   containerClassName?: string;
   customType?: 'email' | 'password' | 'username';
-  errorMessage: string | null;
+  errorMessage: string | null | undefined;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(

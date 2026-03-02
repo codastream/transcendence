@@ -4,15 +4,14 @@ import { TwoFactorSetup } from '../components/organisms/TwoFactorSetup';
 import Avatar from '../components/atoms/Avatar';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../api/profile-api';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../providers/AuthProvider';
 import { useTranslation } from 'react-i18next';
-import { Pencil } from 'lucide-react';
-import { Input } from '../components/atoms/Input';
 import Button from '../components/atoms/Button';
 import { AppError, ERROR_CODES, FrontendError } from '@transcendence/core';
 import { authApi } from '../api/auth-api';
 import { ConfirmModal } from '../components/molecules/ConfirmModal';
+import { EditableField } from '../components/molecules/EditableField';
 
 /**
  * MyProfilePage — Page privée accessible uniquement via /me.
@@ -28,12 +27,11 @@ export const MyProfilePage = () => {
   const { user: authUser, updateUser, logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const { t } = useTranslation();
-  const inputRef = useRef<HTMLInputElement>(null);
   const username = authUser?.username || '';
   const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const {
@@ -46,25 +44,43 @@ export const MyProfilePage = () => {
     enabled: !!username,
   });
 
-  const { mutate: updateUsername, isPending } = useMutation({
+  const { mutate: updateUsername, isPending: isPendingUsername } = useMutation({
     mutationFn: (newUsername: string) => authApi.updateUsername(username, newUsername),
     onMutate: () => {
       setError(null);
+      setUsernameError(null);
     },
     onSuccess: (updatedProfile) => {
-      queryClient.setQueryData(['profile', 'me'], updatedProfile);
+      queryClient.invalidateQueries({ queryKey: ['profile', 'me'] });
       updateUser({
         ...authUser,
         username: updatedProfile.username,
         avatarUrl: authUser?.avatarUrl ?? null,
       });
-      setIsEditing(false);
     },
     onError: (error) => {
       if (error instanceof FrontendError) {
         setError(error.message);
       } else {
         setError(t(ERROR_CODES.INTERNAL_ERROR));
+      }
+    },
+  });
+
+  const { mutate: updateEmail, isPending: isPendingEmail } = useMutation({
+    mutationFn: (newEmail: string) => authApi.updateEmail(username, newEmail),
+    onMutate: () => {
+      setError(null);
+      setEmailError(null);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+    },
+    onError: (error) => {
+      if (error instanceof FrontendError) {
+        setEmailError(error.message);
+      } else {
+        setEmailError(t(ERROR_CODES.INTERNAL_ERROR));
       }
     },
   });
@@ -95,28 +111,6 @@ export const MyProfilePage = () => {
       } else {
         setError(ERROR_CODES.INTERNAL_ERROR);
       }
-    }
-  };
-
-  const handleSaveUsername = () => {
-    const newValue = inputRef.current?.value.trim();
-
-    setUsernameError(null);
-
-    if (!newValue) {
-      setUsernameError(t('validation.username.required'));
-      return;
-    }
-
-    if (newValue.length < 3) {
-      setUsernameError(t('validation.username.minLength'));
-      return;
-    }
-
-    if (newValue !== profile.username) {
-      updateUsername(newValue);
-    } else {
-      setIsEditing(false);
     }
   };
 
@@ -155,50 +149,21 @@ export const MyProfilePage = () => {
           <div className="flex flex-col items-center">
             <Avatar src={profile.avatarUrl} size="lg"></Avatar>
 
-            {isEditing ? (
-              <div className="mt-4">
-                <h1 className="mb-2 text-gray-600 font-bold text-xl font-quantico">
-                  {t('profile.update_username')}
-                </h1>
-                <div className="flex flex-row justify-between items-center gap-2">
-                  <Input
-                    ref={inputRef}
-                    defaultValue={profile.username}
-                    errorMessage={usernameError}
-                    onChange={() => {
-                      if (usernameError) setUsernameError(null);
-                    }}
-                    className="h-20 border p-1"
-                    disabled={isPending}
-                  ></Input>
-                  <Button
-                    onClick={handleSaveUsername}
-                    variant="primary"
-                    className="px-2 py-2"
-                    disabled={isPending}
-                  >
-                    {t('global.save')}
-                  </Button>
-                  <Button
-                    onClick={() => setIsEditing(false)}
-                    variant="secondary"
-                    type="submit"
-                    className="px-2 py-2"
-                  >
-                    {t('global.cancel')}
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-row justify-between items-center align-middle mt-4">
-                <p className="mr-3 ts-form-title">{profile.username}</p>
-                <Pencil
-                  className="cursor-pointer"
-                  color="white"
-                  onClick={() => setIsEditing(true)}
-                />
-              </div>
-            )}
+            <EditableField
+              label={t('profile.update_username')}
+              value={profile.username}
+              error={usernameError}
+              isPending={isPendingUsername}
+              onSave={updateUsername}
+            />
+
+            <EditableField
+              label={t('profile.update_email')}
+              value={profile.email}
+              error={emailError}
+              isPending={isPendingEmail}
+              onSave={updateEmail}
+            />
           </div>
         </div>
 

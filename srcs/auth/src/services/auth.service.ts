@@ -3,7 +3,6 @@ import * as db from './database.js';
 import {
   createUserProfile,
   deleteUserProfile,
-  updateProfileEmail,
   updateProfileUsername,
 } from './external/um.service.js';
 import { DataError, ServiceError } from '../types/errors.js';
@@ -236,14 +235,7 @@ export async function updateUserEmailAndFetch(
   username: string,
   newEmail: string,
 ): Promise<UserDTO> {
-  await db.updateUserRole(userId, newEmail);
-  const oldUser = await db.findUserByIdOrThrow(userId);
-  try {
-    await updateProfileEmail(userId, username, newEmail);
-  } catch (error: unknown) {
-    logger.error(error, 'upstream error -> fallback');
-    await db.updateUserEmail(userId, oldUser?.email || '');
-  }
+  await db.updateUserEmail(userId, newEmail);
   const user = await db.findUserByIdOrThrow(userId);
   return toUserDTO(user);
 }

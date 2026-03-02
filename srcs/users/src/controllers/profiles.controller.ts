@@ -55,7 +55,7 @@ export class ProfileController {
     const { newUsername } = req.body;
 
     req.log.trace({
-      event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.PROFILE}`,
+      event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.PROFILE}_username`,
       param: username,
     });
     const profileSimpleDTO = await profileService.updateUsername(username, newUsername);
