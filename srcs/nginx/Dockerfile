@@ -30,8 +30,6 @@ COPY srcs/shared/core/src ./srcs/shared/core/src
 
 # Copy only nginx frontend sources
 COPY srcs/nginx ./srcs/nginx
-COPY srcs/nginx/src/html/dashboard.html ./srcs/nginx/html/dashboard.html
-COPY srcs/nginx/src/html/admin.html ./srcs/nginx/html/admin.html
 
 # Build frontend (Vite)
 RUN npm run build --workspace srcs/shared/core
@@ -57,10 +55,9 @@ COPY srcs/nginx/conf.d/proxy_nginx_certs.conf /etc/nginx/conf.d/proxy_nginx_cert
 
 # Copy built frontend React app built with Vite
 COPY --from=builder /app/srcs/nginx/dist /usr/share/nginx/src/html
-# Copy dashboard
-COPY --from=builder /app/srcs/nginx/html/dashboard.html /usr/share/nginx/src/html/
-# Copy admin page
-COPY --from=builder /app/srcs/nginx/html/admin.html /usr/share/nginx/src/html/
+# Copy dashboard & admin
+COPY --from=builder /app/srcs/nginx/dist/src/html/dashboard.html /usr/share/nginx/src/html/dashboard.html
+COPY --from=builder /app/srcs/nginx/dist/src/html/admin.html /usr/share/nginx/src/html/admin.html
 
 # Create uploads directory
 RUN mkdir -p /usr/share/nginx/html/uploads \

@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { MyProfilePage } from './pages/MyProfilePage';
 import { ProfilePage } from './pages/ProfilePage';
+import { FAQPage } from './pages/FAQPage';
 import { GamePage } from './pages/GamePage';
 import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
@@ -45,14 +46,8 @@ export const App = () => {
         {/* Routes protégées — authentification requise */}
         <Route element={<PrivateRoute />}>
           <Route path="/home" element={<HomePage />} />
-          <Route
-            path="/game/remote"
-            element={<GamePage sessionId={null} gameMode={'remote'} />}
-          />
-          <Route
-            path="/game/local"
-            element={<GamePage sessionId={null} gameMode={'local'} />}
-          />
+          <Route path="/game/remote" element={<GamePage sessionId={null} gameMode={'remote'} />} />
+          <Route path="/game/local" element={<GamePage sessionId={null} gameMode={'local'} />} />
           <Route
             path="/game/tournament/:tournamentId"
             element={<GamePage sessionId={null} gameMode={'tournament'} />}
@@ -67,6 +62,9 @@ export const App = () => {
             <Route path="/history" element={<HistoryPage />} />
           </Route>
         </Route>
+
+        {/* FAQ — accessible à tous, connecté ou non */}
+        <Route path="/faq" element={<FAQPage />} />
 
         {/* Catch-all — toute URL non reconnue */}
         <Route path="*" element={<NotFoundPage />} />
