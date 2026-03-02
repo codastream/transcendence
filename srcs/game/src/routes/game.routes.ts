@@ -16,7 +16,7 @@ import {
 export async function gameRoutes(app: FastifyInstance) {
   app.post('/settings', gameSettings);
   app.get('/sessions', listGameSessions);
-  app.post('/create-session', newGameSession);
+  app.post('/create-session', { preHandler: app.recoveryHeaders }, newGameSession);
   app.get('/health', healthCheck);
   app.post('/create-tournament', { preHandler: app.recoveryHeaders }, newTournament);
   app.get('/tournaments', { preHandler: app.recoveryHeaders }, listTournament);

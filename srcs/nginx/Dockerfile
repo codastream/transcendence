@@ -23,7 +23,7 @@ COPY srcs/nginx/tsconfig.json ./srcs/nginx/tsconfig.json
 COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 
 # Install deps once (workspace-aware)
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 # Build shared core (types/constants)
 COPY srcs/shared/core/src ./srcs/shared/core/src

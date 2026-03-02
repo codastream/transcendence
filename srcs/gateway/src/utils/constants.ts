@@ -45,7 +45,6 @@ export const GATEWAY_CONFIG = {
     '/api/users/health',
     '/api/game/health',
     '/api/block/health',
-    '/api/game/create-session',
     '/api/game/rl/reset',
     '/api/game/rl/step',
     '/api/auth/oauth/google/callback',
