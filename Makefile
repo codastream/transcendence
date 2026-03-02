@@ -94,30 +94,42 @@ nginx:
 nginx-nc:
 	$(D_COMPOSE) build --no-cache $(PROXY_SERVICE_NAME)
 	$(D_COMPOSE) up $(PROXY_SERVICE_NAME)
+nginx-dev:
+	$(D_COMPOSE_DEV) up -d --build $(PROXY_SERVICE_NAME)
+
 redis:
 	$(D_COMPOSE) up -d --build $(REDIS_SERVICE_NAME)
+
 api:
 	$(D_COMPOSE) up -d --build $(API_GATEWAY_NAME)
+
 auth:
 	$(D_COMPOSE) up -d --build $(AUTH_SERVICE_NAME)
 auth-nc:
 	$(D_COMPOSE) build --no-cache $(AUTH_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(AUTH_SERVICE_NAME)
+
 user:
 	$(D_COMPOSE) build $(UM_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
 user-nc:
 	$(D_COMPOSE) build --no-cache $(UM_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
+user-dev:
+	$(D_COMPOSE_DEV) up -d --build $(UM_SERVICE_NAME)
+
 game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
+
 block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
 block-nc:
 	$(D_COMPOSE) build --no-cache $(BK_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(BK_SERVICE_NAME)
+
 pong-ai:
 	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
+
 build:
 	$(D_COMPOSE) build
 build-dev:
@@ -202,10 +214,13 @@ shell-pong-ai:
 
 USERS_DIR = ./srcs/users
 
-.PHONY: studio-users
-studio-users:
+.PHONY: user-showdb
+user-showdb:
 	@echo "Launching Prisma Studio for Users DB..."
 	UM_DB_URL="file:../../data/database/um.db" npx prisma studio --config=$(USERS_DIR)/prisma.config.ts
+.PHONY: user-migrate-dev
+user-migrate-dev:
+	$(D_COMPOSE_DEV) exec ${UM_SERVICE_NAME} npx prisma migrate dev
 
 logs:
 	$(D_COMPOSE) logs -f
@@ -228,7 +243,23 @@ logs-game:
 logs-block:
 	$(CONTAINER_CMD) logs -f $(BK_SERVICE_NAME)
 logs-pong-ai:
-	$(CONTAINER_CMD) logs -f $(PONG_AI_SERVICE_NAME)
+	$(CONTAINER_CMD) logs -f $(PONG_AI_SERVICE_NAME)-dev
+logs-nginx-dev:
+	$(CONTAINER_CMD) logs -f $(PROXY_SERVICE_NAME)-dev
+logs-redis-dev:
+	$(CONTAINER_CMD) logs -f $(REDIS_SERVICE_NAME)
+logs-api-dev:
+	$(CONTAINER_CMD) logs -f $(API_GATEWAY_NAME)-dev
+logs-auth-dev:
+	$(CONTAINER_CMD) logs -f $(AUTH_SERVICE_NAME)-dev
+logs-user-dev:
+	$(CONTAINER_CMD) logs -f $(UM_SERVICE_NAME)-dev
+logs-game-dev:
+	$(CONTAINER_CMD) logs -f $(GAME_SERVICE_NAME)-dev
+logs-block-dev:
+	$(CONTAINER_CMD) logs -f $(BK_SERVICE_NAME)-dev
+logs-pong-ai-dev:
+	$(CONTAINER_CMD) logs -f $(PONG_AI_SERVICE_NAME)-dev
 
 show:
 	$(CONTAINER_CMD) images
@@ -259,6 +290,8 @@ fclean: clean
 	@echo "Volume folder cleaned (structure preserved)"
 
 re : fclean all
+
+re-dev : fclean dev
 
 clean-pack:
 	@echo "Cleaning local build artifacts..."

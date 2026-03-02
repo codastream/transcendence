@@ -15,7 +15,7 @@ COPY srcs/shared/core/package*.json ./srcs/shared/core/
 COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 
 # 2) Installation déterministe (workspaces)
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 # 3) Sources minimales nécessaires au build
 COPY srcs/auth ./srcs/auth
@@ -24,8 +24,6 @@ COPY srcs/shared/core/src ./srcs/shared/core/src
 # 4) Build (core puis auth)
 RUN npm run build --workspace srcs/shared/core
 RUN npm run build --workspace srcs/auth
-
-RUN npm prune --omit=dev
 
 # ==========================
 # Stage 2 — Runner
@@ -40,6 +38,7 @@ COPY srcs/auth/package.json ./package.json
 # audit and fund are done in builder
 
 COPY --from=builder /app/node_modules ./node_modules
+RUN npm prune --omit=dev
 
 # Copier le package core compilé
 COPY --from=builder /app/srcs/shared/core/package.json ./node_modules/@transcendence/core/package.json

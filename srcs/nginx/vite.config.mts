@@ -10,23 +10,34 @@ const __dirname = path.dirname(__filename);
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   process.env = { ...process.env, ...env };
-  const NGINX_HTTPS_URL = env.NGINX_HTTPS_URL || 'https://localhost:4430';
+  // const isDev = mode === 'development';
+  // const target = mode === 'development' ? 'https://127.0.0.1:443' : 'https://localhost:4430';
   return {
     plugins: [react()],
     root: '.',
     server: {
       port: 5173,
+      strictPort: true,
+      hmr: {
+        protocol: 'wss', // On passe par le SSL de Nginx
+        host: 'localhost',
+        port: 4430, // Le port externe de Nginx
+      },
       proxy: {
         '/api': {
-          target: NGINX_HTTPS_URL,
+          target: 'https://127.0.0.1:443',
           secure: false,
           changeOrigin: true,
         },
         '/uploads': {
-          target: NGINX_HTTPS_URL,
+          target: 'https://127.0.0.1:443',
           secure: false,
           changeOrigin: true,
         },
+      },
+      host: true,
+      watch: {
+        usePolling: true, // Necessary for Windows or macOS ?
       },
     },
     build: {

@@ -11,8 +11,8 @@ services:
 
   redis-broker:
     build:
-      context: ./redis
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: srcs/redis/Dockerfile
     container_name: '${REDIS_SERVICE_NAME}-dev'
     expose:
       - '${REDIS_SERVICE_PORT}'
@@ -31,19 +31,32 @@ services:
     build:
       context: ..
       dockerfile: srcs/users/Dockerfile
+      target: builder
     container_name: '${UM_SERVICE_NAME}-dev'
-    expose:
-      - '${UM_SERVICE_PORT}'
+    working_dir: /app/srcs/users
     env_file:
       - path: ./.env
       - path: ./.env.um
+    environment:
+      - NODE_ENV=development
     volumes:
+      - ../srcs/users:/app/srcs/users
+      - ../srcs/shared/core:/app/srcs/shared/core
+      - /app/node_modules # Anonymous volumes to mask host directories
+      - /app/srcs/users/node_modules
+      - /app/srcs/shared/core/node_modules
       - data:/app/data
       - uploads:/app/uploads
+      - ../make/scripts/certs/certs/services/${UM_SERVICE_NAME}:/etc/certs:ro
+      - ../make/scripts/certs/certs/ca:/etc/ca:ro
     ports:
       - '5555:5555'
     networks:
       - app-network
+    command: >
+      sh -c "npx prisma generate &&
+        npx prisma db push && 
+        npx nodemon --watch src --watch ../../shared/core/src -e ts --exec 'npx tsx' src/index.ts"
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
@@ -54,24 +67,38 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://127.0.0.1:${UM_SERVICE_PORT}/health',
+          '--no-check-certificate',
+          'https://127.0.0.1:${UM_SERVICE_PORT}/health',
         ]
 
   auth-service:
     build:
-      context: ./auth
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: srcs/auth/Dockerfile
+      target: builder
     container_name: '${AUTH_SERVICE_NAME}-dev'
+    working_dir: /app/srcs/auth
     expose:
       - '${AUTH_SERVICE_PORT}'
     env_file:
       - path: ./.env
       - path: ./.env.auth
       - path: ./.env.oauth
+    environment:
+      - NODE_ENV=development
     volumes:
+      - ../srcs/auth:/app/srcs/auth
+      - ../srcs/shared/core:/app/srcs/shared/core
+      - /app/node_modules # Anonymous volumes to mask host directories
+      - /app/srcs/auth/node_modules
+      - /app/srcs/shared/core/node_modules
       - data:/data
+      - ../make/scripts/certs/certs/services/${AUTH_SERVICE_NAME}:/etc/certs:ro
+      - ../make/scripts/certs/certs/ca:/etc/ca:ro
     networks:
       - app-network
+    command: >
+      sh -c "npx nodemon --watch src --watch ../../shared/core/src -e ts --exec 'npx tsx' src/index.ts"
     restart: unless-stopped
     depends_on:
       user-service:
@@ -85,14 +112,17 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://127.0.0.1:${AUTH_SERVICE_PORT}/health',
+          '--no-check-certificate',
+          'https://127.0.0.1:${AUTH_SERVICE_PORT}/health',
         ]
 
   blockchain-service:
     build:
-      context: ./blockchain
-      dockerfile: Dockerfile.dev
+      context: ..
+      dockerfile: srcs/blockchain/Dockerfile
+      target: builder
     container_name: '${BK_SERVICE_NAME}-dev'
+    working_dir: /app/srcs/blockchain
     ports:
       - '3005:3005'
     expose:
@@ -106,12 +136,21 @@ services:
       - path: ./.env
       - path: ./.env.blockchain
     volumes:
+      - ../srcs/blockchain:/app/srcs/blockchain
+      - ../srcs/shared/core:/app/srcs/shared/core
+      - /app/node_modules
+      - /app/srcs/blockchain/node_modules
+      - /app/srcs/shared/core/node_modules
       - data:/data
-      - ./blockchain/src:/app/src
-      - ./blockchain/tsconfig.json:/app/tsconfig.json
-      - ./blockchain/nodemon.json:/app/nodemon.json
+      - ../make/scripts/certs/certs/services/${BK_SERVICE_NAME}:/etc/certs:ro
+      - ../make/scripts/certs/certs/ca:/etc/ca:ro
     networks:
       - app-network
+    command: >
+      npx nodemon --watch src 
+                  --watch ../shared/core/src 
+                  -e ts 
+                  --exec "npx tsx" src/server.ts
     restart: 'no'
     healthcheck:
       <<: *healthcheck-template
@@ -122,25 +161,36 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://localhost:${BK_SERVICE_PORT}/health',
+          '--no-check-certificate',
+          'https://127.0.0.1:${BK_SERVICE_PORT}/health',
         ]
 
   game-service:
     build:
-      context: ./game
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: srcs/game/Dockerfile
+      target: builder
     container_name: '${GAME_SERVICE_NAME}-dev'
     expose:
       - '${GAME_SERVICE_PORT}'
+    working_dir: /app/srcs/game
     env_file:
       - path: ./.env
       - path: ./.env.game
     volumes:
-      - ./game/src:/app/src
-        - /app/node_modules
+      - ../srcs/game:/app/srcs/game
+      - ../srcs/shared/core:/app/srcs/shared/core
+      - /app/node_modules # Anonymous volumes to mask host directories
+      - /app/srcs/game/node_modules
+      - /app/srcs/shared/core/node_modules
+      - ../make/scripts/certs/certs/services/${GAME_SERVICE_NAME}:/etc/certs:ro
+      - ../make/scripts/certs/certs/ca:/etc/ca:ro
     networks:
       - app-network
+    command: npx nodemon --watch src ../../shared/core/src -e ts --exec "npx tsx" src/server.ts
     restart: unless-stopped
+    environment:
+      - NODE_ENV=development
     healthcheck:
       <<: *healthcheck-template
       test:
@@ -150,7 +200,8 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://localhost:${GAME_SERVICE_PORT}/health',
+          '--no-check-certificate',
+          'https://127.0.0.1:${GAME_SERVICE_PORT}/health',
         ]
 
   # ============================================================================
@@ -161,14 +212,28 @@ services:
     build:
       context: ../
       dockerfile: 'srcs/gateway/Dockerfile'
+      target: builder
     container_name: '${API_GATEWAY_NAME}-dev'
+    working_dir: /app/srcs/gateway
     expose:
       - '${API_GATEWAY_PORT}'
     env_file:
       - path: ./.env
       - path: ./.env.gateway
+    environment:
+      - NODE_ENV=development
     networks:
       - app-network
+    volumes:
+      - ../srcs/gateway:/app/srcs/gateway
+      - ../srcs/shared/core:/app/srcs/shared/core
+      - /app/node_modules # Anonymous volumes to mask host directories
+      - /app/srcs/gateway/node_modules
+      - /app/srcs/shared/core/node_modules
+      - ../make/scripts/certs/certs/services/${API_GATEWAY_NAME}:/etc/certs:ro
+      - ../make/scripts/certs/certs/ca:/etc/ca:ro
+    command: >
+      sh -c "npx nodemon --watch src --watch ../shared/core/src -e ts --exec 'npx tsx' src/index.ts"
     restart: unless-stopped
     depends_on:
       auth-service:
@@ -182,7 +247,8 @@ services:
           '--no-verbose',
           '--tries=1',
           '--spider',
-          'http://127.0.0.1:${API_GATEWAY_PORT}/health',
+          '--no-check-certificate',
+          'https://127.0.0.1:${API_GATEWAY_PORT}/health',
         ]
 
   # ============================================================================
@@ -191,8 +257,9 @@ services:
 
   nginx-proxy:
     build:
-      context: ./nginx
-      dockerfile: Dockerfile.dev
+      context: ..
+      dockerfile: srcs/nginx/Dockerfile
+      target: dev
       args:
         VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
         VITE_SCHOOL42_CLIENT_ID: ${VITE_SCHOOL42_CLIENT_ID:-}
@@ -202,11 +269,21 @@ services:
       - '4430:443'
     env_file:
       - path: ./.env.nginx
+    environment:
+      - NODE_ENV=development
+    working_dir: /app/srcs/nginx
     volumes:
-      - ./nginx/src:/usr/share/nginx/src
+      - ../srcs/nginx:/app/srcs/nginx
+      - ../srcs/shared/core:/app/srcs/shared/core
+      - /app/node_modules # Anonymous volumes to mask host directories
+      - /app/srcs/nginx/node_modules
+      - /app/srcs/shared/core/node_modules
+      - ../make/scripts/certs/certs/nginx:/etc/nginx/certs:ro
+      - ../make/scripts/certs/certs/ca:/etc/nginx/ca:ro
       - ${HOST_VOLUME_PATH}:/usr/share/nginx/html/uploads:ro
     networks:
       - app-network
+    command: sh -c "nginx -g 'daemon off;' & npm run dev"
     restart: unless-stopped
     depends_on:
       api-gateway:
@@ -229,9 +306,12 @@ services:
         ]
 
   pong-ai-service:
+    profiles:
+      - ai
     build:
-      context: ./pong-ai
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: srcs/pong-ai/Dockerfile
+      target: builder
     container_name: ${PONG_AI_SERVICE_NAME}
     expose:
       - '${PONG_AI_SERVICE_PORT}'
@@ -242,12 +322,20 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ./pong-ai/models:/app/models
+      - ../make/scripts/certs/${PONG_AI_SERVICE_NAME}:/etc/certs:ro
     networks:
       - app-network
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
-      test: ['CMD', 'curl', '-f', 'http://localhost:${PONG_AI_SERVICE_PORT}/health']
+      test:
+        [
+          'CMD',
+          'curl',
+          '-f',
+          '--no-check-certificate',
+          'https://127.0.0.1:${PONG_AI_SERVICE_PORT}/health',
+        ]
 
 networks:
   app-network:

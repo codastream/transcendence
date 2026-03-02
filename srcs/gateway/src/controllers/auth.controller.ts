@@ -49,14 +49,11 @@ export function registerAuthRoutes(app: FastifyInstance) {
         dispatcher: mtlsAgent, // Injection cruciale pour le mTLS
       };
 
-      const rawUser = request.headers['x-user-name'] as string | string[] | undefined;
-      const user = Array.isArray(rawUser) ? rawUser[0] : (rawUser ?? null);
-
       logger.info({
         event: 'auth_proxy_request',
-        rawPath,
+        path: cleanPath,
         method: request.method,
-        user,
+        user: request.user?.username || 'anonymous',
       });
 
       if (request.method !== 'GET' && request.method !== 'HEAD' && request.body) {
