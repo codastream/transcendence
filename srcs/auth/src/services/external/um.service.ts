@@ -177,7 +177,7 @@ export async function updateProfileEmail(
 /**
  * Supprime un profil utilisateur via le service users
  */
-export async function deleteUserProfile(userId: number): Promise<void> {
+export async function deleteUserProfile(userId: number, username: string): Promise<void> {
   try {
     logger.info({ msg: `calling DELETE ${UM_SERVICE_URL}/users/${userId}` });
 
@@ -186,6 +186,7 @@ export async function deleteUserProfile(userId: number): Promise<void> {
       method: 'DELETE',
       headers: {
         'x-user-id': String(userId),
+        'x-user-name': username,
       },
       dispatcher: mtlsAgent,
     };

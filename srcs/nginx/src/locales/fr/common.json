@@ -47,7 +47,10 @@
   "global": {
     "loading": "Chargement...",
     "not_found": "Non trouvé",
-    "disabled": "désactivé"
+    "disabled": "désactivé",
+    "confirm": "confirmer",
+    "save": "enregistrer",
+    "cancel": "annuler"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -254,7 +257,10 @@
   "profile": {
     "profile": "Profil",
     "2fa": "2FA",
-    "update_avatar": "Changer d'avatar"
+    "update_avatar": "Changer d'avatar",
+    "delete": "Supprimer le compte",
+    "delete_confirm_title": "Supprimer le compte ?",
+    "delete_confirm_text": "Êtes-vous sûr de vouloir supprimer votre profil ? Aucune récupération ne sera possible"
   },
   "friends": {
     "friends": "Amis",

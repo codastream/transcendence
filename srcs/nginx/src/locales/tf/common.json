@@ -47,7 +47,10 @@
   "global": {
     "loading": "Laisse nous gérer ça...",
     "not_found": "Que dalle",
-    "disabled": "pas enclenché, le machin"
+    "disabled": "pas enclenché, le machin",
+    "confirm": "je suis sûr",
+    "save": "enregistre ça",
+    "cancel": "se dégonfler"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -270,7 +273,10 @@
   "profile": {
     "profile": "Pedigree",
     "2fa": "Double contrôle",
-    "update_avatar": "Se faire retirer le portrait"
+    "update_avatar": "Se faire retirer le portrait",
+    "delete": "Se faire oublier",
+    "delete_confirm_title": "On t'oublie ?",
+    "delete_confirm_text": "Tu quittes le navire ? Sois sûr de toi mon pote, y'aura pas de retour en arrière.."
   },
   "friends": {
     "friends": "Les potes",

@@ -12,6 +12,7 @@ import { Input } from '../components/atoms/Input';
 import Button from '../components/atoms/Button';
 import { AppError, ERROR_CODES, FrontendError } from '@transcendence/core';
 import { authApi } from '../api/auth-api';
+import { ConfirmModal } from '../components/molecules/ConfirmModal';
 
 const toggle2FA = () => {};
 
@@ -32,6 +33,10 @@ export const MyProfilePage = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const username = authUser?.username || '';
   const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const {
     data: profile,
@@ -42,10 +47,6 @@ export const MyProfilePage = () => {
     queryFn: () => profileApi.getMe(username),
     enabled: !!username,
   });
-
-  console.log('profile data:', profile);
-  console.log('isLoading:', isLoading);
-  console.log('isError:', isError);
 
   const { mutate: updateUsername, isPending } = useMutation({
     mutationFn: (newUsername: string) => authApi.updateUsername(username, newUsername),
@@ -70,10 +71,6 @@ export const MyProfilePage = () => {
     },
   });
 
-  const [progress, setProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-
   if (isLoading) {
     return (
       <Page>
@@ -92,7 +89,7 @@ export const MyProfilePage = () => {
 
   const handleDelete = async () => {
     try {
-      await profileApi.deleteProfile(username);
+      await authApi.deleteUser();
       logout();
     } catch (error: unknown) {
       if (error instanceof AppError) {
@@ -242,11 +239,23 @@ export const MyProfilePage = () => {
             {t('profile.delete')}
           </h1>
           <div className="flex flex-row justify-center">
-            <Button type="submit" variant="alert" onClick={() => handleDelete}>
+            <Button type="submit" variant="alert" onClick={() => setShowDeleteModal(true)}>
               {t('profile.delete')}
             </Button>
           </div>
         </div>
+
+        {showDeleteModal && (
+          <ConfirmModal
+            title={t('profile.delete_confirm_title')}
+            text={t('profile.delete_confirm_text')}
+            onValidate={() => {
+              setShowDeleteModal(false);
+              handleDelete();
+            }}
+            onCancel={() => setShowDeleteModal(false)}
+          />
+        )}
 
         {error && <p className="text-red-600">{error}</p>}
       </div>

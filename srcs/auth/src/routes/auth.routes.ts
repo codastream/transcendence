@@ -165,7 +165,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   // Suppression du compte utilisateur
   app.delete(
-    '/user/delete',
+    '/user',
     {
       config: {
         rateLimit: {

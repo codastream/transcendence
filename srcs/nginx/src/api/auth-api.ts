@@ -74,6 +74,11 @@ export const authApi = {
     await api.post('/auth/logout');
   },
 
+  deleteUser: async (): Promise<void> => {
+    await api.delete(`/auth/user`);
+    return;
+  },
+
   /**
    * Échange un code d'autorisation OAuth contre un JWT
    * @param provider Provider OAuth ('google' | 'school42')

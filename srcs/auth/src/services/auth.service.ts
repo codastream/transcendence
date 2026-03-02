@@ -285,8 +285,8 @@ export async function deleteUser(userId: number): Promise<void> {
 
   try {
     // Supp user profile UM service
-    await deleteUserProfile(userId);
-
+    const user = await db.findUserByIdOrThrow(userId);
+    await deleteUserProfile(userId, user.username);
     // Supp user Redis online
     await onlineService.removeUserFromRedis(userId);
 

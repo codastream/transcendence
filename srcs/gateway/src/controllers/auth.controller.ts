@@ -55,10 +55,17 @@ export function registerAuthRoutes(app: FastifyInstance) {
         method: request.method,
         user: request.user?.username || 'anonymous',
       });
-
-      if (request.method !== 'GET' && request.method !== 'HEAD' && request.body) {
+      const methodsWithBody = ['POST', 'PUT', 'PATCH'];
+      if (methodsWithBody.includes(request.method) && request.body) {
         // (init.headers as Record<string, string>)['content-type'] =
-        //   request.headers['content-type'] || 'application/json';
+        // request.headers['content-type'] || 'application/json';
+        init.body = JSON.stringify(request.body);
+      } else if (
+        request.method === 'DELETE' &&
+        request.body &&
+        Object.keys(request.body).length > 0
+      ) {
+        // Only attach body to DELETE if it actually contains data
         init.body = JSON.stringify(request.body);
       }
 
