@@ -34,9 +34,9 @@ export function findUserById(id: number): UserFullDTO | null {
   return toFullUserDTO(userRow);
 }
 
-export async function findUserByIdOrThrow(id: number): Promise<UserDTO> {
+export async function findUserByIdOrThrow(id: number): Promise<UserRow> {
   const userRow = await db.findUserByIdOrThrow(id);
-  return toUserDTO(userRow);
+  return userRow;
 }
 
 export async function createUser(user: {
@@ -213,10 +213,16 @@ export async function updateUserUsernameAndFetch(
   username: string,
   newUsername: string,
 ): Promise<UserDTO> {
+  logger.info({ username, newUsername }, 'update username');
   await db.updateUserUsername(userId, newUsername);
-  await updateProfileUsername(userId, username, newUsername);
-  const user = await findUserByIdOrThrow(userId);
-  return user;
+  try {
+    await updateProfileUsername(userId, username, newUsername);
+  } catch (error: unknown) {
+    logger.error(error, 'upstream error -> fallback');
+    await db.updateUserUsername(userId, username);
+  }
+  const user = await db.findUserByIdOrThrow(userId);
+  return toUserDTO(user);
 }
 
 /**
@@ -231,10 +237,15 @@ export async function updateUserEmailAndFetch(
   newEmail: string,
 ): Promise<UserDTO> {
   await db.updateUserRole(userId, newEmail);
-  await updateProfileEmail(userId, username, newEmail);
-
-  const user = await findUserByIdOrThrow(userId);
-  return user;
+  const oldUser = await db.findUserByIdOrThrow(userId);
+  try {
+    await updateProfileEmail(userId, username, newEmail);
+  } catch (error: unknown) {
+    logger.error(error, 'upstream error -> fallback');
+    await db.updateUserEmail(userId, oldUser?.email || '');
+  }
+  const user = await db.findUserByIdOrThrow(userId);
+  return toUserDTO(user);
 }
 
 /**

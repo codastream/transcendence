@@ -13,7 +13,7 @@ services:
     build:
       context: ..
       dockerfile: srcs/redis/Dockerfile
-    container_name: '${REDIS_SERVICE_NAME}-dev'
+    container_name: '${REDIS_SERVICE_NAME}'
     expose:
       - '${REDIS_SERVICE_PORT}'
     networks:
@@ -32,7 +32,7 @@ services:
       context: ..
       dockerfile: srcs/users/Dockerfile
       target: builder
-    container_name: '${UM_SERVICE_NAME}-dev'
+    container_name: '${UM_SERVICE_NAME}'
     working_dir: /app/srcs/users
     env_file:
       - path: ./.env
@@ -76,7 +76,7 @@ services:
       context: ..
       dockerfile: srcs/auth/Dockerfile
       target: builder
-    container_name: '${AUTH_SERVICE_NAME}-dev'
+    container_name: '${AUTH_SERVICE_NAME}'
     working_dir: /app/srcs/auth
     expose:
       - '${AUTH_SERVICE_PORT}'
@@ -121,7 +121,7 @@ services:
       context: ..
       dockerfile: srcs/blockchain/Dockerfile
       target: builder
-    container_name: '${BK_SERVICE_NAME}-dev'
+    container_name: '${BK_SERVICE_NAME}'
     working_dir: /app/srcs/blockchain
     ports:
       - '3005:3005'
@@ -170,7 +170,7 @@ services:
       context: ..
       dockerfile: srcs/game/Dockerfile
       target: builder
-    container_name: '${GAME_SERVICE_NAME}-dev'
+    container_name: '${GAME_SERVICE_NAME}'
     expose:
       - '${GAME_SERVICE_PORT}'
     working_dir: /app/srcs/game
@@ -213,7 +213,7 @@ services:
       context: ../
       dockerfile: 'srcs/gateway/Dockerfile'
       target: builder
-    container_name: '${API_GATEWAY_NAME}-dev'
+    container_name: '${API_GATEWAY_NAME}'
     working_dir: /app/srcs/gateway
     expose:
       - '${API_GATEWAY_PORT}'
@@ -263,7 +263,7 @@ services:
       args:
         VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-}
         VITE_SCHOOL42_CLIENT_ID: ${VITE_SCHOOL42_CLIENT_ID:-}
-    container_name: '${PROXY_SERVICE_NAME}-dev'
+    container_name: '${PROXY_SERVICE_NAME}'
     ports:
       - '8080:80'
       - '4430:443'

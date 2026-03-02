@@ -23,7 +23,7 @@ api.interceptors.response.use(
     let statusCode: HttpStatus = HTTP_STATUS.INTERNAL_SERVER_ERROR;
     let message: string = i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
     let code: ErrorCode = ERROR_CODES.INTERNAL_ERROR;
-    let details: ErrorDetail[] | null = null;
+    let details: ErrorDetail[] = [];
 
     if (error.response) {
       const { data } = error.response;
@@ -37,14 +37,14 @@ api.interceptors.response.use(
       message = i18next.t(translationKey) || errorPayload?.message || error.message;
 
       // Transformer les erreurs Zod brutes en ErrorDetail
-      if (errorPayload?.details && Array.isArray(errorPayload.details)) {
-        details = errorPayload.details.map((detail: any) => ({
-          field: detail.field || (detail.path?.[0] as string) || undefined,
+      if (errorPayload.details.length > 0 && Array.isArray(errorPayload.details)) {
+        details = errorPayload.details.map((detail: ErrorDetail) => ({
+          field: detail.field || undefined,
           message: detail.message,
-          reason: detail.reason || detail.code || 'invalid_format',
+          reason: detail.reason || 'invalid_format',
         }));
       } else {
-        details = null;
+        details = [];
       }
     }
     const frontendError = new FrontendError(message, statusCode, code, details);

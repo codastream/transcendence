@@ -2,14 +2,21 @@ import z from 'zod';
 
 export const SimpleErrorWithMessageSchema = z.object({
   statusCode: z.number().int().describe('HTTP code'),
-  error: z.string().describe('Error name'),
-  message: z.string().describe('User friendly message'),
-  code: z.string().optional().describe('Internal error code (for dev use)'),
+  errorCode: z.string().describe('Internal error code (for dev use)'),
+  message: z.string().optional().describe('User friendly message'),
 });
 
 export const DetailedErrorSchema = SimpleErrorWithMessageSchema.extend({
   details: z
-    .record(z.string(), z.unknown())
+    .array(
+      z.object({
+        reason: z.string(),
+        field: z.string().optional(),
+        message: z.string().optional(),
+        expected: z.string().optional(),
+        received: z.string().optional(),
+      }),
+    )
     .optional()
     .describe('Error context details for frontend'),
 });

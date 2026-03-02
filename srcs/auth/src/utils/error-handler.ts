@@ -24,7 +24,7 @@ export async function errorHandler(
   reply: FastifyReply,
 ): Promise<void> {
   // theoretically should have been already logged while sent, no need to double log
-  req.log.error(error);
+  req.log.error({ error, req, body: req?.body }, 'error handler');
 
   if (reply.sent) {
     req.log.debug(replySentToLog(error, req));

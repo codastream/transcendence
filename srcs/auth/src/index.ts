@@ -48,7 +48,7 @@ app.addHook('onRequest', (request, reply, done) => {
 /**
  * @abstract add userId and userName to logger
  */
-app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
+app.addHook('onRequest', async (request: FastifyRequest) => {
   const userId = request.headers['x-user-id'];
   const userName = request.headers['x-user-name'];
   const bindings: Record<string, any> = {};
@@ -60,6 +60,9 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   }
   if (Object.keys(bindings).length > 0) {
     request.log = request.log.child(bindings);
+  }
+  if (userId && userName) {
+    request.user = { id: bindings.userId, username: bindings.username as string };
   }
 });
 

@@ -71,12 +71,12 @@ export class AppError extends Error {
 export class FrontendError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: HttpStatus;
-  public readonly details: ErrorDetail[] | null;
+  public readonly details: ErrorDetail[];
   constructor(
     message: string,
     statusCode: HttpStatus,
     code: ErrorCode,
-    details: ErrorDetail[] | null,
+    details: ErrorDetail[] = [],
   ) {
     super(message);
     this.code = code;

@@ -76,7 +76,7 @@ export const fastifyValidationErrorToFrontend = (error: FastifyValidationError):
 export const appErrorToFrontend = (error: AppError): FrontendError => {
   const reason = error?.context?.reason ?? LOG_REASONS.UNKNOWN;
   const safeReason: FrontendReasonValue = isFrontendReason(reason) ? reason : LOG_REASONS.UNKNOWN;
-  let details: ErrorDetail[] | null = null;
+  let details: ErrorDetail[] = [];
   if (error.context?.zodIssues?.length) {
     details = error.context.zodIssues.map((issue) => zodIssueToErrorDetail(issue));
   } else if (Array.isArray(error.context?.details) && error.context.details.length) {
@@ -97,7 +97,7 @@ export const appErrorToFrontend = (error: AppError): FrontendError => {
 
 export const appErrorToLog = (error: AppError, req: MinimalRequest): ErrorLogPayload => {
   const frontend = appErrorToFrontend(error);
-  const firstReason = frontend.details?.[0]?.reason ?? LOG_REASONS.UNKNOWN;
+  const firstReason = frontend?.details?.[0]?.reason ?? LOG_REASONS.UNKNOWN;
   return {
     event: LOG_EVENTS.APPLICATION.HANDLED_ERROR,
     reason: isFrontendReason(firstReason) ? firstReason : LOG_REASONS.UNKNOWN,
@@ -178,7 +178,7 @@ export const fastifyErrorToReplyPayload = (error: FastifyValidationError) => {
       statusCode: frontend.statusCode,
       errorCode: error.code,
       message: frontend.message,
-      details: frontend.details,
+      details: frontend.details && frontend.details.length > 0 ? frontend.details : undefined,
     },
   };
 };
@@ -192,7 +192,7 @@ export const appErrorToReplyPayload = (error: AppError) => {
       statusCode: frontend.statusCode,
       errorCode: error.code,
       message: frontend.message,
-      details: frontend.details,
+      details: frontend.details && frontend.details.length > 0 ? frontend.details : undefined,
     },
   };
 };

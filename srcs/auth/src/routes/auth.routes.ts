@@ -28,7 +28,7 @@ import {
 import z from 'zod';
 
 export const patchUsernameSchema = {
-  params: z.object({ usernameSchema }),
+  params: z.object({ username: usernameSchema }),
   body: z.object({
     newUsername: usernameSchema,
   }),
@@ -43,7 +43,7 @@ export const patchUsernameSchema = {
 };
 
 export const patchEmailSchema = {
-  params: z.object({ usernameSchema }),
+  params: z.object({ username: usernameSchema }),
   body: z.object({
     newEmail: z.email(),
   }),

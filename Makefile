@@ -102,9 +102,13 @@ redis:
 
 api:
 	$(D_COMPOSE) up -d --build $(API_GATEWAY_NAME)
+api-dev:
+	$(D_COMPOSE_DEV) up -d --build $(API_GATEWAY_NAME)
 
 auth:
 	$(D_COMPOSE) up -d --build $(AUTH_SERVICE_NAME)
+auth-dev:
+	$(D_COMPOSE_DEV) up -d --build $(AUTH_SERVICE_NAME)
 auth-nc:
 	$(D_COMPOSE) build --no-cache $(AUTH_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(AUTH_SERVICE_NAME)
@@ -243,23 +247,7 @@ logs-game:
 logs-block:
 	$(CONTAINER_CMD) logs -f $(BK_SERVICE_NAME)
 logs-pong-ai:
-	$(CONTAINER_CMD) logs -f $(PONG_AI_SERVICE_NAME)-dev
-logs-nginx-dev:
-	$(CONTAINER_CMD) logs -f $(PROXY_SERVICE_NAME)-dev
-logs-redis-dev:
-	$(CONTAINER_CMD) logs -f $(REDIS_SERVICE_NAME)
-logs-api-dev:
-	$(CONTAINER_CMD) logs -f $(API_GATEWAY_NAME)-dev
-logs-auth-dev:
-	$(CONTAINER_CMD) logs -f $(AUTH_SERVICE_NAME)-dev
-logs-user-dev:
-	$(CONTAINER_CMD) logs -f $(UM_SERVICE_NAME)-dev
-logs-game-dev:
-	$(CONTAINER_CMD) logs -f $(GAME_SERVICE_NAME)-dev
-logs-block-dev:
-	$(CONTAINER_CMD) logs -f $(BK_SERVICE_NAME)-dev
-logs-pong-ai-dev:
-	$(CONTAINER_CMD) logs -f $(PONG_AI_SERVICE_NAME)-dev
+	$(CONTAINER_CMD) logs -f $(PONG_AI_SERVICE_NAME)
 
 show:
 	$(CONTAINER_CMD) images
