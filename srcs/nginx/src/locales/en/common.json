@@ -271,6 +271,7 @@
     "2fa": "2FA",
     "update_avatar": "Update avatar",
     "update_username": "Update username",
+    "update_email": "Update email",
     "delete": "Delete profile",
     "delete_confirm_title": "Delete your account ?",
     "delete_confirm_text": "Are you sure you want to delete your account ? There is no recovery for your data after this."

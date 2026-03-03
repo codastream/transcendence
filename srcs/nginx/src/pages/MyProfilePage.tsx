@@ -119,10 +119,11 @@ export const MyProfilePage = () => {
       const updatedProfile = await profileApi.updateAvatar(username, file, (p: number) =>
         setProgress(p),
       );
-      queryClient.setQueryData(['profile', 'me'], updatedProfile);
+      await queryClient.invalidateQueries({ queryKey: ['profile', 'me'] });
       if (authUser) {
         updateUser({
           ...authUser,
+          email: profile.email,
           avatarUrl: updatedProfile.avatarUrl,
         });
       }

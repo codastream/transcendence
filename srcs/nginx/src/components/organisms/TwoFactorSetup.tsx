@@ -174,7 +174,7 @@ export const TwoFactorSetup = () => {
 
   return (
     <div className="m-4 p-6 max-w-2xl">
-      <h2 className="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
+      <h2 className="text-md font-bold text-gray-800 mb-4 flex items-center justify-center gap-2 text-center">
         {t('2fa.setup.title')}
       </h2>
 
