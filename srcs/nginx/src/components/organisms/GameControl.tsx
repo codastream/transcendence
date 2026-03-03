@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next';
+import Button from '../atoms/Button';
+
 interface GameControlProps {
   className?: string;
   onCreateLocalGame: () => void;
@@ -9,48 +12,44 @@ interface GameControlProps {
 
 const GameControl = ({
   className,
-  onCreateLocalGame: onCreateLocalGame,
-  onStartGame: onStartGame,
-  onExitGame: onExitGame,
+  onCreateLocalGame,
+  onStartGame,
+  onExitGame,
   gameMode,
   loading,
 }: GameControlProps) => {
+  const { t } = useTranslation('common');
+
   return (
-    <div className={`flex gap-4 ${className}`}>
+    <div className={`flex flex-row justify-center gap-4 ${className}`}>
       {gameMode === 'remote' && (
-        <button
+        <Button
           id="create-game-btn"
-          onClick={() => {
-            onCreateLocalGame();
-          }}
+          variant="primary"
+          type="button"
+          onClick={onCreateLocalGame}
           disabled={loading}
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition"
         >
-          {loading ? 'Creating...' : 'Create new GAME (sessions)'}
-        </button>
+          {loading ? t('global.loading') : t('game.create')}
+        </Button>
       )}
 
-      <button
-        style={{ border: '3px solid red' }}
-        id="start-game-btn"
-        onClick={() => {
-          onStartGame();
-        }}
-        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition"
-      >
-        Start GAME (ONLY IF IN SESSION)
-      </button>
-      <button
+      <Button id="start-game-btn" variant="secondary" type="button" onClick={onStartGame}>
+        {t('game.start')}
+      </Button>
+
+      <Button
         id="exit-btn"
+        variant="alert"
+        type="button"
         onClick={() => {
           onExitGame();
-          console.log('exit session');
         }}
-        className="flex-1 bg-red-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition"
       >
-        Exit to main page
-      </button>
+        {t('game.exit')}
+      </Button>
     </div>
   );
 };
+
 export default GameControl;
