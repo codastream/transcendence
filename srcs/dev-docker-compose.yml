@@ -33,7 +33,6 @@ services:
       dockerfile: srcs/users/Dockerfile
       target: builder
     container_name: '${UM_SERVICE_NAME}'
-    working_dir: /app/srcs/users
     env_file:
       - path: ./.env
       - path: ./.env.um
@@ -53,6 +52,7 @@ services:
       - '5555:5555'
     networks:
       - app-network
+    working_dir: /app/srcs/users
     command: >
       sh -c "npx prisma generate &&
         npx prisma db push && 
@@ -280,7 +280,7 @@ services:
       - /app/srcs/shared/core/node_modules
       - ../make/scripts/certs/certs/nginx:/etc/nginx/certs:ro
       - ../make/scripts/certs/certs/ca:/etc/nginx/ca:ro
-      - ${HOST_VOLUME_PATH}:/usr/share/nginx/html/uploads:ro
+      - uploads:/usr/share/nginx/html/uploads:ro
     networks:
       - app-network
     command: sh -c "nginx -g 'daemon off;' & npm run dev"

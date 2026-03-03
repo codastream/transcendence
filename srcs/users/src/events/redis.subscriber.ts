@@ -26,7 +26,7 @@ export function initRedisSubscriber(fastify: FastifyInstance) {
       fastify.log.error(err, 'Failed to stream user event to Redis');
     }
   });
-  userBus.on(USER_EVENT.UPDATED, async (authId) => {
+  userBus.on(USER_EVENT.UPDATED, async (authId: number) => {
     const profile = await profileService.getProfileByIdOrThrow(authId);
     try {
       // On utilise l'instance redis partagée par Fastify

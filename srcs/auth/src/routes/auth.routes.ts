@@ -29,7 +29,6 @@ import {
 import z from 'zod';
 
 export const patchUsernameSchema = {
-  params: z.object({ username: usernameSchema }),
   body: z.object({
     newUsername: usernameSchema,
   }),
@@ -44,7 +43,6 @@ export const patchUsernameSchema = {
 };
 
 export const patchEmailSchema = {
-  params: z.object({ username: usernameSchema }),
   body: z.object({
     newEmail: z.email(),
   }),
@@ -100,8 +98,8 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post('/logout', logoutHandler);
 
-  app.patch('/:username/username', { schema: patchUsernameSchema }, patchUsernameHandler);
-  app.patch('/:username/email', { schema: patchEmailSchema }, patchEmailHandler);
+  app.patch('/username', { schema: patchUsernameSchema }, patchUsernameHandler);
+  app.patch('/email', { schema: patchEmailSchema }, patchEmailHandler);
 
   app.get('/verify', verifyHandler);
 

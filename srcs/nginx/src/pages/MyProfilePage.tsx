@@ -40,12 +40,11 @@ export const MyProfilePage = () => {
     isError,
   } = useQuery({
     queryKey: ['profile', 'me'],
-    queryFn: () => profileApi.getMe(username),
-    enabled: !!username,
+    queryFn: () => profileApi.getMe(),
   });
 
   const { mutate: updateUsername, isPending: isPendingUsername } = useMutation({
-    mutationFn: (newUsername: string) => authApi.updateUsername(username, newUsername),
+    mutationFn: (newUsername: string) => authApi.updateUsername(newUsername),
     onMutate: () => {
       setError(null);
       setUsernameError(null);
@@ -68,7 +67,7 @@ export const MyProfilePage = () => {
   });
 
   const { mutate: updateEmail, isPending: isPendingEmail } = useMutation({
-    mutationFn: (newEmail: string) => authApi.updateEmail(username, newEmail),
+    mutationFn: (newEmail: string) => authApi.updateEmail(newEmail),
     onMutate: () => {
       setError(null);
       setEmailError(null);

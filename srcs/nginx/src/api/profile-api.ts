@@ -8,14 +8,13 @@ import {
 import api from './api-client';
 
 export const profileApi = {
-  getMe: async (currentUsername: usernameDTO): Promise<ProfileWithAuthDTO> => {
-    const [authRes, profileRes] = await Promise.all([
-      api.get(`/auth/me`) as Promise<{ data: { user: UserDTO } }>,
-      api.get(`/users/username/${currentUsername}`) as Promise<{ data: ProfileSimpleDTO }>,
-    ]);
-
-    const profile = profileRes.data;
+  getMe: async (): Promise<ProfileWithAuthDTO> => {
+    const authRes = (await api.get(`/auth/me`)) as { data: { user: UserDTO } };
     const authUser = authRes.data.user;
+    const profileRes = (await api.get(`/users/username/${authUser.username}`)) as {
+      data: ProfileSimpleDTO;
+    };
+    const profile = profileRes.data;
     console.log(authRes);
     console.log(profileRes);
 

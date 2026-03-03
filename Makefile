@@ -6,7 +6,7 @@ all : volumes certs colima install build
 	$(D_COMPOSE) up -d
 
 
-dev: volumes colima build-dev
+dev: volumes colima install build-dev
 	$(D_COMPOSE_DEV) up -d
 ai: volumes certs colima
 	npm i
@@ -191,6 +191,9 @@ redis-cli:
 
 dev-nginx:
 	npm run dev --workspace proxy-service
+
+nginx-reload:
+	$(CONTAINER_CMD) exec -it $(PROXY_SERVICE_NAME) nginx -s reload
 
 # --- Shell access ---
 

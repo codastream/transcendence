@@ -101,8 +101,8 @@ export class ProfileService {
   }
 
   @Trace
-  async updateAvatar(username: string, file: MultipartFile): Promise<ProfileSimpleDTO> {
-    const profile = await getProfileOrThrow(username);
+  async updateAvatar(userId: number, file: MultipartFile): Promise<ProfileSimpleDTO> {
+    const profile = await this.getProfileByIdOrThrow(userId);
 
     const data = await file.toBuffer();
 
@@ -113,7 +113,7 @@ export class ProfileService {
       throw new AppError(ERR_DEFS.RESSOURCE_INVALID_TYPE, { details: [{ field: 'file' }] });
     }
 
-    const uniqueName = `avatar-${username}-${Date.now()}.${type.ext}`;
+    const uniqueName = `avatar-${userId}-${Date.now()}.${type.ext}`;
     const uploadDir = '/app/uploads';
     const uploadPath = path.join(uploadDir, uniqueName);
     const publicUrl = `/uploads/${uniqueName}`;

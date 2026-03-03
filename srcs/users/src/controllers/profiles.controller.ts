@@ -67,6 +67,7 @@ export class ProfileController {
     const { username } = req.params as {
       username: usernameDTO;
     };
+    const { id: userId } = req.user;
 
     if (!data) {
       throw new AppError(ERR_DEFS.RESSOURCE_INVALID_TYPE, { field: 'multipart body' });
@@ -76,8 +77,8 @@ export class ProfileController {
       event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.PROFILE}`,
       param: username,
     });
-    const profileSimpleDTO = await profileService.updateAvatar(username, data);
-    userBus.emit(USER_EVENT.UPDATED, username);
+    const profileSimpleDTO = await profileService.updateAvatar(userId, data);
+    userBus.emit(USER_EVENT.UPDATED, userId);
     return reply.status(200).send(profileSimpleDTO);
   }
 

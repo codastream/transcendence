@@ -88,13 +88,13 @@ export const authApi = {
     };
   },
 
-  updateUsername: async (username: usernameDTO, newUsername: usernameDTO): Promise<UserDTO> => {
-    const { data } = await api.patch(`/auth/${username}/username`, { newUsername });
+  updateUsername: async (newUsername: usernameDTO): Promise<UserDTO> => {
+    const { data } = await api.patch(`/auth/username`, { newUsername });
     return data.user;
   },
 
-  updateEmail: async (username: usernameDTO, newEmail: emailDTO): Promise<UserDTO> => {
-    const { data } = await api.patch(`/auth/${username}/email`, { newEmail });
+  updateEmail: async (newEmail: emailDTO): Promise<UserDTO> => {
+    const { data } = await api.patch(`/auth/email`, { newEmail });
     return data.user;
   },
 
