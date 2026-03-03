@@ -105,8 +105,16 @@ How AI was used: we asked for explanation on how different libraries and tools w
 
 ◦ How the team organized the work ?
 
-◦ Tools used for project management (GitHub Issues, Trello, etc.).
-◦ Communication channels used (Discord, Slack, etc.).
+We used GitHub Issues to track tasks and features. We held regular meetings to discuss progress and blockers.
+
+◦ Tools used for project management:
+
+- GitHub Issues
+
+◦ Communication channels used:
+
+- Discord
+- GitHub Code Reviews
 
 ---
 
@@ -114,10 +122,10 @@ How AI was used: we asked for explanation on how different libraries and tools w
 
 | Layer            | Technology                                    |
 | ---------------- | --------------------------------------------- |
-| Frontend         | TypeScript SPA (Vanilla / framework)          |
+| Frontend         | TypeScript, React                             |
 | Auth             | OAuth2 (42 API), JWT, 2FA (TOTP)              |
 | Backend services | Node.js / TypeScript                          |
-| Database         | PostgreSQL (users), Redis (sessions)          |
+| Database         | SQLite (users), Redis (sessions)              |
 | Blockchain       | Solidity, Hardhat, Ethereum                   |
 | DevOps           | Docker, Docker Compose, Nginx, GitHub Actions |
 | Code quality     | ESLint, Prettier, Husky, Commitlint           |
@@ -127,14 +135,196 @@ How AI was used: we asked for explanation on how different libraries and tools w
 ## Database Schema:
 
 ◦ Visual representation or description of the database structure.
+
+Two decoupled SQLite databases — one per service. `authId` in the Users DB is a soft reference
+to `users.id` in the Auth DB, resolved at runtime via inter-service API calls.
+
+┌─────────────────────────────────────┐ ┌─────────────────────────────────────┐
+│ AUTH SERVICE (SQLite) │ │ USERS SERVICE (Prisma) │
+│ │ │ │
+│ users │ │ UserProfile │
+│ ├── id INTEGER PK │────▶│ ├── authId Int UNIQUE │
+│ ├── username TEXT UNIQUE │ │ ├── username String UNIQUE │
+│ ├── email TEXT UNIQUE │ │ ├── email String? UNIQUE │
+│ ├── password TEXT │ │ ├── avatarUrl String? │
+│ ├── role TEXT │ │ └── createdAt DateTime │
+│ ├── is_2fa_enabled INTEGER │ │ │
+│ ├── totp_secret TEXT? │ │ Friendship │
+│ ├── google_id TEXT? UNIQUE │ │ ├── id Int PK │
+│ ├── school42_id TEXT? UNIQUE │ │ ├── requesterId Int → authId │
+│ └── created_at DATETIME │ │ ├── receiverId Int → authId │
+│ │ │ ├── status String │
+│ login_tokens │ │ └── nickname[Requester|Receiver] │
+│ ├── token TEXT PK │ │ │
+│ ├── user_id INT → users.id │ │ UNIQUE(requesterId, receiverId) │
+│ └── expires_at DATETIME │ └─────────────────────────────────────┘
+│ │
+│ totp_setup_secrets │ ┌─────────────────────────────────────┐
+│ ├── token TEXT PK │ │ REDIS (session store) │
+│ ├── user_id INT → users.id │ │ │
+│ ├── secret TEXT │ │ online:{userId} → status + TTL │
+│ └── expires_at DATETIME │ │ session:{token} → JWT payload │
+└─────────────────────────────────────┘ └─────────────────────────────────────┘
+
 ◦ Tables/collections and their relationships.
+
+Auth DB Users DB
+────────────────────────────── ──────────────────────────────
+users (id) ──────────────────→ UserProfile (authId)
+└── login_tokens └── Friendship (requesterId / receiverId)
+└── totp_setup_secrets
+
 ◦ Key fields and data types.
+
+Auth Service — users table
+
+| Field          | Type     | Notes                             |
+| -------------- | -------- | --------------------------------- |
+| id             | INTEGER  | Primary key, auto-increment       |
+| username       | TEXT     | Unique, used for login            |
+| email          | TEXT     | Unique, nullable                  |
+| password       | TEXT     | Bcrypt hash                       |
+| role           | TEXT     | 'user', 'moderator', 'admin'      |
+| is_2fa_enabled | INTEGER  | 0 or 1 (SQLite boolean)           |
+| totp_secret    | TEXT     | Nullable, set when 2FA activated  |
+| google_id      | TEXT     | Nullable, unique OAuth identifier |
+| school42_id    | TEXT     | Nullable, unique OAuth identifier |
+| created_at     | DATETIME | Auto, CURRENT_TIMESTAMP           |
+
+Auth Service — token tables
+
+| Field      | Type     | Notes                              |
+| ---------- | -------- | ---------------------------------- |
+| token      | TEXT     | 32-byte hex string (crypto-random) |
+| expires_at | DATETIME | ISO string, checked on every use   |
+| attempts   | INTEGER  | Brute-force protection counter     |
+
+Users Service — UserProfile (Prisma)
+
+| Field     | Type     | Notes                                  |
+| --------- | -------- | -------------------------------------- |
+| authId    | Int      | Unique — mirrors users.id from Auth DB |
+| username  | String   | Unique display name                    |
+| email     | String?  | Optional, unique                       |
+| avatarUrl | String?  | URL to profile picture                 |
+| createdAt | DateTime | Auto, Prisma now()                     |
+
+Users Service — Friendship (Prisma)
+
+| Field             | Type    | Notes                                   |
+| ----------------- | ------- | --------------------------------------- |
+| requesterId       | Int     | FK → UserProfile.authId, CASCADE delete |
+| receiverId        | Int     | FK → UserProfile.authId, CASCADE delete |
+| status            | String  | 'pending', 'accepted', 'blocked'        |
+| nicknameRequester | String? | Custom alias set by requester           |
+| nicknameReceiver  | String? | Custom alias set by receiver            |
+
+Redis Keys
+
+| Key pattern     | Value type | Notes                          |
+| --------------- | ---------- | ------------------------------ |
+| online:{userId} | String     | Online status with TTL expiry  |
+| session:{token} | String     | JWT payload for session lookup |
 
 ## Features List:
 
 ◦ Complete list of implemented features.
-◦ Which team member(s) worked on each feature.
-◦ Brief description of each feature’s functionality.
+
+Authentication (rcaillie)
+
+    Local registration & login (username/email + password)
+
+    OAuth2 login via 42 School and Google
+
+    JWT-based session management (HttpOnly cookies)
+
+    Token verification endpoint (/verify)
+
+    Account deletion by the user
+
+Two-Factor Authentication (rcaillie)
+
+    TOTP setup — generates a QR code secret
+
+    TOTP setup verification — confirms secret before activating
+
+    TOTP login verification — required on each login when enabled
+
+    Disable 2FA
+
+    Check 2FA status
+
+User Profiles (fpetit)
+
+    Create profile (linked to authId from auth service)
+
+    Get profile by username
+
+    Search profiles by username query (min 2 chars)
+
+    Update avatar (multipart upload)
+
+    Delete profile by username or user ID
+
+Friends System (fpetit and lisambet)
+
+    Send friend request
+
+    List all friends
+
+    Remove a friend
+
+    Update friendship status (accept / block)
+
+    Set a custom nickname per friend (for both sides independently)
+
+Game (npolack, jhervoch, lisambet)
+
+    Create a game session
+
+    List active game sessions
+
+    Delete a session
+
+    Real-time gameplay via WebSocket (/ws/:sessionId)
+
+    Configurable game settings
+
+    Match history
+
+    Player stats
+
+Tournaments (jhervoch)
+
+    Create a tournament
+
+    Join a tournament
+
+    List all tournaments
+
+    View tournament details
+
+    Get current match to play
+
+    Tournament stats
+
+Admin Panel (fpetit)
+
+    Admin role: update any user, delete any user
+
+    Moderator role: list all users, force-disable any user's 2FA
+
+Infrastructure (rcaillie, jhervoch)
+
+    Online presence tracking via heartbeat + Redis TTL
+
+    Check if a specific user is online
+
+    Rate limiting on all sensitive endpoints (login, register, 2FA, OAuth, delete)
+
+    mTLS between services (client certificate required)
+
+    Automatic cleanup of expired tokens and TOTP secrets
 
 ## Modules:
 
