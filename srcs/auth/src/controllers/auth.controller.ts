@@ -374,7 +374,7 @@ export async function patchUsernameHandler(
   reply: FastifyReply,
 ) {
   try {
-    const { id, username } = request.user;
+    const { id, username } = request.sessionUser;
     const { newUsername } = request.body;
     request.log.info({ event: 'patch_username', id, username, newUsername });
     const updatedUser = await authService.updateUserUsernameAndFetch(id, username, newUsername);
@@ -401,7 +401,7 @@ export async function patchEmailHandler(
   request: FastifyRequest<{ Body: z.infer<typeof patchEmailSchema.body> }>,
   reply: FastifyReply,
 ) {
-  const { id, username } = request.user;
+  const { id, username } = request.sessionUser;
   const { newEmail } = request.body;
   request.log.trace({ event: 'patch_email' });
   const updatedUser = await authService.updateUserEmailAndFetch(id, username, newEmail);

@@ -9,11 +9,9 @@ import { FastifyRequest } from 'fastify';
 import { logger } from './logger.js';
 import { ERROR_CODES } from './constants.js';
 import { JWTApp } from '../types/jwt.types.js';
-import { UserPayload } from '../types/types.js';
-import { UserRequestDTO } from '@transcendence/core';
 
 export interface JWTPayload {
-  id: number;
+  sub: number;
   username: string;
   role: string;
   iat?: number;
@@ -40,12 +38,12 @@ export function extractTokenFromCookies(request: FastifyRequest): string | null 
  * @param token Le token JWT à vérifier
  * @returns Le payload décodé si valide, null sinon
  */
-export function verifyJWT(app: JWTApp, token: string): UserRequestDTO | null {
+export function verifyJWT(app: JWTApp, token: string): JWTPayload | null {
   try {
-    const decoded = app.jwt.verify(token) as UserPayload;
+    const decoded = app.jwt.verify(token) as JWTPayload;
     logger.info({ event: 'jwt_decoded_payload', decoded });
     // Vérification basique du payload
-    if (!decoded.id || !decoded.username) {
+    if (!decoded.sub || !decoded.username) {
       logger.warn({
         event: 'jwt_invalid_payload',
         reason: 'missing_required_fields',
@@ -53,11 +51,7 @@ export function verifyJWT(app: JWTApp, token: string): UserRequestDTO | null {
       return null;
     }
 
-    return {
-      id: decoded.id,
-      username: decoded.username,
-      role: decoded.role ?? 'USER',
-    };
+    return decoded;
   } catch (err: any) {
     // Gestion des différents types d'erreurs JWT
     if (err.message?.includes('expired')) {
@@ -84,7 +78,7 @@ export function verifyJWT(app: JWTApp, token: string): UserRequestDTO | null {
 }
 
 type VerificationResult =
-  | { valid: true; user: UserRequestDTO }
+  | { valid: true; user: JWTPayload }
   | { valid: false; errorCode: string; errorMessage: string };
 
 /**

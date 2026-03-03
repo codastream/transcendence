@@ -1,4 +1,4 @@
-import fastify, { FastifyReply, FastifyRequest } from 'fastify';
+import fastify, { FastifyRequest } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
@@ -62,7 +62,7 @@ app.addHook('onRequest', async (request: FastifyRequest) => {
     request.log = request.log.child(bindings);
   }
   if (userId && userName) {
-    request.user = { id: bindings.userId, username: bindings.username as string };
+    request.sessionUser = { id: bindings.userId, username: bindings.username as string };
   }
 });
 

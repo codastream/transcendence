@@ -1,7 +1,7 @@
-import { UserPayload } from './types.js';
+import { JWTPayload } from '../utils/jwt.service.js';
 
 export interface JWTApp {
   jwt: {
-    verify: (token: string) => UserPayload;
+    verify: (token: string) => JWTPayload;
   };
 }

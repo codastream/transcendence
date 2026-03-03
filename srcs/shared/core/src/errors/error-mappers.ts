@@ -4,6 +4,7 @@ import { HTTP_STATUS } from '../constants/index.js';
 import { ERROR_CODES } from './error-codes.js';
 import { ErrorLogPayload } from '../logging/logging-types.js';
 import z from 'zod';
+import { UserRequestDTO } from '../schemas/user.schema.js';
 
 export interface FastifyValidationError {
   code: string;
@@ -17,7 +18,7 @@ interface MinimalRequest {
   id?: string;
   method?: string;
   url?: string;
-  user?: { id?: number | string; name?: string; role?: string };
+  sessionUser?: UserRequestDTO;
 }
 
 interface MinimalFastifyError {
@@ -106,9 +107,9 @@ export const appErrorToLog = (error: AppError, req: MinimalRequest): ErrorLogPay
       method: req.method,
       url: req.url,
       user: {
-        id: req.user?.id,
-        name: req.user?.name,
-        role: req.user?.role,
+        id: req.sessionUser?.id,
+        name: req.sessionUser?.username,
+        role: req.sessionUser?.role,
       },
     },
     error: {
@@ -135,9 +136,9 @@ export const fastifyValidationErrorToLog = (
       method: req.method,
       url: req.url,
       user: {
-        id: req.user?.id,
-        name: req.user?.name,
-        role: req.user?.role,
+        id: req.sessionUser?.id,
+        name: req.sessionUser?.username,
+        role: req.sessionUser?.role,
       },
     },
     error: {
@@ -161,9 +162,9 @@ export const panicErrorToLog = (
     method: req.method,
     url: req.url,
     user: {
-      id: req.user?.id,
-      name: req.user?.name,
-      role: req.user?.role,
+      id: req.sessionUser?.id,
+      name: req.sessionUser?.username,
+      role: req.sessionUser?.role,
     },
   },
   error: { errorCode: error.code, errorName: error.name, stack: error.stack },

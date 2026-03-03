@@ -113,8 +113,8 @@ export const getInternalHeaders = (req: FastifyRequest): Record<string, string> 
   }
 
   // user id
-  if (req.user?.id !== undefined) {
-    headers['x-user-id'] = String(req.user.id);
+  if (req.user?.sub !== undefined) {
+    headers['x-user-id'] = String(req.user.sub);
   } else if (typeof req.headers['x-user-id'] === 'string') {
     headers['x-user-id'] = req.headers['x-user-id'];
   }
@@ -140,7 +140,7 @@ app.decorate(
   'fetchInternal',
   async (request: FastifyRequest, url: string, init: RequestInit = {}) => {
     const userName = request.user?.username || request.headers['x-user-name'] || '';
-    const userId = request.user?.id || request.headers['x-user-id'] || '';
+    const userId = request.user?.sub || request.headers['x-user-id'] || '';
 
     const headers = Object.assign({}, init.headers || {}, {
       'x-user-name': userName,
