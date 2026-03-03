@@ -78,23 +78,35 @@ The app will be available at: **https://localhost:4430**
 | [TypeScript](https://www.typescriptlang.org/docs/)   | [Wiki](https://github.com/codastream/transcendence/wiki/TypeScript)   | -                                    |                         | 👷     |
 | [Zod](https://zod.dev/)                              | [Wiki](https://github.com/codastream/transcendence/wiki/Zod)          | -                                    |                         | 👷     |
 
+How AI was used: we asked for explanation on how different libraries and tools work. We also used AI for debugging purposes and in case of blocking on a certain problem.
+
 ---
 
 ## Team Information
 
-| Login                                   | Contributions                                 |
-| --------------------------------------- | --------------------------------------------- |
-| [lisambet](https://github.com/lisambet) | _(e.g. auth service, 2FA, frontend routing)_  |
-| _(teammate)_                            | _(e.g. game engine, WebSocket, AI)_           |
-| _(teammate)_                            | _(e.g. blockchain, users service, DevOps/CI)_ |
+| Login                                   | Role(s)         | Responsibilities                                     |
+| --------------------------------------- | --------------- | ---------------------------------------------------- |
+| [lisambet](https://github.com/lisambet) | _Product Owner_ | _AI Opponent_                                        |
+| [fpetit](https://github.com/fpetit)     | _Tech Lead_     | _User Service_                                       |
+| [rcaillie](https://github.com/rcaillie) | _Developer_     | _Auth Service_                                       |
+| [jhervoch](https://github.com/jhervoch) | _Tech Lead_     | _e.g. Blockchain integration, Tournament management_ |
+| [npolack](https://github.com/npolack)   | _Scrum Master_  | _Game Engine_                                        |
+
+> **\*Roles reference:**
+>
+> - **Product Owner:** Vision, priorities, feature validation
+> - **Scrum Master:** Coordination, tracking, sprint planning, communication
+> - **Tech Lead:** Architecture decisions, code quality standards, technical guidance
+> - **Developer:** Implementation, code reviews, testing, documentation
 
 ---
 
-## ⚠️ Challenges & Learnings
+## Project Management
 
-- _(e.g. Keeping game state synchronized between clients in real time via WebSockets required careful design of the game loop)_
-- _(e.g. Integrating blockchain for score persistence meant learning Solidity and Hardhat from scratch)_
-- _(e.g. Managing secrets and inter-service communication securely across Docker containers was non-trivial)_
+◦ How the team organized the work ?
+
+◦ Tools used for project management (GitHub Issues, Trello, etc.).
+◦ Communication channels used (Discord, Slack, etc.).
 
 ---
 
@@ -112,15 +124,29 @@ The app will be available at: **https://localhost:4430**
 
 ---
 
-## 🔒 Environment Variables
+## Database Schema:
 
-All sensitive configuration lives in `.env` files excluded from version control.  
-Use the provided `.env.*.example` files as templates.
+◦ Visual representation or description of the database structure.
+◦ Tables/collections and their relationships.
+◦ Key fields and data types.
 
-| File                   | Purpose                               |
-| ---------------------- | ------------------------------------- |
-| `srcs/.env`            | Global config (ports, DB credentials) |
-| `srcs/.env.auth`       | 42 OAuth2 Client ID & Secret          |
-| `srcs/.env.gateway`    | Gateway routing config                |
-| `srcs/.env.blockchain` | RPC URL, contract address             |
-| `srcs/.env.um`         | User management service config        |
+## Features List:
+
+◦ Complete list of implemented features.
+◦ Which team member(s) worked on each feature.
+◦ Brief description of each feature’s functionality.
+
+## Modules:
+
+◦ List of all chosen modules (Major and Minor).
+◦ Point calculation (Major = 2pts, Minor = 1pt).
+◦ Justification for each module choice, especially for custom "Modules of
+choice".
+◦ How each module was implemented.
+◦ Which team member(s) worked on each module.
+
+## Individual Contributions:
+
+◦ Detailed breakdown of what each team member contributed.
+◦ Specific features, modules, or components implemented by each person.
+◦ Any challenges faced and how they were overcome.
