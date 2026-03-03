@@ -226,107 +226,113 @@ Redis Keys
 | online:{userId} | String     | Online status with TTL expiry  |
 | session:{token} | String     | JWT payload for session lookup |
 
-## Features List:
+## Features List
 
-◦ Complete list of implemented features.
+### Authentication — `@rcaillie`
 
-Authentication (rcaillie)
+| Feature            | Description                                        |
+| ------------------ | -------------------------------------------------- |
+| Local auth         | Registration & login via username/email + password |
+| OAuth2             | Login via 42 School and Google                     |
+| JWT sessions       | HttpOnly cookie-based session management           |
+| Token verification | `/verify` endpoint for session validation          |
+| Account deletion   | User-initiated account removal                     |
 
-    Local registration & login (username/email + password)
+### Two-Factor Authentication — `@rcaillie`
 
-    OAuth2 login via 42 School and Google
+| Feature            | Description                             |
+| ------------------ | --------------------------------------- |
+| TOTP setup         | Generates QR code with secret           |
+| Setup verification | Confirms secret before activation       |
+| Login verification | Required on each login when 2FA enabled |
+| Disable 2FA        | User can deactivate 2FA                 |
+| Status check       | Query 2FA enabled state                 |
 
-    JWT-based session management (HttpOnly cookies)
+### User Profiles — `@fpetit`
 
-    Token verification endpoint (/verify)
+| Feature         | Description                          |
+| --------------- | ------------------------------------ |
+| Create profile  | Linked to `authId` from auth service |
+| Get profile     | Retrieve by username                 |
+| Search profiles | Query by username (min 2 chars)      |
+| Avatar upload   | Multipart file upload                |
+| Delete profile  | Remove by username or user ID        |
 
-    Account deletion by the user
+### Friends System — `@fpetit` `@lisambet`
 
-Two-Factor Authentication (rcaillie)
+| Feature         | Description                                      |
+| --------------- | ------------------------------------------------ |
+| Friend request  | Send friendship invitation                       |
+| List friends    | View all friends                                 |
+| Remove friend   | Delete friendship                                |
+| Update status   | Accept / block requests                          |
+| Custom nickname | Set alias per friend (independent for each side) |
 
-    TOTP setup — generates a QR code secret
+### Game — `@npolack` `@jhervoch` `@lisambet`
 
-    TOTP setup verification — confirms secret before activating
+| Feature        | Description                             |
+| -------------- | --------------------------------------- |
+| Create session | Initialize a new game session           |
+| List sessions  | View all active game sessions           |
+| Delete session | Remove a game session                   |
+| Real-time play | WebSocket gameplay via `/ws/:sessionId` |
+| Game settings  | Configurable game parameters            |
+| Match history  | Record of past games                    |
+| Player stats   | Performance statistics                  |
 
-    TOTP login verification — required on each login when enabled
+### Tournaments — `@jhervoch`
 
-    Disable 2FA
+| Feature            | Description                   |
+| ------------------ | ----------------------------- |
+| Create tournament  | Initialize new tournament     |
+| Join tournament    | Register for participation    |
+| List tournaments   | View all tournaments          |
+| Tournament details | View specific tournament info |
+| Current match      | Get next match to play        |
+| Tournament stats   | Competition statistics        |
 
-    Check 2FA status
+### Admin Panel — `@fpetit`
 
-User Profiles (fpetit)
+| Role          | Permissions                                  |
+| ------------- | -------------------------------------------- |
+| **Admin**     | Update any user, delete any user             |
+| **Moderator** | List all users, force-disable any user's 2FA |
 
-    Create profile (linked to authId from auth service)
+### Infrastructure — `@rcaillie` `@jhervoch`
 
-    Get profile by username
-
-    Search profiles by username query (min 2 chars)
-
-    Update avatar (multipart upload)
-
-    Delete profile by username or user ID
-
-Friends System (fpetit and lisambet)
-
-    Send friend request
-
-    List all friends
-
-    Remove a friend
-
-    Update friendship status (accept / block)
-
-    Set a custom nickname per friend (for both sides independently)
-
-Game (npolack, jhervoch, lisambet)
-
-    Create a game session
-
-    List active game sessions
-
-    Delete a session
-
-    Real-time gameplay via WebSocket (/ws/:sessionId)
-
-    Configurable game settings
-
-    Match history
-
-    Player stats
-
-Tournaments (jhervoch)
-
-    Create a tournament
-
-    Join a tournament
-
-    List all tournaments
-
-    View tournament details
-
-    Get current match to play
-
-    Tournament stats
-
-Admin Panel (fpetit)
-
-    Admin role: update any user, delete any user
-
-    Moderator role: list all users, force-disable any user's 2FA
-
-Infrastructure (rcaillie, jhervoch)
-
-    Online presence tracking via heartbeat + Redis TTL
-
-    Check if a specific user is online
-
-    Rate limiting on all sensitive endpoints (login, register, 2FA, OAuth, delete)
-
-    mTLS between services (client certificate required)
-
-    Automatic cleanup of expired tokens and TOTP secrets
+| Feature         | Description                                                             |
+| --------------- | ----------------------------------------------------------------------- |
+| Online presence | Heartbeat + Redis TTL tracking                                          |
+| User status     | Check if specific user is online                                        |
+| Rate limiting   | Protection on sensitive endpoints (login, register, 2FA, OAuth, delete) |
+| mTLS            | Client certificate required between services                            |
+| Token cleanup   | Automatic expiration of tokens and TOTP secrets                         |
 
 ## Modules:
+
+> **Total: 24 pts** (minimum required: 14 pts)
+
+| #   | Category        | Module                                           | Type  | Points |
+| --- | --------------- | ------------------------------------------------ | ----- | ------ |
+| 1   | Web             | Backend framework (Fastify)                      | Minor | 1      |
+| 2   | Web             | Frontend framework (React)                       | Minor | 1      |
+| 3   | Web             | Real-time features (WebSockets)                  | Major | 2      |
+| 4   | Web             | Use a framework for both frontend and backend    | Major | 2      |
+| 5   | User Management | Standard user management & authentication        | Major | 2      |
+| 6   | User Management | Game statistics & match history                  | Minor | 1      |
+| 7   | User Management | Remote authentication (OAuth 2.0 — Google & 42)  | Minor | 1      |
+| 8   | User Management | Advanced permissions system (admin / moderator)  | Major | 2      |
+| 9   | User Management | Two-Factor Authentication (TOTP / 2FA)           | Minor | 1      |
+| 10  | AI              | AI Opponent (PPO reinforcement learning)         | Major | 2      |
+| 11  | Gaming & UX     | Complete web-based game (Pong)                   | Major | 2      |
+| 12  | Gaming & UX     | Remote players (real-time multiplayer)           | Major | 2      |
+| 13  | Gaming & UX     | Tournament system                                | Minor | 1      |
+| 14  | DevOps          | Backend as microservices                         | Major | 2      |
+| 15  | Blockchain      | Store tournament scores on Blockchain (Solidity) | Major | 2      |
+|     |                 |                                                  |       |        |
+|     |                 | **Major modules × 9**                            |       | **18** |
+|     |                 | **Minor modules × 6**                            |       | **6**  |
+|     |                 | **TOTAL**                                        |       | **24** |
 
 ◦ List of all chosen modules (Major and Minor).
 ◦ Point calculation (Major = 2pts, Minor = 1pt).
