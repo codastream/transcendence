@@ -13,7 +13,7 @@ export const NavBar = () => {
 
   const playItems = [
     { label: t('navbar.play_friend'), to: '/friends' },
-    { label: t('navbar.play_ai'), to: '/ai' },
+    { label: t('navbar.play_ai'), to: '/game/pong-ai' },
     { label: t('navbar.play_tournament'), to: '/tournaments' },
   ];
 
@@ -41,22 +41,9 @@ export const NavBar = () => {
       </div>
       {user && isLoggedIn && (
         <>
-          <MenuElement
-            action={MenuActions.PLAY}
-            items={playItems}
-            scale={0.7}
-            onClick={() => navigate('/game/local')}
-          />
-          <MenuElement
-            action={MenuActions.STATS}
-            items={statsItems}
-            onClick={() => navigate('/stats')}
-          />
-          <MenuElement
-            action={MenuActions.PROFILE}
-            items={profileItems}
-            onClick={() => navigate('/me')}
-          />
+          <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7} />
+          <MenuElement action={MenuActions.STATS} items={statsItems} />
+          <MenuElement action={MenuActions.PROFILE} items={profileItems} />
         </>
       )}
 

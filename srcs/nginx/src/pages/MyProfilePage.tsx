@@ -123,7 +123,6 @@ export const MyProfilePage = () => {
       if (authUser) {
         updateUser({
           ...authUser,
-          email: profile.email,
           avatarUrl: updatedProfile.avatarUrl,
         });
       }

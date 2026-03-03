@@ -19,7 +19,9 @@ COPY srcs/shared/core/package*.json ./srcs/shared/core/
 COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 
 # 2) Installation déterministe (workspaces)
-RUN npm ci
+# permet de tirer parti du cache Docker pour les dépendances, 
+# même dans un contexte de monorepo
+RUN --mount=type=cache,target=/root/.npm npm ci
 
 # 3) Sources nécessaires au build
 COPY srcs/gateway ./srcs/gateway
@@ -43,7 +45,7 @@ ENV NODE_ENV=production
 COPY package-lock.json ./package-lock.json
 COPY srcs/gateway/package.json ./package.json
 # audit and fund are done in builder
-RUN npm install --omit=dev --no-audit --no-fund
+RUN --mount=type=cache,target=/root/.npm npm install --omit=dev --no-audit --no-fund
 
 # 7) Injecter le package interne @transcendence/core (compilé)
 RUN mkdir -p node_modules/@transcendence

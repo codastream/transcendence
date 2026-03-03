@@ -8,6 +8,7 @@ all : volumes certs colima install build
 
 dev: volumes colima install build-dev
 	$(D_COMPOSE_DEV) up -d
+
 ai: volumes certs colima
 	npm i
 	COMPOSE_PROFILES=ai $(D_COMPOSE) build

@@ -7,6 +7,7 @@ import fs from 'fs';
 import { env } from './config/env.js';
 import redisPlugin from './plugins/ioredis.plugin.js';
 import { startGameConsumer } from './core/game.consumer.js';
+import recoveryHeaders from './plugins/headers.plugins.js';
 
 const fastify = Fastify({
   https: {
@@ -27,8 +28,10 @@ fastify.addHook('onReady', async () => {
 
 // Prehandlher for request route
 fastify.register(redisPlugin);
+fastify.register(recoveryHeaders);
 
 // Register WebSocket support
+// @ts-ignore - Fastify WebSocket plugin types are incompatible with Fastify v5 but work at runtime
 await fastify.register(fastifyWebsocket);
 
 // WebSocket game endpoint
@@ -49,7 +52,7 @@ const start = async () => {
   try {
     await fastify.listen({ port: env.GAME_SERVICE_PORT, host: '0.0.0.0' });
     fastify.log.info('WebSocket Pong server running on port 3003');
-    fastify.log.info('Connect to: ws://localhost:3003/game/{sessionId}');
+    fastify.log.info('Connect to: wss://localhost:3003/game/{sessionId}');
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

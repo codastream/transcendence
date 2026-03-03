@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { PlayerDTO } from '@transcendence/core';
 import api from '../api/api-client';
 import { useParams } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 /* The principle of the tournament page:
  * The creator is displayed first, then the players join sequentially.
@@ -12,11 +13,12 @@ import { useParams } from 'react-router-dom';
  * they are initially initialized by this function,
  * and the "waiting" status corresponds to that slot.
  */
-export function createWaitingPlayer(label: string): Player {
+export function createWaitingPlayer(label: string, slotidx: 1 | 2 | 3 | 4): Player {
   return {
-    id: 'waiting',
+    id: 'waiting-' + slotidx,
     name: label,
     avatar: null,
+    slot: slotidx,
     online: false,
     status: 'waiting',
   };
@@ -30,6 +32,7 @@ async function mapPlayerDTO(dto: PlayerDTO): Promise<Player> {
     id: dto.player_id.toString(),
     name: dto.username,
     avatar: dto.avatar,
+    slot: dto.slot,
     online: true,
     status: 'connected',
   };
@@ -37,18 +40,28 @@ async function mapPlayerDTO(dto: PlayerDTO): Promise<Player> {
 
 export default function TournamentPage() {
   const { t } = useTranslation();
+
   function fillSlotPlayer(players: Player[]): [Player, Player, Player, Player] {
+    const slots: Player[] = new Array(4).fill(null);
     const nbSlots = 4;
-    const filledPlayers = players.slice(0, nbSlots);
-    const nbSlotFree = nbSlots - filledPlayers.length;
-    for (let i = 0; i < nbSlotFree; i++) {
-      filledPlayers.push(createWaitingPlayer(t('game.waiting')));
+    players.forEach((p) => {
+      const slotIndex = p.slot - 1;
+      slots[slotIndex] = p;
+    });
+    for (let i = 0; i < nbSlots; i++) {
+      if (!slots[i]) {
+        slots[i] = createWaitingPlayer(t('game.waiting'), (i + 1) as 1 | 2 | 3 | 4);
+      }
     }
-    return filledPlayers as [Player, Player, Player, Player];
+
+    return slots as [Player, Player, Player, Player];
   }
+
   const { id } = useParams<{ id: string }>();
   const [players, setPlayers] = useState<Player[]>([]);
   useEffect(() => {
+    if (!id) return;
+
     const fetchPlayers = async () => {
       try {
         const { data } = await api.get<PlayerDTO[]>(`/game/tournaments/${id}`);
@@ -62,6 +75,11 @@ export default function TournamentPage() {
     // refresh the page to show in realtime the users who joining the tournament
     const interval = setInterval(fetchPlayers, 20000);
     return () => clearInterval(interval);
-  }, []);
-  return <TournamentBracket players={fillSlotPlayer(players)} />;
+  }, [id]);
+
+  if (!id) {
+    return <Navigate to="/tournaments" replace />;
+  }
+
+  return <TournamentBracket players={fillSlotPlayer(players)} tournamentId={id} />;
 }

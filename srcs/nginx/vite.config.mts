@@ -11,7 +11,6 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   process.env = { ...process.env, ...env };
   // const isDev = mode === 'development';
-  // const target = mode === 'development' ? 'https://127.0.0.1:443' : 'https://localhost:4430';
   return {
     plugins: [react()],
     root: '.',
@@ -19,9 +18,9 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       strictPort: true,
       hmr: {
-        protocol: 'wss', // On passe par le SSL de Nginx
+        protocol: 'wss',
         host: 'localhost',
-        port: 4430, // Le port externe de Nginx
+        port: 4430,
       },
       proxy: {
         '/api': {

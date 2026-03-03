@@ -125,7 +125,12 @@ export type {
   ProfileDataDTO,
   ProfileCreateInDTO,
 } from './schemas/profile.schema.js';
-export type { TournamentDTO, PlayerDTO } from './schemas/game.schema.js';
+export type {
+  PlayerDTO,
+  MatchToPlayDTO,
+  TournamentDTO,
+  TournamentResultDTO,
+} from './schemas/game.schema.js';
 
 //=================================
 // Enum and Interface
