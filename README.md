@@ -1,21 +1,12 @@
-# 🏓 ft_transcendence
+This project has been created as part of the 42 curriculum by lisambet, fpetit, rcaillie, jhervoch, npolack.
 
-> A full-stack multiplayer Pong web application — the final project of the 42 School Common Core.  
-> Built as a microservices SPA with real-time gameplay, OAuth2 auth, 2FA, an AI opponent, and blockchain score storage.
+## Description
+
+> A full-stack multiplayer Pong web application.  
+> Built as a microservices SPA with real-time gameplay, tournament system, OAuth2 auth, 2FA, an AI opponent, and blockchain score storage. It covers a wide range of concepts including real-time communication, modern authentication flows, containerized deployment, and blockchain integration.
 
 ![CI Status](https://github.com/codastream/transcendence/actions/workflows/ci.yml/badge.svg)
 ![User Service Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/codastream/13a5ca1442b77566f5c439d203084db2/raw/coverage-users.json)
-
----
-
-## 📖 About
-
-ft_transcendence is a browser-based multiplayer Pong platform built entirely with a microservices architecture orchestrated by Docker Compose.  
-It covers a wide range of concepts including real-time communication, modern authentication flows, containerized deployment, and blockchain integration.
-
----
-
-## 🏗 Architecture
 
 ```
 srcs/
@@ -31,22 +22,11 @@ srcs/
 └── tests/          # Integration & end-to-end test suite
 ```
 
----
-
-## ⚙️ Prerequisites
-
-- Docker & Docker Compose
-- Make
-- A 42 OAuth2 application (Client ID + Secret)
-- Configured `.env` files (see examples in `srcs/`)
-
----
-
-## 🚀 Getting Started
+## Instructions
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/lisambet/transcendence.git
+git clone https://github.com/codastream/transcendence.git
 cd transcendence
 
 # 2. Set up environment variables
@@ -62,69 +42,73 @@ make
 
 # 4. Stop all services
 make down
+
+
+# 5. Build AI opponent service separately (optional)
+
+make ai
+
+# 6. Run tests
+
+make test
 ```
 
-The app will be available at: **https://localhost**
+The app will be available at: **https://localhost:4430**
+
+## Ressources
+
+> See also our [project wiki](https://github.com/codastream/transcendence/wiki) for in-depth articles on each tool.
+
+| Tool                                                 | Wiki Link                                                             | Related Module                       | Interested People       | Status |
+| ---------------------------------------------------- | --------------------------------------------------------------------- | ------------------------------------ | ----------------------- | ------ |
+| [Fastify](https://fastify.dev/docs/latest/)          | [Wiki](https://github.com/codastream/transcendence/wiki/Fastify)      | Web - Backend (Minor)                |                         |        |
+| [React](https://react.dev/)                          | [Wiki](https://github.com/codastream/transcendence/wiki/React)        | Web - Frontend (Major)               |                         | 👷     |
+| [Tailwind CSS](https://tailwindcss.com/docs)         | [Wiki](https://github.com/codastream/transcendence/wiki/Tailwind-CSS) | Web - Frontend                       |                         | 👷     |
+| [SQLite](https://github.com/WiseLibs/better-sqlite3) | [Wiki](https://github.com/codastream/transcendence/wiki/SQLite)       | -                                    |                         |        |
+| [Prisma](https://www.prisma.io/docs/)                | [Wiki](https://github.com/codastream/transcendence/wiki/Prisma)       | Database - ORM (Minor)               |                         | 👷     |
+| [WebSockets](https://github.com/websockets/ws)       | [Wiki](https://github.com/codastream/transcendence/wiki/WebSockets)   | Real-time / User Interaction (Major) | @codastream             |        |
+| [ELK](https://www.elastic.co/guide/index.html)       | [Wiki](https://github.com/codastream/transcendence/wiki/ELK)          | DevOps - ELK (Major)                 |                         | 👷     |
+| [Prometheus](https://prometheus.io/docs/)            | [Wiki](https://github.com/codastream/transcendence/wiki/Prometheus)   | DevOps - Monitoring (Major)          | @codastream             |        |
+| [Grafana](https://grafana.com/docs/)                 | [Wiki](https://github.com/codastream/transcendence/wiki/Grafana)      | DevOps - Monitoring (Major)          | @codastream             |        |
+| [Solidity](https://docs.soliditylang.org/)           | [Wiki](https://github.com/codastream/transcendence/wiki/Solidity)     | Blockchain (Major)                   | @codastream             |        |
+| [Hardhat](https://hardhat.org/docs)                  | [Wiki](https://github.com/codastream/transcendence/wiki/Hardhat)      | Blockchain (Major)                   | @codastream             |        |
+| [Docker](https://docs.docker.com/)                   | [Wiki](https://github.com/codastream/transcendence/wiki/Docker)       | -                                    | @codastream (dev setup) |        |
+| [Vitest](https://vitest.dev/)                        | [Wiki](https://github.com/codastream/transcendence/wiki/Vitest)       | -                                    |                         | 👷     |
+| [ESLint](https://eslint.org/)                        | [Wiki](https://github.com/codastream/transcendence/wiki/ESLint)       | -                                    |                         |        |
+| [TypeScript](https://www.typescriptlang.org/docs/)   | [Wiki](https://github.com/codastream/transcendence/wiki/TypeScript)   | -                                    |                         | 👷     |
+| [Zod](https://zod.dev/)                              | [Wiki](https://github.com/codastream/transcendence/wiki/Zod)          | -                                    |                         | 👷     |
 
 ---
 
-## 🎮 Features
+## Team Information
 
-- 🏓 Real-time 1v1 Pong (local multiplayer & online)
-- 🤖 AI opponent powered by a dedicated service
-- 🔐 OAuth2 login via 42 intranet
-- 📱 Two-Factor Authentication (2FA / TOTP)
-- 👤 User profiles, avatars, match history, leaderboard
-- ⛓ Blockchain-backed score storage (tamper-proof results)
-- 🧪 Automated test suite (auth, game, scoring, AI)
-- 🔄 CI pipeline with code coverage reporting
-
----
-
-## 🧪 Running Tests
-
-```bash
-# Auth service tests
-bash test-auth.sh
-
-# Cross-service auth tests
-bash test-auth-cross.sh
-
-# Game API tests
-bash test-game.sh
-```
-
----
-
-## 👥 Team & Contributions
-
-| Login | Contributions |
-|-------|--------------|
-| [lisambet](https://github.com/lisambet) | *(e.g. auth service, 2FA, frontend routing)* |
-| *(teammate)* | *(e.g. game engine, WebSocket, AI)* |
-| *(teammate)* | *(e.g. blockchain, users service, DevOps/CI)* |
+| Login                                   | Contributions                                 |
+| --------------------------------------- | --------------------------------------------- |
+| [lisambet](https://github.com/lisambet) | _(e.g. auth service, 2FA, frontend routing)_  |
+| _(teammate)_                            | _(e.g. game engine, WebSocket, AI)_           |
+| _(teammate)_                            | _(e.g. blockchain, users service, DevOps/CI)_ |
 
 ---
 
 ## ⚠️ Challenges & Learnings
 
-- *(e.g. Keeping game state synchronized between clients in real time via WebSockets required careful design of the game loop)*
-- *(e.g. Integrating blockchain for score persistence meant learning Solidity and Hardhat from scratch)*
-- *(e.g. Managing secrets and inter-service communication securely across Docker containers was non-trivial)*
+- _(e.g. Keeping game state synchronized between clients in real time via WebSockets required careful design of the game loop)_
+- _(e.g. Integrating blockchain for score persistence meant learning Solidity and Hardhat from scratch)_
+- _(e.g. Managing secrets and inter-service communication securely across Docker containers was non-trivial)_
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | TypeScript SPA (Vanilla / framework) |
-| Auth | OAuth2 (42 API), JWT, 2FA (TOTP) |
-| Backend services | Node.js / TypeScript |
-| Database | PostgreSQL (users), Redis (sessions) |
-| Blockchain | Solidity, Hardhat, Ethereum |
-| DevOps | Docker, Docker Compose, Nginx, GitHub Actions |
-| Code quality | ESLint, Prettier, Husky, Commitlint |
+| Layer            | Technology                                    |
+| ---------------- | --------------------------------------------- |
+| Frontend         | TypeScript SPA (Vanilla / framework)          |
+| Auth             | OAuth2 (42 API), JWT, 2FA (TOTP)              |
+| Backend services | Node.js / TypeScript                          |
+| Database         | PostgreSQL (users), Redis (sessions)          |
+| Blockchain       | Solidity, Hardhat, Ethereum                   |
+| DevOps           | Docker, Docker Compose, Nginx, GitHub Actions |
+| Code quality     | ESLint, Prettier, Husky, Commitlint           |
 
 ---
 
@@ -133,10 +117,10 @@ bash test-game.sh
 All sensitive configuration lives in `.env` files excluded from version control.  
 Use the provided `.env.*.example` files as templates.
 
-| File | Purpose |
-|------|---------|
-| `srcs/.env` | Global config (ports, DB credentials) |
-| `srcs/.env.auth` | 42 OAuth2 Client ID & Secret |
-| `srcs/.env.gateway` | Gateway routing config |
-| `srcs/.env.blockchain` | RPC URL, contract address |
-| `srcs/.env.um` | User management service config |
+| File                   | Purpose                               |
+| ---------------------- | ------------------------------------- |
+| `srcs/.env`            | Global config (ports, DB credentials) |
+| `srcs/.env.auth`       | 42 OAuth2 Client ID & Secret          |
+| `srcs/.env.gateway`    | Gateway routing config                |
+| `srcs/.env.blockchain` | RPC URL, contract address             |
+| `srcs/.env.um`         | User management service config        |
