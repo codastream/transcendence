@@ -43,7 +43,7 @@ export default function TournamentCreatePage() {
  *  this function could be replaced or remove to call to the backend.
  */
 async function creatingTournament() {
-  const { data } = await api.post<number>(`/game/create-tournament`);
+  const { data } = await api.post<number>(`/game/create-tournament`, {});
 
   return new Promise<{ id: number }>((resolve) => {
     setTimeout(() => {

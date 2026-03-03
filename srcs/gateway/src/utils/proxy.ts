@@ -4,6 +4,15 @@ import { logger } from './logger.js';
 import { GATEWAY_CONFIG, ERROR_CODES } from './constants.js';
 import { pipeline } from 'node:stream/promises';
 import { getInternalHeaders } from '../index.js';
+import fs from 'fs';
+
+// mTLS certs reused for upstream WS connections to game-service (TLS-only)
+const WS_TLS_OPTIONS = {
+  key: fs.readFileSync('/etc/certs/api-gateway.key'),
+  cert: fs.readFileSync('/etc/certs/api-gateway.crt'),
+  ca: fs.readFileSync('/etc/ca/ca.crt'),
+  rejectUnauthorized: false, // game-service uses internal/self-signed CA
+};
 
 export async function proxyBlockRequest(
   app: FastifyInstance,
@@ -14,9 +23,7 @@ export async function proxyBlockRequest(
 ): Promise<void> {
   const res = await fetch(url, init);
 
-  // 🔥 headers typés correctement
   const headers: Record<string, string> = {};
-
   res.headers.forEach((value, key) => {
     const lower = key.toLowerCase();
     if (lower !== 'transfer-encoding' && lower !== 'content-length') {
@@ -25,50 +32,30 @@ export async function proxyBlockRequest(
   });
 
   reply.raw.writeHead(res.status, headers);
-
   if (!res.body) {
     reply.raw.end();
     return;
   }
-
-  // 🔥 streaming direct backend → client
   await pipeline(res.body, reply.raw);
 }
 
 interface GameState {
-  ball: {
-    x: number;
-    y: number;
-    radius: number;
-  };
-  paddles: {
-    left: {
-      y: number;
-      height: number;
-    };
-    right: {
-      y: number;
-      height: number;
-    };
-  };
+  ball: { x: number; y: number; radius: number };
+  paddles: { left: { y: number; height: number }; right: { y: number; height: number } };
   scores: Scores;
   status: GameStatus;
   cosmicBackground: number[][] | null;
 }
-
 type GameStatus = 'waiting' | 'playing' | 'paused' | 'finished';
-
 interface Scores {
   left: number;
   right: number;
 }
-// Message types for type safety
 interface ClientMessage {
   type: 'paddle' | 'start' | 'stop' | 'ping';
   paddle?: 'left' | 'right';
   direction?: 'up' | 'down' | 'stop';
 }
-
 interface ServerMessage {
   type: 'connected' | 'state' | 'gameOver' | 'error' | 'pong';
   sessionId?: string;
@@ -80,33 +67,17 @@ function forwardWsMsgFromTo<
   DownstreamMsg extends { type: string; message?: string },
   UpstreamMsg extends { type: string },
 >(app: FastifyInstance, downstreamWs: WebSocket, upstreamWs: WebSocket) {
-  // Forward messages from Downstream to Upstream
   downstreamWs.on('message', (data: Buffer) => {
     if (upstreamWs.readyState === WebSocket.OPEN) {
       try {
         const messageStr = data.toString();
         const parsedMessage: UpstreamMsg = JSON.parse(messageStr);
-
-        // Validate message structure
-        if (!parsedMessage.type) {
-          throw new Error('Missing message type');
-        }
+        if (!parsedMessage.type) throw new Error('Missing message type');
         upstreamWs.send(JSON.stringify(parsedMessage));
-        app.log.debug({
-          event: 'forward message',
-          type: parsedMessage.type,
-          messageSize: messageStr.length,
-        });
+        app.log.debug({ event: 'forward_message', type: parsedMessage.type });
       } catch (error) {
-        // Properly handle unknown type
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-        app.log.error({
-          event: 'invalid_message',
-          error: errorMessage,
-          rawData: data.toString(),
-        });
-        // Send error back
+        app.log.error({ event: 'invalid_message', error: errorMessage, rawData: data.toString() });
         const errorResponse: DownstreamMsg = {
           type: 'error',
           message: 'Invalid message format',
@@ -122,21 +93,12 @@ function handleErrorAndDisconnection(
   downstreamWs: WebSocket,
   upstreamWs: WebSocket,
 ) {
-  // Handle errors
   downstreamWs.on('error', (error: Error) => {
-    app.log.error({
-      event: 'game_ws_client_error',
-      error: error.message,
-    });
+    app.log.error({ event: 'game_ws_client_error', error: error.message });
     upstreamWs.close();
   });
-  // Handle client disconnect
   downstreamWs.on('close', (code: number, reason: Buffer) => {
-    app.log.info({
-      event: 'game_ws_client_disconnect',
-      code,
-      reason: reason.toString(),
-    });
+    app.log.info({ event: 'game_ws_client_disconnect', code, reason: reason.toString() });
     upstreamWs.close(code, reason);
   });
 }
@@ -150,31 +112,26 @@ export function webSocketProxyRequest(
   const userName = request.headers['x-user-name'] || 'anonymous';
   const userId = request.headers['x-user-id'] || 'unknown';
 
-  app.log.info({
-    event: 'game_ws_connect_attempt',
-    path,
-    user: userName,
-    userId: userId,
-  });
+  app.log.info({ event: 'game_ws_connect_attempt', path, user: userName, userId });
 
-  // Create WebSocket downstreamWs to game-service
+  // Create WebSocket to game-service, reusing mTLS options (includes rejectUnauthorized: false)
   const upstreamUrl = `wss://game-service:3003${path}`;
   const upstreamWs = new WebSocket(upstreamUrl, {
-    rejectUnauthorized: false, // for self-signed certs
     headers: {
       'x-user-name': userName as string,
       'x-user-id': userId as string,
       cookie: request.headers.cookie || '',
     },
+    ...WS_TLS_OPTIONS,
   });
 
-  // Handle upstream connection open
   upstreamWs.on('open', () => {
-    app.log.info({
-      event: 'game_ws_upstream_connected',
-      path,
-      user: userName,
-    });
+    app.log.info({ event: 'game_ws_upstream_connected', path, user: userName });
+  });
+
+  upstreamWs.on('error', (err: Error) => {
+    app.log.error({ event: 'game_ws_upstream_error', path, error: err.message });
+    downstreamWs.close(1011, 'Upstream connection failed');
   });
 
   forwardWsMsgFromTo<ClientMessage, ServerMessage>(app, downstreamWs, upstreamWs);
@@ -184,9 +141,6 @@ export function webSocketProxyRequest(
   handleErrorAndDisconnection(app, upstreamWs, downstreamWs);
 }
 
-/**
- * Fast proxy for /users using @fastify/reply-from
- */
 export async function fastStreamProxy(req: FastifyRequest, reply: FastifyReply, targetUrl: string) {
   return reply.from(targetUrl, {
     rewriteRequestHeaders: (originalReq, headers) => ({
@@ -207,15 +161,8 @@ export async function proxyRequest(
   const method = init?.method || 'GET';
   const userName = (req.headers as any)['x-user-name'] || null;
 
-  // Log début de proxy
-  logger.logProxyRequest({
-    targetUrl: url,
-    method,
-    user: userName,
-    url: req.url,
-  });
+  logger.logProxyRequest({ targetUrl: url, method, user: userName, url: req.url });
 
-  // Timeout
   const timeoutMs = (init as any)?.timeout ?? GATEWAY_CONFIG.PROXY_TIMEOUT_MS;
   const controller = new AbortController();
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
@@ -223,19 +170,13 @@ export async function proxyRequest(
   try {
     const mergedInit = Object.assign({}, init || {}, { signal: controller.signal });
     const response: Response = await (app as any).fetchInternal(req, url, mergedInit);
-
     clearTimeout(timeoutHandle);
 
-    // Forward all Set-Cookie headers from upstream (getSetCookie() returns array of all cookies)
     const setCookies = response.headers.getSetCookie?.() || [];
-    if (setCookies.length > 0) {
-      setCookies.forEach((cookie) => reply.header('set-cookie', cookie));
-    }
+    if (setCookies.length > 0) setCookies.forEach((cookie) => reply.header('set-cookie', cookie));
 
     const contentType = response.headers.get('content-type') || '';
     const duration = Date.now() - startTime;
-
-    // Log résultat proxy avec nouveau logger
     logger.logProxyRequest({
       targetUrl: url,
       method,
@@ -244,14 +185,12 @@ export async function proxyRequest(
       url: req.url,
       upstreamDuration: duration,
     });
-
-    // Forward status code Service -> Gateway -> Client
     reply.code(response.status);
 
     if (contentType.includes('application/json')) {
       try {
         const body = await response.json();
-        if (response.status >= 400) {
+        if (response.status >= 400)
           return (
             body || {
               error: {
@@ -261,18 +200,10 @@ export async function proxyRequest(
               },
             }
           );
-        }
         return body;
       } catch (jsonErr) {
         const errorMessage = (jsonErr as Error)?.message || 'Unknown JSON error';
-        req.log.error({
-          event: 'proxy_json_error',
-          targetUrl: url,
-          method,
-          user: userName,
-          err: errorMessage,
-          upstreamDuration: Date.now() - startTime,
-        });
+        req.log.error({ event: 'proxy_json_error', targetUrl: url, err: errorMessage });
         reply.code(502);
         return {
           error: {
@@ -286,7 +217,7 @@ export async function proxyRequest(
 
     try {
       const text = await response.text();
-      if (response.status >= 400) {
+      if (response.status >= 400)
         return {
           error: {
             message: text || 'Upstream error',
@@ -294,18 +225,10 @@ export async function proxyRequest(
             upstreamStatus: response.status,
           },
         };
-      }
       return text;
     } catch (textErr) {
       const errorMessage = (textErr as Error)?.message || 'Unknown text error';
-      req.log.error({
-        event: 'proxy_text_error',
-        targetUrl: url,
-        method,
-        user: userName,
-        err: errorMessage,
-        upstreamDuration: Date.now() - startTime,
-      });
+      req.log.error({ event: 'proxy_text_error', targetUrl: url, err: errorMessage });
       reply.code(502);
       return {
         error: {
@@ -326,8 +249,6 @@ export async function proxyRequest(
         err.code === 'ECONNRESET');
     const errorMessage = (err as Error)?.message || 'Unknown network error';
     const duration = Date.now() - startTime;
-
-    // Log avec distinction entre timeout, erreur réseau et autres erreurs
     const event = isAbort
       ? 'proxy_timeout'
       : isNetworkError
@@ -341,41 +262,26 @@ export async function proxyRequest(
       err: errorMessage,
       errorCode: err?.code,
       upstreamDuration: duration,
-      timeout: isAbort,
-      networkError: isNetworkError,
     });
-
     reply.code(502);
-
-    // Distinction entre timeout et erreur réseau pour un meilleur diagnostic
-    if (isAbort) {
+    if (isAbort)
       return {
         error: {
           message: `Upstream request timed out after ${timeoutMs}ms`,
           code: ERROR_CODES.UPSTREAM_TIMEOUT,
-          details: errorMessage,
           timeout: timeoutMs,
         },
       };
-    }
-
-    if (isNetworkError) {
+    if (isNetworkError)
       return {
         error: {
           message: 'Cannot connect to upstream service',
           code: ERROR_CODES.NETWORK_ERROR,
-          details: errorMessage,
           errorCode: err?.code,
         },
       };
-    }
-
     return {
-      error: {
-        message: 'Bad gateway',
-        code: ERROR_CODES.BAD_GATEWAY,
-        details: errorMessage,
-      },
+      error: { message: 'Bad gateway', code: ERROR_CODES.BAD_GATEWAY, details: errorMessage },
     };
   }
 }

@@ -5,14 +5,27 @@ import { MatchNode } from '../atoms/MatchNode';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StartButton } from '../atoms/StartButton';
+import { useNavigate } from 'react-router-dom';
+import { MatchToPlayDTO } from '@transcendence/core';
+import { api } from '../../api/api-client';
 
+// interface Match {
+//   id: number;
+//   round: 'SEMI_1' | 'SEMI_2' | 'FINAL' | 'LITTLE_FINAL';
+//   player1Id: string | null;
+//   player2Id: string | null;
+//   winnerId: string | null;
+// }
 interface TournamentBracketProps {
   players: [Player, Player, Player, Player];
+  tournamentId: string;
+  //matches: Match[];
 }
 
-export function TournamentBracket({ players }: TournamentBracketProps) {
+export function TournamentBracket({ players, tournamentId }: TournamentBracketProps) {
   const { t } = useTranslation();
   const [p1, p2, p3, p4] = players;
+  const isStarted = players.every((p) => p.status === 'connected');
   const containerRef = useRef<HTMLDivElement>(null);
   const p1Ref = useRef<HTMLDivElement>(null);
   const p2Ref = useRef<HTMLDivElement>(null);
@@ -32,6 +45,15 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
     { from: littleFinalRef, to: finalRef },
     { from: semiRightRef, to: littleFinalRef },
   ];
+  const navigate = useNavigate();
+  const runGame = async () => {
+    const { data } = await api.get<MatchToPlayDTO>(
+      `/game/tournaments/${tournamentId}/match-to-play`,
+    );
+    const session = new URLSearchParams({ sessionId: data.sessionId.toString() });
+    navigate(`/game/tournament/${session.toString()}`);
+  };
+
   return (
     <div ref={containerRef} className="relative w-[70%] max-w-6xl mx-auto py-12">
       <BracketLines containerRef={containerRef} connections={connections} />
@@ -75,11 +97,7 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
           </div>
         </div>
       </div>
-      <StartButton
-        label={t('game.run')}
-        isready={false}
-        onStart={() => console.log(`startSemiFinal('right')`)}
-      />
+      <StartButton label={t('game.run')} isready={isStarted} onStart={runGame} />
     </div>
   );
 }

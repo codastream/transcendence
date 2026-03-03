@@ -58,7 +58,7 @@ modify the settings of the game for a given sessions id (in the header)
 ## Communication par WebSocket
 
 _Client_ <-- WebSocket 1 --> _API_ <-- WebSocket 2 --> _Game-service_
-Une seule connection par client, echange de messages en continue.
+Une seule connection par client, echange de messages en continue via proxyWebSocket (in gateway).
 Message du server delivre a 60FPS a tous les clients de la session de jeu.
 Expected message by the server:
 
@@ -121,4 +121,12 @@ the Ball is influenced by the cosmic background forcefield, animated by time.
 
 ### The Cosmic MicroWave BackGround && Perlin Noise
 
-...
+### Layout
+
+-------------- GAME PAGE ---------------
+| |
+| ---------- ARENA ----------------- |
+| | | |
+| | | |
+| | | |
+| | | |
