@@ -44,9 +44,9 @@ const isFrontendReason = (reason: string): reason is FrontendReasonValue => {
 
 export const zodIssueToErrorDetail = (issue: ZodIssue): ErrorDetail => {
   const detail: ErrorDetail = {
-    reason: issue.code as FrontendReasonValue,
+    reason: (issue.code as FrontendReasonValue) || (LOG_REASONS.UNKNOWN as FrontendReasonValue),
     field: issue.path?.join('.') || 'unknown',
-    message: issue.message,
+    message: issue.message || '',
   };
   if (issue.code === 'invalid_type') {
     detail.expected = (issue as z.core.$ZodIssueInvalidType).expected;

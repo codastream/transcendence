@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { ERR_DEFS, type ProfileCreateInDTO, type ProfileDTO } from '@transcendence/core';
+import { ERR_DEFS, type ProfileDTO } from '@transcendence/core';
 import { UserProfile } from '@prisma/client';
 
 vi.mock('../src/utils/decorators.js', () => ({
@@ -31,25 +31,12 @@ import { MultipartFile } from '@fastify/multipart';
 import { PassThrough } from 'stream';
 import { fileTypeFromBuffer } from 'file-type';
 
-const mockProfile: ProfileDTO = {
-  username: 'toto',
-  avatarUrl: '/uploads/avatar-toto.png',
-};
-
-const mockUserProfile: UserProfile = {
-  id: 1,
-  authId: mockProfile.authId,
-  createdAt: new Date('2024-01-01T00:00:00Z'),
-  email: 'toto@mail.com',
-  username: mockProfile.username,
-  avatarUrl: mockProfile.avatarUrl,
-};
-
-const createPayload: ProfileCreateInDTO = {
-  authId: mockProfile.authId,
-  username: mockProfile.username,
-  email: 'toto@mail.com',
-};
+import {
+  createPayload,
+  mockUserProfile,
+  mockProfileDTO as mockSimpleProfileDTO,
+  mockFullProfileDTO1,
+} from './fixtures/profiles.fixtures.js';
 
 describe('ProfileService', () => {
   beforeEach(() => {
@@ -69,12 +56,12 @@ describe('ProfileService', () => {
 
   describe('getByUsername', () => {
     it('returns the profile when found', async () => {
-      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockProfile);
+      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockUserProfile);
 
       const result = await profileService.getByUsername('toto');
 
       expect(profileRepository.findProfileByUsername).toHaveBeenCalledWith('toto');
-      expect(result).toEqual(mockProfile);
+      expect(result).toEqual(mockSimpleProfileDTO);
     });
 
     it('throws AppError when profile does not exist', async () => {
@@ -90,12 +77,12 @@ describe('ProfileService', () => {
 
   describe('getProfileByUsername', () => {
     it('returns the whole profile when found', async () => {
-      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockProfile);
+      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockUserProfile);
 
       const result = await profileService.getProfileByUsername('toto');
 
       expect(profileRepository.findProfileByUsername).toHaveBeenCalledWith('toto');
-      expect(result).toEqual(mockProfile);
+      expect(result).toEqual(mockFullProfileDTO1);
     });
 
     it('throws AppError when profile does not exist', async () => {
@@ -111,12 +98,12 @@ describe('ProfileService', () => {
 
   describe('getById', () => {
     it('returns the profile when found', async () => {
-      vi.mocked(profileRepository.findProfileById).mockResolvedValue(mockProfile);
+      vi.mocked(profileRepository.findProfileById).mockResolvedValue(mockUserProfile);
 
-      const result = await profileService.getProfileByIdOrThrow(mockProfile.authId);
+      const result = await profileService.getProfileByIdOrThrow(mockUserProfile.authId);
 
-      expect(profileRepository.findProfileById).toHaveBeenCalledWith(mockProfile.authId);
-      expect(result).toEqual(mockProfile);
+      expect(profileRepository.findProfileById).toHaveBeenCalledWith(mockUserProfile.authId);
+      expect(result).toEqual(mockUserProfile);
     });
 
     it('throws AppError when profile id is unknown', async () => {
@@ -151,28 +138,29 @@ describe('ProfileService', () => {
     };
 
     it('uploads avatar and updates profile', async () => {
-      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockProfile);
+      vi.spyOn(profileService, 'getProfileByIdOrThrow').mockResolvedValue(
+        mockUserProfile as UserProfile,
+      );
       vi.mocked(profileRepository.storeOnUploadVolume).mockResolvedValue();
-      const updated = { ...mockProfile, avatarUrl: '/uploads/new.png' } satisfies ProfileDTO;
+      const updated = { ...mockUserProfile, avatarUrl: '/uploads/new.png' } satisfies ProfileDTO;
       vi.mocked(profileRepository.updateProfileAvatar).mockResolvedValue(updated);
       vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'png', mime: 'image/png' });
 
-      const result = await profileService.updateAvatar('toto', makeFile('image/png'));
+      const result = await profileService.updateAvatar(1, makeFile('image/png'));
 
-      expect(profileRepository.findProfileByUsername).toHaveBeenCalledWith('toto');
       expect(profileRepository.storeOnUploadVolume).toHaveBeenCalled();
       expect(profileRepository.updateProfileAvatar).toHaveBeenCalledWith(
-        mockProfile.authId,
+        mockUserProfile.authId,
         expect.stringContaining('/uploads/'),
       );
       expect(result).toEqual(updated);
     });
 
     it('throws on invalid mimetype', async () => {
-      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockProfile);
+      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockUserProfile);
       vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'txt', mime: 'text/plain' });
 
-      const call = profileService.updateAvatar('toto', makeFile('text/plain'));
+      const call = profileService.updateAvatar(1, makeFile('text/plain'));
       await expect(call).rejects.toMatchObject({
         code: ERR_DEFS.RESSOURCE_INVALID_TYPE.code,
         statusCode: ERR_DEFS.RESSOURCE_INVALID_TYPE.statusCode,
@@ -182,14 +170,14 @@ describe('ProfileService', () => {
 
   describe('deleteByUsername', () => {
     it('calls repo for delete when found', async () => {
-      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockProfile);
-      vi.mocked(profileRepository.deleteProfile).mockResolvedValue(mockProfile);
+      vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockUserProfile);
+      vi.mocked(profileRepository.deleteProfile).mockResolvedValue(mockUserProfile);
 
       const result = await profileService.deleteByUsername('toto');
 
       expect(profileRepository.findProfileByUsername).toHaveBeenCalledWith('toto');
-      expect(profileRepository.deleteProfile).toHaveBeenCalledWith(mockProfile.authId);
-      expect(result).toEqual(mockProfile);
+      expect(profileRepository.deleteProfile).toHaveBeenCalledWith(mockUserProfile.authId);
+      expect(result).toEqual(mockUserProfile);
     });
   });
 });

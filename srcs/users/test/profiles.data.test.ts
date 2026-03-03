@@ -153,7 +153,6 @@ describe('ProfileRepository', () => {
 
       expect(dbMocks.findUnique).toHaveBeenCalledWith({
         where: { authId: 1 },
-        select: { username: true, avatarUrl: true },
       });
       expect(result).toEqual(mockProfile);
     });

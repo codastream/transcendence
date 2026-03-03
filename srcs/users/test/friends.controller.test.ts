@@ -99,7 +99,7 @@ describe('Friends Controller unit tests', () => {
       expect(response.statusCode).toBe(201);
     });
 
-    test.only('Should return 400 for invalid body', async () => {
+    test('Should return 400 for invalid body', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',

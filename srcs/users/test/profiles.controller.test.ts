@@ -1,13 +1,25 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
-import { AppError, ERR_DEFS, LOG_RESOURCES, ProfileDTO } from '@transcendence/core';
+import {
+  AppError,
+  ERR_DEFS,
+  LOG_RESOURCES,
+  ProfileDTO,
+  ProfileSimpleDTO,
+} from '@transcendence/core';
 import { FastifyInstance } from 'fastify';
-import { mockProfileDTO, mockProfileDTOUpdatedAvatar } from './fixtures/profiles.fixtures.js';
+import {
+  mockProfileCreateIn,
+  mockProfileCreateInIncomplete,
+  mockProfileDTO,
+  mockProfileDTOUpdatedAvatar,
+} from './fixtures/profiles.fixtures.js';
 import { buildApp } from '../src/app.js';
 
 vi.mock('../src/services/profiles.service.js', () => ({
   profileService: {
     getByUsername: vi.fn(),
     getProfileByUsername: vi.fn(),
+    getProfileByIdOrThrow: vi.fn(),
     getByUsernameQuery: vi.fn(),
     createProfile: vi.fn(),
     updateAvatar: vi.fn(),
@@ -19,26 +31,9 @@ vi.mock('../src/utils/mappers.js', () => ({
   mapProfileToDTO: vi.fn(),
 }));
 
+import { mockUserProfile } from './fixtures/profiles.fixtures.js';
+
 const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto' };
-
-const mockUserProfile = {
-  id: 1,
-  authId: 1,
-  createdAt: new Date(),
-  email: 'toto@mail.com',
-  username: 'toto',
-};
-
-const mockProfileCreateIn = {
-  authId: mockUserProfile.authId,
-  email: mockUserProfile.email,
-  username: mockUserProfile.username,
-};
-
-const mockProfileCreateInIncomplete = {
-  email: mockUserProfile.email,
-  username: mockUserProfile.username,
-};
 
 import { profileService } from '../src/services/profiles.service.js';
 import { mapProfileToDTO } from '../src/utils/mappers.js';
@@ -171,12 +166,7 @@ describe('Profile Controller unit tests', () => {
 
     test('Should return 404 if not found', async () => {
       vi.spyOn(profileService, 'getByUsername').mockRejectedValue(
-        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
-          details: {
-            resource: LOG_RESOURCES.PROFILE,
-            username: 'unknown',
-          },
-        }),
+        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {}),
       );
 
       const response = await app.inject({
@@ -205,14 +195,17 @@ describe('Profile Controller unit tests', () => {
 
   describe('PATCH /username/:username/avatar', () => {
     test('Should return 200 if updated', async () => {
+      vi.spyOn(profileService, 'getProfileByIdOrThrow').mockResolvedValue(
+        mockUserProfile as UserProfile,
+      );
       vi.spyOn(profileService, 'updateAvatar').mockResolvedValue(
-        mockProfileDTOUpdatedAvatar as ProfileDTO,
+        mockProfileDTOUpdatedAvatar as ProfileSimpleDTO,
       );
 
       const { body, boundary } = makeMultipart('', 'avatar.jpg', 'xxxxxxxxxxxxx', 'image/jpeg');
       const response = await app.inject({
         method: 'PATCH',
-        url: '/username/Toto/avatar',
+        url: '/toto/avatar',
         headers: {
           'x-user-id': '1',
           'x-user-name': 'toto',
@@ -220,6 +213,9 @@ describe('Profile Controller unit tests', () => {
         },
         payload: body,
       });
+
+      console.log('STATUS:', response.statusCode);
+      console.log('BODY:', response.body);
 
       expect(response.statusCode).toBe(200);
     });
@@ -231,7 +227,7 @@ describe('Profile Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'PATCH',
-        url: '/username/Toto/avatar',
+        url: '/toto/avatar',
         headers: {
           'x-user-id': '1',
           'x-user-name': 'toto',
