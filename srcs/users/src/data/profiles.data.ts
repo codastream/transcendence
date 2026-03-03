@@ -61,13 +61,9 @@ export class ProfileRepository {
     return found;
   }
 
-  async findProfileById(id: number): Promise<ProfileSimpleDTO | null> {
+  async findProfileById(id: number): Promise<UserProfile | null> {
     return await prisma.userProfile.findUnique({
       where: { authId: id },
-      select: {
-        username: true,
-        avatarUrl: true,
-      },
     });
   }
 

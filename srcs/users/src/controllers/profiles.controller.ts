@@ -65,6 +65,7 @@ export class ProfileController {
 
   async updateProfileAvatar(req: FastifyRequest, reply: FastifyReply) {
     const data = (await req.file()) as MultipartFile;
+    const { id: userId } = req.user;
     const { username } = req.params as {
       username: usernameDTO;
     };
@@ -77,8 +78,8 @@ export class ProfileController {
       event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.PROFILE}`,
       param: username,
     });
-    const profileSimpleDTO = await profileService.updateAvatar(username, data);
-    userBus.emit(USER_EVENT.UPDATED, username);
+    const profileSimpleDTO = await profileService.updateAvatar(userId, data);
+    userBus.emit(USER_EVENT.UPDATED, userId);
     return reply.status(200).send(profileSimpleDTO);
   }
 

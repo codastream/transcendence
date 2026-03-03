@@ -26,29 +26,30 @@ export function initRedisSubscriber(fastify: FastifyInstance) {
       fastify.log.error(err, 'Failed to stream user event to Redis');
     }
   });
-  userBus.on(USER_EVENT.UPDATED, async (username) => {
-    const profile = await profileService.getProfileByUsername(username);
+  userBus.on(USER_EVENT.UPDATED, async (authId: number) => {
     try {
-      // On utilise l'instance redis partagée par Fastify
-      if (!profile) {
-        fastify.log.warn(`Profile not found for username ${username}, skipping Redis event`);
-        return;
+      const profile = await profileService.getProfileByIdOrThrow(authId);
+      try {
+        // On utilise l'instance redis partagée par Fastify
+        await fastify.redis.xadd(
+          'user.events',
+          '*',
+          'data',
+          JSON.stringify({
+            type: 'USER_UPDATED',
+            id: profile.authId,
+            username: profile.username,
+            avatar: profile.avatarUrl,
+            timestamp: Date.now(),
+          }),
+        );
+        fastify.log.info(`Event streamed to Redis for user ${profile.authId}`);
+      } catch (err) {
+        fastify.log.error(err, 'Failed to stream user event to Redis');
       }
-      await fastify.redis.xadd(
-        'user.events',
-        '*',
-        'data',
-        JSON.stringify({
-          type: 'USER_UPDATED',
-          id: profile.authId,
-          username: profile.username,
-          avatar: profile.avatarUrl,
-          timestamp: Date.now(),
-        }),
-      );
-      fastify.log.info(`Event streamed to Redis for user ${profile.authId}`);
-    } catch (err) {
-      fastify.log.error(err, 'Failed to stream user event to Redis');
+    } catch {
+      fastify.log.warn(`Profile not found for auth id ${authId}, skipping Redis event`);
+      return;
     }
   });
 }
