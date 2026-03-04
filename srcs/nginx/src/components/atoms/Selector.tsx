@@ -14,7 +14,7 @@ const GenericSelector = <T extends string>({
   className = '',
 }: GenericSelectorProps<T>) => {
   return (
-    <div className={`flex flex-col gap-1 ${className}`}>
+    <div className={`flex items-center flex-col gap-1 ${className}`}>
       <label
         htmlFor=""
         className="text--[10px] font-quantico text-center font-bold text-slate-100 tracking-tighter"

@@ -246,7 +246,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
               />
               <GenericSelector
                 className="m-4"
-                label="Ambience"
+                label={t('game.ambience')}
                 value={bgMode}
                 options={modes}
                 onChange={setBgMode}
