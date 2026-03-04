@@ -216,32 +216,32 @@ Two decoupled SQLite databases — one per service. `authId` in the Users DB is 
 to `users.id` in the Auth DB, resolved at runtime via inter-service API calls.
 
 ```
-┌─────────────────────────────────────┐ ┌─────────────────────────────────────┐
-│ AUTH SERVICE (SQLite) │ │ USERS SERVICE (Prisma) │
-│ │ │ │
-│ users │ │ UserProfile │
-│ ├── id INTEGER PK │────▶│ ├── authId Int UNIQUE │
-│ ├── username TEXT UNIQUE │ │ ├── username String UNIQUE │
-│ ├── email TEXT UNIQUE │ │ ├── email String? UNIQUE │
-│ ├── password TEXT │ │ ├── avatarUrl String? │
-│ ├── role TEXT │ │ └── createdAt DateTime │
-│ ├── is_2fa_enabled INTEGER │ │ │
-│ ├── totp_secret TEXT? │ │ Friendship │
-│ ├── google_id TEXT? UNIQUE │ │ ├── id Int PK │
-│ ├── school42_id TEXT? UNIQUE │ │ ├── requesterId Int → authId │
-│ └── created_at DATETIME │ │ ├── receiverId Int → authId │
-│ │ │ ├── status String │
-│ login_tokens │ │ └── nickname[Requester|Receiver] │
-│ ├── token TEXT PK │ │ │
-│ ├── user_id INT → users.id │ │ UNIQUE(requesterId, receiverId) │
-│ └── expires_at DATETIME │ └─────────────────────────────────────┘
-│ │
-│ totp_setup_secrets │ ┌─────────────────────────────────────┐
-│ ├── token TEXT PK │ │ REDIS (session store) │
-│ ├── user_id INT → users.id │ │ │
-│ ├── secret TEXT │ │ online:{userId} → status + TTL │
-│ └── expires_at DATETIME │ │ session:{token} → JWT payload │
-└─────────────────────────────────────┘ └─────────────────────────────────────┘
+┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
+│         AUTH SERVICE (SQLite)       │     │       USERS SERVICE (Prisma)        │
+│                                     │     │                                     │
+│  users                              │     │  UserProfile                        │
+│  ├── id            INTEGER  PK      │────▶│  ├── authId       Int  UNIQUE       │
+│  ├── username      TEXT     UNIQUE  │     │  ├── username     String  UNIQUE    │
+│  ├── email         TEXT     UNIQUE  │     │  ├── email        String? UNIQUE    │
+│  ├── password      TEXT             │     │  ├── avatarUrl    String?           │
+│  ├── role          TEXT             │     │  └── createdAt    DateTime          │
+│  ├── is_2fa_enabled INTEGER         │     │                                     │
+│  ├── totp_secret   TEXT?            │     │  Friendship                         │
+│  ├── google_id     TEXT?   UNIQUE   │     │  ├── id           Int  PK           │
+│  ├── school42_id   TEXT?   UNIQUE   │     │  ├── requesterId  Int  → authId     │
+│  └── created_at    DATETIME         │     │  ├── receiverId   Int  → authId     │
+│                                     │     │  ├── status       String            │
+│  login_tokens                       │     │  └── nickname[Requester|Receiver]   │
+│  ├── token         TEXT     PK      │     │                                     │
+│  ├── user_id       INT  → users.id  │     │  UNIQUE(requesterId, receiverId)    │
+│  └── expires_at    DATETIME         │     └─────────────────────────────────────┘
+│                                     │
+│  totp_setup_secrets                 │     ┌─────────────────────────────────────┐
+│  ├── token         TEXT     PK      │     │         REDIS (session store)       │
+│  ├── user_id       INT  → users.id  │     │                                     │
+│  ├── secret        TEXT             │     │  online:{userId}  → status + TTL    │
+│  └── expires_at    DATETIME         │     │  session:{token}  → JWT payload     │
+└─────────────────────────────────────┘     └─────────────────────────────────────┘
 ```
 
 ### Tables/collections and their relationships.
@@ -255,6 +255,74 @@ users (id) ──────────────────→   UserProfi
 ```
 
 ### Key fields and data types.
+
+erDiagram
+
+    %% ── USERS SERVICE (Prisma / SQLite) ──────────────────────────
+    UserProfile {
+        int      id        PK
+        int      authId    UK
+        datetime createdAt
+        string   email     "nullable, unique"
+        string   username  UK
+        string   avatarUrl "nullable"
+    }
+
+    Friendship {
+        int      id                PK
+        datetime createdAt
+        string   nicknameRequester "nullable"
+        string   nicknameReceiver  "nullable"
+        string   status
+        int      requesterId       FK
+        int      receiverId        FK
+    }
+
+    UserProfile ||--o{ Friendship : "requests (requester)"
+    UserProfile ||--o{ Friendship : "receives (receiver)"
+
+    %% ── GAME SERVICE (better-sqlite3 / SQLite) ───────────────────
+    player {
+        int     id         PK
+        string  username
+        string  avatar     "nullable"
+        int     updated_at
+    }
+
+    tournament {
+        int     id         PK
+        int     creator_id FK
+        string  status     "PENDING|STARTED|FINISHED"
+        int     created_at
+    }
+
+    tournament_player {
+        int     tournament_id  FK
+        int     player_id      FK
+        int     final_position "nullable: 1-4"
+        int     slot           "1-4"
+    }
+
+    match {
+        int     id             PK
+        int     tournament_id  FK "nullable"
+        int     player1        FK
+        int     player2        FK
+        string  sessionId      "nullable"
+        int     score_player1
+        int     score_player2
+        int     winner_id      FK "nullable"
+        string  round          "nullable: SEMI_1|SEMI_2|LITTLE_FINAL|FINAL"
+        int     created_at
+    }
+
+    player ||--o{ tournament        : "creates"
+    player ||--o{ tournament_player : "joins"
+    tournament ||--o{ tournament_player : "has"
+    tournament ||--o{ match         : "contains"
+    player ||--o{ match             : "plays as player1"
+    player ||--o{ match             : "plays as player2"
+    player ||--o{ match             : "wins"
 
 Auth Service — users table
 
