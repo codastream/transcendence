@@ -210,8 +210,6 @@ We used GitHub Issues to track tasks and features. We held regular meetings to d
 
 ## Database Schema:
 
-### Visual representation or description of the database structure.
-
 Two decoupled SQLite databases — one per service. `authId` in the Users DB is a soft reference
 to `users.id` in the Auth DB, resolved at runtime via inter-service API calls.
 
@@ -244,18 +242,6 @@ to `users.id` in the Auth DB, resolved at runtime via inter-service API calls.
 └─────────────────────────────────────┘     └─────────────────────────────────────┘
 ```
 
-### Tables/collections and their relationships.
-
-```
-Auth DB                          Users DB
-──────────────────────────────   ──────────────────────────────
-users (id) ──────────────────→   UserProfile (authId)
-  └── login_tokens                 └── Friendship (requesterId / receiverId)
-  └── totp_setup_secrets
-```
-
-### Key fields and data types.
-
 ### Auth Service Schema
 
 ```mermaid
@@ -282,7 +268,7 @@ erDiagram
     }
 
     login_token_attempts {
-        TEXT token PK FK
+        TEXT token PK,FK
         INTEGER attempts "DEFAULT 0"
     }
 
