@@ -61,6 +61,10 @@ export const App = () => {
           </Route>
         </Route>
 
+        {/* FAQ — accessible à tous, connecté ou non */}
+        <Route path="/faq" element={<FAQPage />} />
+
+        {/* Catch-all — toute URL non reconnue */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </main>
