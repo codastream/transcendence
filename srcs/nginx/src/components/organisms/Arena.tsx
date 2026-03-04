@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { BackgroundMode } from '../../pages/GamePage';
 export interface Scores {
   left: number;
   right: number;
@@ -26,9 +27,11 @@ export interface GameState {
 }
 
 interface ArenaProps {
+  currentMode?: BackgroundMode;
   className?: string;
   gameStateRef: React.MutableRefObject<GameState | null>;
 }
+
 const hslToRgb = (h: number, s: number, l: number): [number, number, number] => {
   const c = (1 - Math.abs(2 * l - 1)) * s;
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
@@ -66,9 +69,27 @@ const hslToRgb = (h: number, s: number, l: number): [number, number, number] => 
   return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
 };
 
-const Arena = ({ className = '', gameStateRef }: ArenaProps) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+const getColorForMode = (v: number, mode: BackgroundMode): [number, number, number] => {
+  switch (mode) {
+    case 'ocean':
+      return hslToRgb(220 - v * 50, 0.8, 0.4);
+    case 'sunset':
+      return hslToRgb(60 - v * 30, 0.9, 0.5);
+    case 'grayscale':
+      const g = Math.round(v * 255);
+      return [g, g, g];
+    case 'psychedelic':
+    default:
+      return hslToRgb(v * 360, 0.7, 0.5);
+  }
+};
 
+const Arena = ({ className = '', gameStateRef, currentMode = 'ocean' }: ArenaProps) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const modeRef = useRef(currentMode);
+  useEffect(() => {
+    modeRef.current = currentMode;
+  }, [currentMode]);
   const renderNoiseField = (
     cosmicBackground: number[][] | null,
     ctx: CanvasRenderingContext2D,
@@ -83,8 +104,8 @@ const Arena = ({ className = '', gameStateRef }: ArenaProps) => {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const index = (y * width + x) * 4;
-        const hue = cosmicBackground[y][x] * 360;
-        const [r, g, b] = hslToRgb(hue, 0.7, 0.5);
+        const v = cosmicBackground[y][x];
+        const [r, g, b] = getColorForMode(v, modeRef.current);
         imageData.data[index] = r;
         imageData.data[index + 1] = g;
         imageData.data[index + 2] = b;

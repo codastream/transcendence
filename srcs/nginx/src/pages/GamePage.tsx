@@ -1,4 +1,3 @@
-import { NavBar } from '../components/molecules/NavBar';
 import Background from '../components/atoms/Background';
 import Arena from '../components/organisms/Arena';
 import GameStatusBar from '../components/organisms/GameStatusBar';
@@ -14,6 +13,9 @@ import api from '../api/api-client';
 import Button from '../components/atoms/Button';
 import { createAiSession, joinAiToSession } from '../api/game-api';
 import type { GameState } from '../hooks/GameState';
+import GenericSelector from '../components/atoms/Selector.tsx';
+
+export type BackgroundMode = 'psychedelic' | 'ocean' | 'sunset' | 'grayscale';
 
 export interface Paddle {
   y: number;
@@ -65,6 +67,8 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const sessionIdRef = useRef<string | null>(null);
   const { tournamentId } = useParams<{ tournamentId?: string }>();
   const navigate = useNavigate();
+  const [bgMode, setBgMode] = useState<BackgroundMode>('psychedelic');
+  const modes: BackgroundMode[] = ['psychedelic', 'ocean', 'sunset', 'grayscale'];
 
   const getGameStatus = (): GameStatus => {
     if (isGameOver) return 'finished';
@@ -240,13 +244,20 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
                 loading={isLoading}
                 className="w-full"
               />
+              <GenericSelector
+                className="m-4"
+                label="Ambience"
+                value={bgMode}
+                options={modes}
+                onChange={setBgMode}
+              />
             </div>
           </div>
 
           {/* Arena */}
           <div className="flex-1 flex flex-col justify-center items-center px-4 pb-4 relative min-h-0">
             <div className="w-full max-w-5xl">
-              <Arena gameStateRef={gameStateRef} />
+              <Arena currentMode={bgMode} gameStateRef={gameStateRef} />
             </div>
             {isGameOver && (
               <div
