@@ -1,13 +1,14 @@
-import { ZodIssue } from 'zod/v3';
-import { DeepValues } from '../errors/error-types';
+import { DeepValues, ZodIssue } from '../errors/error-types';
 import { LOG_EVENTS, LOG_REASONS } from './logging';
 
 export type EventValue = DeepValues<typeof LOG_EVENTS>;
 
 export interface LogDetail {
+  resource?: string;
   field?: string;
   value?: string;
   expected?: string;
+  extraInfo?: string;
 }
 
 export type ReasonValue = DeepValues<typeof LOG_REASONS>;
@@ -20,4 +21,5 @@ export interface LogContext {
   zodIssues?: ZodIssue[]; // Zod details
   originalError?: unknown;
   field?: string;
+  meta?: Record<string, string>;
 }

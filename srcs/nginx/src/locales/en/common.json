@@ -47,7 +47,10 @@
   "global": {
     "loading": "Loading...",
     "not_found": "Not found",
-    "disabled": "disabled"
+    "disabled": "disabled",
+    "confirm": "confirm",
+    "save": "save",
+    "cancel": "cancel"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -207,8 +210,14 @@
   },
   "zod_errors": {
     "invalid_format": "Check requested format",
+    "duplicate_entry": "Already taken. Choose another",
     "too_small": "A longer value is required",
-    "too_big": "A shorter value is required"
+    "too_big": "A shorter value is required",
+    "invalid_string": {
+      "email": "L'adresse email est incorrecte.",
+      "url": "L'URL est invalide."
+    },
+    "invalid_type": "Invalid type"
   },
   "validation": {
     "password": {
@@ -219,6 +228,7 @@
       "special": "One special character (!@#$%^&*)"
     },
     "username": {
+      "required": "Username is required",
       "minLength": "4 to 20 characters",
       "alphanumeric": "Letters, numbers and _ only"
     }
@@ -247,7 +257,8 @@
     "missing_user_name": "Username is required.",
     "internal_error": "Internal server error. Please try again later.",
     "friend_self_add": "You cannot add yourself as a friend",
-    "friend_already": "You are already friends"
+    "friend_already": "You are already friends",
+    "required_field": "Field is required"
   },
   "navbar": {
     "home": "Home",
@@ -265,7 +276,12 @@
   "profile": {
     "profile": "Profile",
     "2fa": "2FA",
-    "update_avatar": "Update avatar"
+    "update_avatar": "Update avatar",
+    "update_username": "Update username",
+    "update_email": "Update email",
+    "delete": "Delete profile",
+    "delete_confirm_title": "Delete your account ?",
+    "delete_confirm_text": "Are you sure you want to delete your account ? There is no recovery for your data after this."
   },
   "2fa": {
     "title": "Two-Factor Authentication",

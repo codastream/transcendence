@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as authService from '../services/auth.service.js';
-import { ValidationSchemas } from '../utils/validation.js';
+import { patchEmailSchema, patchUsernameSchema, ValidationSchemas } from '../utils/validation.js';
 import { AUTH_CONFIG, ERROR_MESSAGES } from '../utils/constants.js';
 import { GoogleOAuthError } from '../services/providers/google.service.js';
 import { School42OAuthError } from '../services/providers/school42.service.js';
@@ -16,6 +16,7 @@ import {
   mapZodIssuesToErrorDetails,
 } from '@transcendence/core';
 import * as oauthService from '../services/oauth.service.js';
+import z from 'zod';
 
 /**
  * Configuration des cookies avec security enforcée en production
@@ -364,6 +365,39 @@ export async function logoutHandler(
     // Ne pas relancer l'erreur : le statut en ligne est non critique
   }
   return reply.clearCookie('token').send({ result: { message: 'Logged out successfully' } });
+}
+
+export async function patchUsernameHandler(
+  this: FastifyInstance,
+  request: FastifyRequest<{ Body: z.infer<typeof patchUsernameSchema.body> }>,
+  reply: FastifyReply,
+) {
+  const username = (request.headers as any)['x-user-name'];
+  const id = Number(request.headers['x-user-id'] as string);
+  const { newUsername } = request.body;
+  request.log.info({ event: 'patch_username', id, username, newUsername });
+  const updatedUser = await authService.updateUserUsernameAndFetch(id, username, newUsername);
+  request.log.info({ event: 'patch_username_success', id, username, newUsername });
+  return reply.send({
+    message: 'Update success',
+    user: updatedUser,
+  });
+}
+
+export async function patchEmailHandler(
+  this: FastifyInstance,
+  request: FastifyRequest<{ Body: z.infer<typeof patchEmailSchema.body> }>,
+  reply: FastifyReply,
+) {
+  const username = request.headers['x-user-name'] as string;
+  const id = Number(request.headers['x-user-id'] as string);
+  const { newEmail } = request.body;
+  request.log.trace({ event: 'patch_email' });
+  const updatedUser = await authService.updateUserEmailAndFetch(id, username, newEmail);
+  return reply.send({
+    message: 'Update success',
+    user: updatedUser,
+  });
 }
 
 // Appeler depuis gateway pour vérifier la validité du token cookie

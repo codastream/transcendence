@@ -1,4 +1,4 @@
-import fastify, { FastifyReply, FastifyRequest } from 'fastify';
+import fastify, { FastifyRequest } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
@@ -8,11 +8,13 @@ import { initAdminUser, initInviteUser } from './utils/init-users.js';
 import * as totpService from './services/totp.service.js';
 import * as onlineService from './services/online.service.js';
 import { loggerConfig } from './config/logger.config.js';
-import { AUTH_CONFIG, EVENTS, REASONS } from './utils/constants.js';
-import { AppBaseError } from './types/errors.js';
+import { AUTH_CONFIG, DATA_ERROR, EVENTS, REASONS } from './utils/constants.js';
 import { authenv } from './config/env.js';
 import fs from 'fs';
-import { ERROR_CODES } from '@transcendence/core';
+import { ERROR_CODES, LOG_EVENTS, LOG_REASONS } from '@transcendence/core';
+import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod';
+import { ZodError } from 'zod';
+import { DataError } from './types/errors.js';
 
 const app = fastify({
   https: {
@@ -25,7 +27,10 @@ const app = fastify({
   },
   logger: loggerConfig,
   disableRequestLogging: false,
-});
+}).withTypeProvider<ZodTypeProvider>();
+
+await app.setValidatorCompiler(validatorCompiler);
+await app.setSerializerCompiler(serializerCompiler);
 
 export const logger = app.log;
 
@@ -46,7 +51,7 @@ app.addHook('onRequest', (request, reply, done) => {
 /**
  * @abstract add userId and userName to logger
  */
-app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
+app.addHook('onRequest', async (request: FastifyRequest) => {
   const userId = request.headers['x-user-id'];
   const userName = request.headers['x-user-name'];
   const bindings: Record<string, any> = {};
@@ -59,9 +64,17 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   if (Object.keys(bindings).length > 0) {
     request.log = request.log.child(bindings);
   }
+  if (userId && userName) {
+    request.user = { id: bindings.userId, username: bindings.username as string };
+  }
 });
 
-app.setErrorHandler((error: AppBaseError, req, reply) => {
+const DATA_ERROR_TO_HTTP: Record<string, number> = {
+  [DATA_ERROR.NOT_FOUND]: 404,
+  [DATA_ERROR.DUPLICATE]: 409,
+};
+
+app.setErrorHandler((error: any, req, reply) => {
   // Ne pas traiter les erreurs déjà envoyées
   if (reply.sent) {
     req.log.debug({
@@ -72,6 +85,51 @@ app.setErrorHandler((error: AppBaseError, req, reply) => {
       errorMessage: (error as any)?.message,
     });
     return;
+  }
+
+  req.log.error(error);
+
+  // Gestion spéciale pour les erreurs de Zod
+  if (error instanceof ZodError) {
+    req.log.error({
+      event: LOG_EVENTS.APPLICATION.VALIDATION_FAIL,
+      reason: LOG_REASONS.VALIDATION.INVALID_FORMAT,
+      message: error.message,
+      stack: error.stack,
+      originalError: error,
+    });
+
+    return reply.status(400).send({
+      statusCode: 400,
+      code: ERROR_CODES.VALIDATION_ERROR,
+      message: 'Validation failed',
+      details: error.issues.map((issue) => ({
+        field: issue.path.join('.'),
+        message: issue.message,
+        reason: issue.code,
+      })),
+    });
+  }
+
+  // Gestion spéciale pour les DataError
+  if (error instanceof DataError) {
+    const statusCode = DATA_ERROR_TO_HTTP[error.code] || 500;
+
+    req.log.warn({
+      event: 'data_error',
+      code: error.code,
+      meta: error.meta,
+      message: error.message,
+    });
+
+    return reply.status(statusCode).send({
+      error: {
+        message: error.message,
+        code: error.code,
+        reason: REASONS.INFRA.DB_QUERY_FAIL,
+        ...(error.meta ? { details: error.meta } : {}),
+      },
+    });
   }
 
   // Gestion spéciale pour les erreurs de rate limiting
@@ -92,7 +150,7 @@ app.setErrorHandler((error: AppBaseError, req, reply) => {
       ip: req.ip,
       url: req.url,
       method: req.method,
-      errorCode: (error as any).code,
+      code: (error as any).code,
       retryAfter: `${retryAfterSeconds}s`,
     });
 
@@ -107,25 +165,27 @@ app.setErrorHandler((error: AppBaseError, req, reply) => {
   }
 
   // autres erreurs statusCode
-  const statusCode = (error as any)?.statusCode || 500;
+  const statusCode = error.statusCode || 500;
+  const event = error.context?.reason || EVENTS.CRITICAL.BUG;
+  const reason = error.context?.reason || error.reason || REASONS.UNKNOWN;
+  const errorCode = error.code || EVENTS.CRITICAL.BUG;
 
   req.log.error(
     {
       err: error,
-      event: error?.context?.event || EVENTS.CRITICAL.BUG,
-      reason: error?.context?.reason || REASONS.UNKNOWN,
+      event: event,
+      reason: reason,
       statusCode: statusCode,
-      errorCode: (error as any)?.code,
-      errorName: (error as any)?.name,
+      errorCode: errorCode,
     },
     'Error',
   );
 
   reply.code(statusCode).send({
     error: {
-      message: (error as any)?.message || 'Internal server error',
-      code: (error as any)?.code || EVENTS.CRITICAL.BUG,
-      reason: error?.context?.reason || REASONS.UNKNOWN,
+      message: error.message || 'Internal server error',
+      code: statusCode,
+      reason: reason,
     },
   });
 });

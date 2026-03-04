@@ -3,12 +3,15 @@ import {
   ErrorCode,
   ErrorDetail,
   FrontendError,
+  FrontendReasonValue,
   HTTP_STATUS,
   HttpStatus,
+  LOG_REASONS,
 } from '@transcendence/core';
 import axios from 'axios';
 import i18next from 'i18next';
 import { mapErrorToI18nKey } from '../utils/auth-error-map';
+import z from 'zod';
 
 export const api = axios.create({
   baseURL: '/api',
@@ -24,11 +27,11 @@ api.interceptors.response.use(
     let statusCode: HttpStatus = HTTP_STATUS.INTERNAL_SERVER_ERROR;
     let message: string = i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
     let code: ErrorCode = ERROR_CODES.INTERNAL_ERROR;
-    let details: ErrorDetail[] | null = null;
-
+    let details: ErrorDetail[] = [];
     if (error.response) {
       const { data } = error.response;
       const errorPayload = data.error || data;
+      console.error(errorPayload);
       statusCode =
         error.response?.status ||
         (errorPayload.status as HttpStatus) ||
@@ -36,15 +39,20 @@ api.interceptors.response.use(
       code = errorPayload?.code || ERROR_CODES.INTERNAL_ERROR;
       message = i18next.t(mapErrorToI18nKey(code)) || errorPayload?.message || error.message;
 
-      // Transformer les erreurs Zod brutes en ErrorDetail
-      if (errorPayload?.details && Array.isArray(errorPayload.details)) {
-        details = errorPayload.details.map((detail: any) => ({
-          field: detail.field || (detail.path?.[0] as string) || undefined,
-          message: detail.message,
-          reason: detail.reason || detail.code || 'invalid_format',
+      if (Array.isArray(errorPayload?.details)) {
+        details = errorPayload.details.map((d: any) => ({
+          field: d.field || undefined,
+          message: message || '',
+          reason: d.reason || errorPayload.code || 'validation_error',
         }));
-      } else {
-        details = null;
+      } else if (errorPayload?.details && typeof errorPayload.details === 'object') {
+        details = [
+          {
+            field: errorPayload.details.field || undefined,
+            message: message || '',
+            reason: errorPayload.code || 'validation_error',
+          },
+        ];
       }
     }
 
@@ -56,7 +64,7 @@ api.interceptors.response.use(
         meta.remainingAttempts = errorPayload.remainingAttempts;
       }
     }
-
+    console.error(message);
     const frontendError = new FrontendError(
       message,
       statusCode,
@@ -68,5 +76,29 @@ api.interceptors.response.use(
     return Promise.reject(frontendError);
   },
 );
+
+export const validateFromSchema = <T>(
+  value: unknown,
+  fieldName: string,
+  schema: z.ZodSchema<T>,
+): T => {
+  const validation = schema.safeParse(value);
+
+  if (!validation.success) {
+    throw new FrontendError(
+      i18next.t(`errors.${ERROR_CODES.VALIDATION_ERROR}`),
+      HTTP_STATUS.BAD_REQUEST,
+      ERROR_CODES.VALIDATION_ERROR,
+      validation.error.issues.map((issue: z.core.$ZodIssue) => ({
+        field: fieldName,
+        message: issue?.code
+          ? i18next.t(`zod_errors.${issue?.code}`)
+          : i18next.t(`zod_errors.invalid_format`),
+        reason: (issue?.code as FrontendReasonValue) || LOG_REASONS.UNKNOWN,
+      })),
+    );
+  }
+  return validation.data;
+};
 
 export default api;

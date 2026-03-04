@@ -11,8 +11,11 @@ import {
   UserRegisterDTO,
   UserRegisterSchema,
   FrontendReasonValue,
+  emailDTO,
+  usernameSchema,
+  emailSchema,
 } from '@transcendence/core';
-import api from './api-client';
+import api, { validateFromSchema } from './api-client';
 import i18next from 'i18next';
 import { Setup2FAResponse, TwoFactorStatus, Require2FAResponse } from '../types/twoFactor.types';
 
@@ -87,6 +90,18 @@ export const authApi = {
     };
   },
 
+  updateUsername: async (newUsername: string): Promise<UserDTO> => {
+    validateFromSchema(newUsername, 'username', usernameSchema);
+    const { data } = await api.patch(`/auth/username`, { newUsername });
+    return data.user;
+  },
+
+  updateEmail: async (newEmail: emailDTO): Promise<UserDTO> => {
+    validateFromSchema(newEmail, 'email', emailSchema);
+    const { data } = await api.patch(`/auth/email`, { newEmail });
+    return data.user;
+  },
+
   me: async (): Promise<UserDTO> => {
     const { data } = await api.get('/auth/me');
     return data.user;
@@ -94,6 +109,11 @@ export const authApi = {
 
   logout: async (): Promise<void> => {
     await api.post('/auth/logout');
+  },
+
+  deleteUser: async (): Promise<void> => {
+    await api.delete(`/auth/user`);
+    return;
   },
 
   /**

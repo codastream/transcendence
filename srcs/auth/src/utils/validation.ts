@@ -1,5 +1,42 @@
 import { z } from 'zod';
 import { RESERVED_USERNAMES, AUTH_CONFIG } from './constants.js';
+import { UserSchema } from '@transcendence/core';
+
+const handledErrorSchema = z.object({
+  error: z.object({
+    message: z.string(),
+    code: z.string(),
+    reason: z.string(),
+  }),
+});
+
+export const patchUsernameSchema = {
+  body: z.object({
+    newUsername: z.string(),
+  }),
+  response: {
+    200: z.object({
+      message: z.string(),
+      user: UserSchema,
+    }),
+    400: handledErrorSchema,
+    404: handledErrorSchema,
+  },
+};
+
+export const patchEmailSchema = {
+  body: z.object({
+    newEmail: z.email(),
+  }),
+  response: {
+    200: z.object({
+      message: z.string(),
+      user: UserSchema,
+    }),
+    400: handledErrorSchema,
+    404: handledErrorSchema,
+  },
+};
 
 // Validation centralisée avec règles métier Transcendence
 export const ValidationSchemas = {
@@ -60,7 +97,7 @@ export const ValidationSchemas = {
     code: z.string().min(1, 'Authorization code is required'),
     state: z.string().optional(),
     provider: z.enum(['google', 'school42'], {
-      errorMap: () => ({ message: 'Provider must be either "google" or "school42"' }),
+      error: 'Provider must be either "google" or "school42"',
     }),
   }),
 };
@@ -72,7 +109,7 @@ export function validateRequest<T>(
 ): {
   success: boolean;
   data?: T;
-  errors?: z.ZodIssue[];
+  errors?: z.core.$ZodIssue[];
 } {
   const result = schema.safeParse(data);
   if (!result.success) {

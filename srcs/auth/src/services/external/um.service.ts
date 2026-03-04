@@ -3,7 +3,14 @@ import { CreateProfileDTO, UserProfileDTO } from '../../types/dto.js';
 import { ServiceError } from '../../types/errors.js';
 import { EVENTS, REASONS, UM_SERVICE_URL } from '../../utils/constants.js';
 import { APP_ERRORS } from '../../utils/error-catalog.js';
-import { ERROR_CODES } from '@transcendence/core';
+import {
+  AppError,
+  ERR_DEFS,
+  ERROR_CODES,
+  idDTO,
+  ProfileSimpleDTO,
+  usernameDTO,
+} from '@transcendence/core';
 import { mtlsAgent } from '../../utils/mtlsAgent.js';
 import { MTLSRequestInit } from '../../types/https.js';
 
@@ -56,10 +63,62 @@ export async function createUserProfile(payload: CreateProfileDTO): Promise<User
   }
 }
 
+export async function updateProfileUsername(
+  userId: idDTO,
+  username: usernameDTO,
+  newUsername: usernameDTO,
+): Promise<ProfileSimpleDTO> {
+  try {
+    logger.info({
+      msg: `calling PATCH ${UM_SERVICE_URL}/${username}/username`,
+      payload: { newUsername },
+    });
+
+    const init: MTLSRequestInit = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': String(userId) || '',
+        'x-user-name': (username as string) || '',
+      },
+      body: JSON.stringify({ newUsername: newUsername }),
+      dispatcher: mtlsAgent,
+    };
+    const response = await fetch(`${UM_SERVICE_URL}/${username}/username`, init);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+
+      let parsedMessage = 'Upstream service error';
+      try {
+        const parsed = JSON.parse(errorText);
+        parsedMessage = parsed?.message || parsedMessage;
+      } catch {
+        // keep fallback
+      }
+
+      throw new ServiceError(
+        {
+          code: ERROR_CODES.INTERNAL_ERROR,
+          event: EVENTS.DEPENDENCY.FAIL,
+          statusCode: response.status,
+          reason: REASONS.NETWORK.UPSTREAM_ERROR,
+          message: parsedMessage,
+        },
+        { originalError: { status: response.status, body: errorText } },
+      );
+    }
+    return (await response.json()) as ProfileSimpleDTO;
+  } catch (error: unknown) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(ERR_DEFS.SERVICE_UNAVAILABLE, {}, error);
+  }
+}
+
 /**
  * Supprime un profil utilisateur via le service users
  */
-export async function deleteUserProfile(userId: number): Promise<void> {
+export async function deleteUserProfile(userId: number, username: string): Promise<void> {
   try {
     logger.info({ msg: `calling DELETE ${UM_SERVICE_URL}/users/${userId}` });
 
@@ -68,6 +127,7 @@ export async function deleteUserProfile(userId: number): Promise<void> {
       method: 'DELETE',
       headers: {
         'x-user-id': String(userId),
+        'x-user-name': username,
       },
       dispatcher: mtlsAgent,
     };

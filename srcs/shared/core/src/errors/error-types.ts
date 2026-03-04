@@ -1,8 +1,8 @@
-import { ZodIssue, ZodIssueCode } from 'zod/v3';
 import { HTTP_STATUS } from '../constants/index.js';
 import { EventValue, LogContext, LogDetail, ReasonValue } from '../logging/logging-types.js';
 import { LOG_REASONS } from '../logging/logging.js';
 import { ERROR_CODES } from './error-codes.js';
+import z from 'zod';
 
 export type DeepValues<T> = T extends object ? { [K in keyof T]: DeepValues<T[K]> }[keyof T] : T;
 
@@ -14,11 +14,14 @@ type ValidationReasons = DeepValues<typeof LOG_REASONS.VALIDATION>;
 type ConflictReasons = DeepValues<typeof LOG_REASONS.CONFLICT>;
 type TournamentReasons = DeepValues<typeof LOG_REASONS.TOURNAMENT>;
 
+export type ZodIssue = z.core.$ZodIssue;
+export type ZodIssueCodes = z.core.$ZodIssue['code'];
+
 export type FrontendReasonValue =
   | SecurityFrontReasons
   | ValidationReasons
   | ConflictReasons
-  | ZodIssueCode
+  | ZodIssueCodes
   | TournamentReasons
   | typeof LOG_REASONS.UNKNOWN;
 
@@ -58,6 +61,7 @@ export class AppError extends Error {
   public readonly code: ErrorCode;
   public readonly statusCode: HttpStatus;
   public readonly context: LogContext;
+  public readonly isAppError = true;
   constructor(
     definition: ErrorDefinition,
     dynamicContext: Omit<LogContext, 'event' | 'reason'> = {},

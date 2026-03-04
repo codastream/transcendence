@@ -29,8 +29,8 @@ export interface AppBaseError extends Error {
 
 export class DataError extends Error {
   constructor(
-    code: DataErrorCode,
-    message: string,
+    public code: DataErrorCode,
+    public message: string,
     public originalError?: unknown,
     public meta?: Record<string, any>,
   ) {
@@ -40,21 +40,24 @@ export class DataError extends Error {
 }
 
 export class ServiceError extends Error {
-  public context: LogContext;
   public statusCode: number;
-  public definition: ErrorDefinition;
+  public code: string;
+  public context: LogContext;
   constructor(
-    definition: ErrorDefinition,
+    public definition: ErrorDefinition,
     dynamicContext: Omit<LogContext, 'event' | 'reason'> = {},
   ) {
     super(definition.message);
     this.name = 'ServiceError';
     this.statusCode = definition.statusCode || 500;
+    this.code = definition.code;
     this.definition = definition;
     this.context = {
       event: definition.event,
       reason: definition.reason,
       ...dynamicContext,
     } as LogContext;
+
+    Error.captureStackTrace(this, this.constructor);
   }
 }

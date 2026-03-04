@@ -47,7 +47,10 @@
   "global": {
     "loading": "Chargement...",
     "not_found": "Non trouvé",
-    "disabled": "désactivé"
+    "disabled": "désactivé",
+    "confirm": "confirmer",
+    "save": "enregistrer",
+    "cancel": "annuler"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -207,8 +210,14 @@
   },
   "zod_errors": {
     "invalid_format": "Vérifiez le format demandé",
+    "duplicate_entry": "Déjà pris",
     "too_small": "La valeur doit être plus longue",
-    "too_big": "La valeur doit être plus courte"
+    "too_big": "La valeur doit être plus courte",
+    "invalid_string": {
+      "email": "L'adresse email est incorrecte.",
+      "url": "L'URL est invalide."
+    },
+    "invalid_type": "Type invalide"
   },
   "validation": {
     "password": {
@@ -247,7 +256,8 @@
     "missing_user_name": "Nom d'utilisateur requis.",
     "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard.",
     "friend_self_add": "Choisissez un autre utilisateur que vous-même",
-    "friend_already": "Vous êtes déjà amis"
+    "friend_already": "Vous êtes déjà amis",
+    "required_field": "Champ requis"
   },
   "navbar": {
     "home": "Accueil",
@@ -265,7 +275,12 @@
   "profile": {
     "profile": "Profil",
     "2fa": "2FA",
-    "update_avatar": "Changer d'avatar"
+    "update_avatar": "Changer d'avatar",
+    "update_username": "Mettre à jour le pseudo",
+    "update_email": "Mettre à jour l'email",
+    "delete": "Supprimer le compte",
+    "delete_confirm_title": "Supprimer le compte ?",
+    "delete_confirm_text": "Êtes-vous sûr de vouloir supprimer votre profil ? Aucune récupération ne sera possible"
   },
   "2fa": {
     "title": "Authentification à deux facteurs",

@@ -1,12 +1,24 @@
 import bcrypt from 'bcrypt';
 import * as db from './database.js';
-import { createUserProfile, deleteUserProfile } from './external/um.service.js';
+import {
+  createUserProfile,
+  deleteUserProfile,
+  updateProfileUsername,
+} from './external/um.service.js';
 import { DataError, ServiceError } from '../types/errors.js';
 import { APP_ERRORS } from '../utils/error-catalog.js';
 import { EVENTS, REASONS, UserRole } from '../utils/constants.js';
 import { logger } from '../index.js';
-import { AppError, ERR_DEFS } from '@transcendence/core';
+import {
+  AppError,
+  ERR_DEFS,
+  ERROR_CODES,
+  LOG_REASONS,
+  UserDTO,
+  UserFullDTO,
+} from '@transcendence/core';
 import * as onlineService from './online.service.js';
+import { toFullUserDTO, toUserDTO } from '../utils/mapper.js';
 
 const SALT_ROUNDS = 10;
 
@@ -22,8 +34,15 @@ export function findByEmail(email: string) {
   return db.findUserByEmail(email);
 }
 
-export function findUserById(id: number) {
-  return db.findUserById(id);
+export function findUserById(id: number): UserFullDTO | null {
+  const userRow = db.findUserById(id);
+  if (!userRow) return null;
+  return toFullUserDTO(userRow);
+}
+
+export async function findUserByIdOrThrow(id: number): Promise<UserRow> {
+  const userRow = await db.findUserByIdOrThrow(id);
+  return userRow;
 }
 
 export async function createUser(user: {
@@ -190,6 +209,57 @@ export function updateUserRole(userId: number, role: UserRole): void {
 }
 
 /**
+ * Updates an user's username
+ * @param userId User ID
+ * @param username User Username
+ * @param newEmail New Username
+ */
+export async function updateUserUsernameAndFetch(
+  userId: number,
+  username: string,
+  newUsername: string,
+): Promise<UserDTO> {
+  logger.info({ username, newUsername }, 'update username');
+  await db.updateUserUsername(userId, newUsername);
+  try {
+    await updateProfileUsername(userId, username, newUsername);
+  } catch (error: any) {
+    await db.updateUserUsername(userId, username);
+    throw new ServiceError(
+      {
+        code: ERROR_CODES.INTERNAL_ERROR,
+        message: 'Failed to sync username with profile service',
+        event: EVENTS.CRITICAL.BUG,
+        reason: LOG_REASONS.NETWORK.UPSTREAM_ERROR,
+        statusCode: 503,
+      },
+      {
+        originalError: error?.message,
+        userId,
+      },
+    );
+  }
+  const user = await db.findUserByIdOrThrow(userId);
+  return toUserDTO(user);
+}
+
+/**
+ * Updates an user's email
+ * @param userId User ID
+ * @param username User Username
+ * @param newEmail New Email
+ */
+export async function updateUserEmailAndFetch(
+  userId: number,
+  username: string,
+  newEmail: string,
+): Promise<UserDTO> {
+  await db.updateUserEmail(userId, newEmail);
+  const user = await db.findUserByIdOrThrow(userId);
+  return toUserDTO(user);
+}
+
+/**
  * Vérifie si un utilisateur possède un rôle requis ou supérieur
  * @param userId ID de l'utilisateur
  * @param requiredRole Rôle minimum requis
@@ -226,8 +296,8 @@ export async function deleteUser(userId: number): Promise<void> {
 
   try {
     // Supp user profile UM service
-    await deleteUserProfile(userId);
-
+    const user = await db.findUserByIdOrThrow(userId);
+    await deleteUserProfile(userId, user.username);
     // Supp user Redis online
     await onlineService.removeUserFromRedis(userId);
 
@@ -238,17 +308,10 @@ export async function deleteUser(userId: number): Promise<void> {
   } catch (error: unknown) {
     logger.error({ event: 'delete_user_failed', userId, error: (error as Error)?.message });
 
-    if (error instanceof AppError) {
+    if (error instanceof DataError) {
       throw error;
     }
 
-    if (error instanceof DataError) {
-      throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, { userId });
-    }
-
-    throw new AppError(ERR_DEFS.SERVICE_GENERIC, {
-      userId,
-      originalError: (error as Error)?.message,
-    });
+    throw new ServiceError(ERR_DEFS.DB_DELETE_ERROR, { userId });
   }
 }

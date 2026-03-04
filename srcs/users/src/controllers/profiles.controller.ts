@@ -45,8 +45,27 @@ export class ProfileController {
     return reply.status(200).send(profiles);
   }
 
+  async updateProfileUsername(
+    req: FastifyRequest<{ Body: { newUsername: string } }>,
+    reply: FastifyReply,
+  ) {
+    const { username } = req.params as {
+      username: usernameDTO;
+    };
+    const { newUsername } = req.body;
+
+    req.log.trace({
+      event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.PROFILE}_username`,
+      param: username,
+    });
+    const profileSimpleDTO = await profileService.updateUsername(username, newUsername);
+    userBus.emit(USER_EVENT.UPDATED, username);
+    return reply.status(200).send(profileSimpleDTO);
+  }
+
   async updateProfileAvatar(req: FastifyRequest, reply: FastifyReply) {
     const data = (await req.file()) as MultipartFile;
+    const { id: userId } = req.user;
     const { username } = req.params as {
       username: usernameDTO;
     };
@@ -59,8 +78,8 @@ export class ProfileController {
       event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.PROFILE}`,
       param: username,
     });
-    const profileSimpleDTO = await profileService.updateAvatar(username, data);
-    userBus.emit(USER_EVENT.UPDATED, username);
+    const profileSimpleDTO = await profileService.updateAvatar(userId, data);
+    userBus.emit(USER_EVENT.UPDATED, userId);
     return reply.status(200).send(profileSimpleDTO);
   }
 

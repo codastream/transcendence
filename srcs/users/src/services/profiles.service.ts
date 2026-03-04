@@ -19,10 +19,12 @@ async function getProfileOrThrow(username: string): Promise<UserProfile> {
   const profile = await profileRepository.findProfileByUsername(username);
   if (!profile) {
     throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
-      details: {
-        resource: LOG_RESOURCES.PROFILE,
-        username: username,
-      },
+      details: [
+        {
+          resource: LOG_RESOURCES.PROFILE,
+          value: username,
+        },
+      ],
     });
   }
   return profile;
@@ -58,22 +60,46 @@ export class ProfileService {
   }
 
   @Trace
-  async getById(authId: number): Promise<ProfileSimpleDTO | null> {
+  async getProfileByIdOrThrow(authId: number): Promise<UserProfile> {
     const profile = await profileRepository.findProfileById(authId);
     if (!profile) {
       throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
-        details: {
-          resource: LOG_RESOURCES.PROFILE,
-          id: authId,
-        },
+        details: [
+          {
+            resource: LOG_RESOURCES.PROFILE,
+            value: String(authId),
+          },
+        ],
       });
     }
     return profile;
   }
 
   @Trace
-  async updateAvatar(username: string, file: MultipartFile): Promise<ProfileSimpleDTO> {
+  async updateUsername(username: string, newUsername: string): Promise<ProfileSimpleDTO> {
     const profile = await getProfileOrThrow(username);
+    if (username === newUsername) return profile;
+    const conflictingProfile = await profileRepository.findProfileByUsername(newUsername);
+    if (conflictingProfile) {
+      throw new AppError(ERR_DEFS.RESOURCE_CONFLICT, {
+        details: [
+          {
+            field: 'username',
+            value: newUsername,
+          },
+        ],
+      });
+    }
+    const updatedProfile = await profileRepository.updateProfileUsername(
+      profile.authId,
+      newUsername,
+    );
+    return updatedProfile;
+  }
+
+  @Trace
+  async updateAvatar(userId: number, file: MultipartFile): Promise<ProfileSimpleDTO> {
+    const profile = await this.getProfileByIdOrThrow(userId);
 
     const data = await file.toBuffer();
 
@@ -81,10 +107,10 @@ export class ProfileService {
     const allowedTypes = ['image/png', 'image/jpeg'];
     const isValidType = type && allowedTypes.includes(type.mime);
     if (!isValidType) {
-      throw new AppError(ERR_DEFS.RESSOURCE_INVALID_TYPE, { details: 'Invalid file type' });
+      throw new AppError(ERR_DEFS.RESSOURCE_INVALID_TYPE, { details: [{ field: 'file' }] });
     }
 
-    const uniqueName = `avatar-${username}-${Date.now()}.${type.ext}`;
+    const uniqueName = `avatar-${userId}-${Date.now()}.${type.ext}`;
     const uploadDir = '/app/uploads';
     const uploadPath = path.join(uploadDir, uniqueName);
     const publicUrl = `/uploads/${uniqueName}`;
@@ -106,10 +132,12 @@ export class ProfileService {
     const profile = await profileRepository.findProfileById(authId);
     if (!profile) {
       throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
-        details: {
-          resource: LOG_RESOURCES.PROFILE,
-          id: authId,
-        },
+        details: [
+          {
+            resource: LOG_RESOURCES.PROFILE,
+            value: String(authId),
+          },
+        ],
       });
     }
     await profileRepository.deleteProfile(authId);
