@@ -256,69 +256,47 @@ users (id) ──────────────────→   UserProfi
 
 ### Key fields and data types.
 
+### Auth Service Schema
+
 ```mermaid
 erDiagram
-
-    %% ── AUTH SERVICE (SQLite) ──────────────────────────
     users {
-        INTEGER id PK
-        TEXT    username "UNIQUE"
-        TEXT    email    "UNIQUE"
-        TEXT    password
-        TEXT    role     "default: user"
-        INTEGER is_2fa_enabled "0|1"
-        TEXT    totp_secret
-        TEXT    google_id    "UNIQUE"
-        TEXT    school42_id  "UNIQUE"
-        TEXT    oauth_email
-        TEXT    avatar_url
-        DATETIME created_at
+        INTEGER id PK "AUTOINCREMENT"
+        TEXT username "UNIQUE"
+        TEXT email "UNIQUE"
+        TEXT password
+        TEXT role "DEFAULT 'user'"
+        INTEGER is_2fa_enabled "DEFAULT 0"
+        TEXT totp_secret
+        TEXT google_id "UNIQUE"
+        TEXT school42_id "UNIQUE"
+        TEXT oauth_email
+        TEXT avatar_url
+        DATETIME created_at "DEFAULT CURRENT_TIMESTAMP"
     }
 
     login_tokens {
-        TEXT     token      PK
-        INTEGER  user_id    FK
+        TEXT token PK
+        INTEGER user_id FK
         DATETIME expires_at
     }
 
     login_token_attempts {
-        TEXT    token    PK
-        INTEGER attempts "default: 0"
+        TEXT token PK FK
+        INTEGER attempts "DEFAULT 0"
     }
 
     totp_setup_secrets {
-        TEXT     token      PK
-        INTEGER  user_id    FK
-        TEXT     secret
+        TEXT token PK
+        INTEGER user_id FK
+        TEXT secret
         DATETIME expires_at
     }
 
-    %% ── USERS SERVICE (Prisma/SQLite) ──────────────────
-    UserProfile {
-        Int      id        PK
-        Int      authId    "UNIQUE – links to auth.users.id"
-        DateTime createdAt
-        String   email     "UNIQUE, nullable"
-        String   username  "UNIQUE"
-        String   avatarUrl "nullable"
-    }
+    users ||--o{ login_tokens : "has"
+    login_tokens ||--o| login_token_attempts : "tracks"
+    users ||--o{ totp_setup_secrets : "has"
 
-    Friendship {
-        Int      id                PK
-        DateTime createdAt
-        String   nicknameRequester "nullable"
-        String   nicknameReceiver  "nullable"
-        String   status            "pending|accepted|blocked"
-        Int      requesterId       FK
-        Int      receiverId        FK
-    }
-
-    %% ── RELATIONSHIPS ───────────────────────────────────
-    users           ||--o{ login_tokens         : "has"
-    users           ||--o{ totp_setup_secrets   : "has"
-    login_tokens    ||--|| login_token_attempts  : "tracks"
-    UserProfile     ||--o{ Friendship            : "requests (requester)"
-    UserProfile     ||--o{ Friendship            : "receives (receiver)"
 ```
 
 Auth Service — users table
@@ -344,7 +322,7 @@ Auth Service — token tables
 | expires_at | DATETIME | ISO string, checked on every use   |
 | attempts   | INTEGER  | Brute-force protection counter     |
 
-Users Service — UserProfile (Prisma)
+### Users Service Schema
 
 | Field     | Type     | Notes                                  |
 | --------- | -------- | -------------------------------------- |
