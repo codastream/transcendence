@@ -2,8 +2,7 @@ This project has been created as part of the 42 curriculum by lisambet, fpetit, 
 
 ## Description
 
-> A full-stack multiplayer Pong web application.  
-> Built as a microservices SPA with real-time gameplay, tournament system, OAuth2 auth, 2FA, an AI opponent, and blockchain score storage. It covers a wide range of concepts including real-time communication, modern authentication flows, containerized deployment, and blockchain integration.
+> A full-stack multiplayer Pong web application. Built as a microservices SPA with real-time gameplay, tournament system, OAuth2 auth, 2FA, an AI opponent, and blockchain score storage. It covers a wide range of concepts including real-time communication, modern authentication flows, containerized deployment, and blockchain integration.
 
 ![CI Status](https://github.com/codastream/transcendence/actions/workflows/ci.yml/badge.svg)
 ![User Service Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/codastream/13a5ca1442b77566f5c439d203084db2/raw/coverage-users.json)
@@ -154,19 +153,19 @@ make ai       # Build only the AI opponent service (for local development/testin
 | [TypeScript](https://www.typescriptlang.org/docs/)   | [Wiki](https://github.com/codastream/transcendence/wiki/TypeScript)   | -                                    |                         | 👷     |
 | [Zod](https://zod.dev/)                              | [Wiki](https://github.com/codastream/transcendence/wiki/Zod)          | -                                    |                         | 👷     |
 
-How AI was used: we asked for explanation on how different libraries and tools work. We also used AI for debugging purposes and in case of blocking on a certain problem. We also used Copilot for pull request reviews.
+How AI was used: we asked for explanation on how different libraries and tools work. We also used AI for debugging purposes and in case of blocking on a certain problem. Copilot was helpful with pull request reviews.
 
 ---
 
 ## Team Information
 
-| Login                                   | Role(s)         | Responsibilities                                     |
-| --------------------------------------- | --------------- | ---------------------------------------------------- |
-| [lisambet](https://github.com/lisambet) | _Product Owner_ | _AI Opponent_                                        |
-| [fpetit](https://github.com/fpetit)     | _Tech Lead_     | _User Service_                                       |
-| [rcaillie](https://github.com/rcaillie) | _Developer_     | _Auth Service_                                       |
-| [jhervoch](https://github.com/jhervoch) | _Tech Lead_     | _e.g. Blockchain integration, Tournament management_ |
-| [npolack](https://github.com/npolack)   | _Scrum Master_  | _Game Engine_                                        |
+| Login                                   | Role(s)         | Responsibilities                                |
+| --------------------------------------- | --------------- | ----------------------------------------------- |
+| [lisambet](https://github.com/lisambet) | _Product Owner_ | _AI Opponent_                                   |
+| [fpetit](https://github.com/fpetit)     | _Tech Lead_     | _User Service_                                  |
+| [rcaillie](https://github.com/rcaillie) | _Developer_     | _Auth Service_                                  |
+| [jhervoch](https://github.com/jhervoch) | _Tech Lead_     | _Blockchain integration, Tournament management_ |
+| [npolack](https://github.com/npolack)   | _Scrum Master_  | _Game Engine_                                   |
 
 > **\*Roles reference:**
 >
@@ -211,11 +210,12 @@ We used GitHub Issues to track tasks and features. We held regular meetings to d
 
 ## Database Schema:
 
-◦ Visual representation or description of the database structure.
+### Visual representation or description of the database structure.
 
 Two decoupled SQLite databases — one per service. `authId` in the Users DB is a soft reference
 to `users.id` in the Auth DB, resolved at runtime via inter-service API calls.
 
+```
 ┌─────────────────────────────────────┐ ┌─────────────────────────────────────┐
 │ AUTH SERVICE (SQLite) │ │ USERS SERVICE (Prisma) │
 │ │ │ │
@@ -242,16 +242,19 @@ to `users.id` in the Auth DB, resolved at runtime via inter-service API calls.
 │ ├── secret TEXT │ │ online:{userId} → status + TTL │
 │ └── expires_at DATETIME │ │ session:{token} → JWT payload │
 └─────────────────────────────────────┘ └─────────────────────────────────────┘
+```
 
-◦ Tables/collections and their relationships.
+### Tables/collections and their relationships.
 
-Auth DB Users DB
-────────────────────────────── ──────────────────────────────
-users (id) ──────────────────→ UserProfile (authId)
-└── login_tokens └── Friendship (requesterId / receiverId)
-└── totp_setup_secrets
+```
+Auth DB                          Users DB
+──────────────────────────────   ──────────────────────────────
+users (id) ──────────────────→   UserProfile (authId)
+  └── login_tokens                 └── Friendship (requesterId / receiverId)
+  └── totp_setup_secrets
+```
 
-◦ Key fields and data types.
+### Key fields and data types.
 
 Auth Service — users table
 
@@ -303,6 +306,9 @@ Redis Keys
 | online:{userId} | String     | Online status with TTL expiry  |
 | session:{token} | String     | JWT payload for session lookup |
 
+### Game/Tournament Schema
+
+```mermaid
 erDiagram
 
     TOURNAMENT {
@@ -344,6 +350,7 @@ erDiagram
     TOURNAMENT }o--|| PLAYER : is
     MATCH }o--|| PLAYER : is
     TOURNAMENT_PLAYER }o--|| PLAYER : is
+```
 
 ## Features List
 
@@ -435,42 +442,69 @@ erDiagram
 | Smart contract         | Storing tournament results on-chain                          |
 | Dapp                   | Viewing tournament results                                   |
 
-```
-
 ## Modules:
 
 > **Total: 32 pts** (minimum required: 14 pts)
 
-| #   | Category        | Module                                                              | Type  | Points |
-| --- | --------------- | ------------------------------------------------------------------- | ----- | ------ |
-| 1   | Web             | Real-time features (WebSockets)                                     | Major | 2      |
-| 2   | Web             | Use a framework for both frontend and backend                       | Major | 2      |
-| 3   | User Management | Standard user management & authentication                           | Major | 2      |
-| 4   | User Management | Game statistics & match history (TBD)                               | Minor | 1      |
-| 5   | User Management | Remote authentication (OAuth 2.0 — Google & 42)                     | Minor | 1      |
-| 6   | User Management | Advanced permissions system (admin / moderator)                     | Major | 2      |
-| 7   | User Management | Two-Factor Authentication (TOTP / 2FA)                              | Minor | 1      |
-| 8   | AI              | AI Opponent (PPO reinforcement learning)                            | Major | 2      |
-| 9   | Gaming & UX     | Complete web-based game (Pong)                                      | Major | 2      |
-| 10  | Gaming & UX     | Remote players (real-time multiplayer)                              | Major | 2      |
-| 11  | Gaming & UX     | Tournament system                                                   | Minor | 1      |
-| 12  | DevOps          | Backend as microservices                                            | Major | 2      |
-| 13  | Blockchain      | Store tournament scores on Blockchain (Solidity)                    | Major | 2      |
-| 14  | Database        | ORM (Prisma)                                                        | Minor | 1      |
-| 15  | Accessibility   | Internationalization (i18n) — support for multiple languages        | Minor | 1      |
-| 16  | Database        | A public API to interact with the database                          | Major | 2      |
-| 17  | Web             | Custom-made design system with reusable components                  | Minor | 1      |
-| 18  | Web             | Advanced search with filters, sorting, and pagination               | Minor | 1      |
-| 19  | Accessibility   | Support for additional browsers (TBD)                               | Minor | 1      |
-| 20  | Security        | GDPR compliance features (TBD)                                      | Minor | 1      |
-|     |                 |                                                                     |       |        |
-|     |                 | **Major modules × 10**                                              |       | **20** |
-|     |                 | **Minor modules × 12**                                              |       | **12** |
-|     |                 | **TOTAL**                                                           |       | **32** |
+| #   | Category        | Module                                                       | Type  | Points |
+| --- | --------------- | ------------------------------------------------------------ | ----- | ------ |
+| 1   | Web             | Real-time features (WebSockets)                              | Major | 2      |
+| 2   | Web             | Use a framework for both frontend and backend                | Major | 2      |
+| 3   | User Management | Standard user management & authentication                    | Major | 2      |
+| 4   | User Management | Game statistics & match history (TBD)                        | Minor | 1      |
+| 5   | User Management | Remote authentication (OAuth 2.0 — Google & 42)              | Minor | 1      |
+| 6   | User Management | Advanced permissions system (admin / moderator)              | Major | 2      |
+| 7   | User Management | Two-Factor Authentication (TOTP / 2FA)                       | Minor | 1      |
+| 8   | AI              | AI Opponent (PPO reinforcement learning)                     | Major | 2      |
+| 9   | Gaming & UX     | Complete web-based game (Pong)                               | Major | 2      |
+| 10  | Gaming & UX     | Remote players (real-time multiplayer)                       | Major | 2      |
+| 11  | Gaming & UX     | Tournament system                                            | Minor | 1      |
+| 12  | DevOps          | Backend as microservices                                     | Major | 2      |
+| 13  | Blockchain      | Store tournament scores on Blockchain (Solidity)             | Major | 2      |
+| 14  | Database        | ORM (Prisma)                                                 | Minor | 1      |
+| 15  | Accessibility   | Internationalization (i18n) — support for multiple languages | Minor | 1      |
+| 16  | Database        | A public API to interact with the database                   | Major | 2      |
+| 17  | Web             | Custom-made design system with reusable components           | Minor | 1      |
+| 18  | Web             | Advanced search with filters, sorting, and pagination        | Minor | 1      |
+| 19  | Accessibility   | Support for additional browsers (TBD)                        | Minor | 1      |
+| 20  | Security        | GDPR compliance features (TBD)                               | Minor | 1      |
+|     |                 |                                                              |       |        |
+|     |                 | **Major modules × 10**                                       |       | **20** |
+|     |                 | **Minor modules × 12**                                       |       | **12** |
+|     |                 | **TOTAL**                                                    |       | **32** |
 
 ## Individual Contributions:
 
-◦ Detailed breakdown of what each team member contributed.
-◦ Specific features, modules, or components implemented by each person.
-◦ Any challenges faced and how they were overcome.
+### lisambet — Product Owner
+
+- **AI Opponent** (module #8): PPO reinforcement learning agent for the Pong game
+- **Friends System**: Co-developed friendship features (requests, status updates, nicknames)
+- **Game**: Contributed to game session logic and real-time gameplay
+
+### fpetit — Tech Lead
+
+- **User Service**: Full implementation of user profiles (create, get, search, avatar upload, delete)
+- **Friends System**: Co-developed friendship management (requests, list, remove, block, nicknames)
+- **Admin Panel**: Role-based permissions system (admin: update/delete users, moderator: list users, force-disable 2FA)
+- **ORM** (module #14): Prisma integration for the Users service
+
+### rcaillie — Developer
+
+- **Auth Service**: Local auth (register/login), OAuth2 (42 School & Google), JWT session management, account deletion
+- **Two-Factor Authentication**: TOTP setup, QR code generation, login verification, enable/disable 2FA
+- **Infrastructure**: Rate limiting on sensitive endpoints, mTLS between services, token cleanup
+
+### jhervoch — Tech Lead
+
+- **Blockchain Service** (module #13): Redis message broker for tournament results, Solidity smart contract on Avalanche, Dapp for viewing results
+- **Tournament System** (module #11): Tournament creation, join, bracket management, match scheduling, statistics
+- **Infrastructure**: Co-developed mTLS certificate system, online presence tracking
+- **Game**: Contributed to game service and match history
+
+### npolack — Scrum Master
+
+- **Game Engine** (modules #1, #9, #10): Real-time Pong gameplay over WebSockets, game session management (create/list/delete), configurable game settings, player stats
+
+```
+
 ```
