@@ -312,13 +312,6 @@ erDiagram
     UserProfile ||--o{ Friendship : "received (receiver)"
 ```
 
-### Redis Keys
-
-| Key pattern     | Value type | Notes                          |
-| --------------- | ---------- | ------------------------------ |
-| online:{userId} | String     | Online status with TTL expiry  |
-| session:{token} | String     | JWT payload for session lookup |
-
 ### Game/Tournament Schema
 
 ```mermaid
@@ -364,6 +357,13 @@ erDiagram
     MATCH }o--|| PLAYER : is
     TOURNAMENT_PLAYER }o--|| PLAYER : is
 ```
+
+### Redis Keys
+
+| Key pattern     | Value type | Notes                          |
+| --------------- | ---------- | ------------------------------ |
+| online:{userId} | String     | Online status with TTL expiry  |
+| session:{token} | String     | JWT payload for session lookup |
 
 ## Features List
 
