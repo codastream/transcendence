@@ -341,9 +341,26 @@
     "playLocal": "Local Game",
     "tournament": "Tournament",
     "game": "Game",
+    "ambience": "Atmosphere",
     "participate": "Participate",
-    "create": "Create",
+    "create": "Create Game",
+    "player_a": "player A",
+    "player_b": "player B",
+    "info_controls": "show controls",
+    "info_controls_mask": "hide controls",
     "tournament_available": "Tournament available",
+    "loading_sessions": "loading sessions..",
+    "refresh_sessions": "refreshing sessions..",
+    "status_list": {
+      "waiting": "waiting to start",
+      "playing": "ongoing",
+      "finished": "finished",
+      "paused:": "paused"
+    },
+    "controls": {
+      "left_paddle": "for left paddle",
+      "right_paddle": "for right paddle"
+    },
     "name": "Pseudo",
     "players": "Nb players",
     "status": "Status",
@@ -357,12 +374,24 @@
     "final": "Final",
     "semi_final": "Semi-Final",
     "little_final": "Little-Finale",
-    "start": "Start",
+    "start": "Start Game",
+    "exit": "Exit",
+    "play_again": "Play Again",
     "run": "Launch Tournament",
     "friends": "Friends",
     "waitiing": "Waiting...",
     "creating": "Creating tournament...",
-    "tournament_full": "This tournament is full(maximum 4 players)."
+    "tournament_full": "This tournament is full(maximum 4 players).",
+    "winner": {
+      "you_win": "You Win!",
+      "ai_wins": "AI Wins!",
+      "player1_wins": "Player 1 Wins!",
+      "player2_wins": "Player 2 Wins!",
+      "you_label": "You",
+      "ai_label": "AI",
+      "player1_label": "Player 1",
+      "player2_label": "Player 2"
+    }
   },
   "faq": {
     "title": "FAQ",

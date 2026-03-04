@@ -356,6 +356,23 @@
     "playLocal": "Joue avec tes potes en remote",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
+    "ambience": "Atmosphère",
+    "loading_sessions": "on s'en occupe..",
+    "refresh_sessions": "il y a besoin de rafraîchir tout ça..",
+    "player_a": "machin",
+    "player_b": "truc",
+    "info_controls": "comment ça marche ce truc ?",
+    "info_controls_mask": "ça va, c'est pas trop compliqué",
+    "controls": {
+      "left_paddle": "si t'es à gauche",
+      "right_paddle": "si t'es à droite"
+    },
+    "status_list": {
+      "waiting": "on vous attend",
+      "playing": "faites honneur au sport",
+      "finished": "c'est plié",
+      "paused:": "temps mort"
+    },
     "participate": "Tu cherches des embrouilles!",
     "create": "Je vous mets au défi!",
     "tournament_available": "Vendetta disponibles",
@@ -373,11 +390,23 @@
     "semi_final": "On prends du Galon",
     "little_final": "Les loosers c'est ici",
     "start": "C'est parti",
+    "exit": "On se casse",
+    "play_again": "Encore une, on est pas des mauviettes !",
     "run": "Lancement de la Vendetta",
     "friends": "Les potes",
     "waitiing": "On t'attend...",
     "creating": "Création de la vendetta...",
-    "tournament_full": "Cette vendetta est complete(maximum 4 truands)."
+    "tournament_full": "Cette vendetta est complete(maximum 4 truands).",
+    "winner": {
+      "you_win": "T'as écrasé la machine, champion !",
+      "ai_wins": "Le machin t'a mis une raclée, vieux.",
+      "player1_wins": "Le gars 1 a mis une tarte au gars 2 !",
+      "player2_wins": "Le gars 2 a mis une tarte au gars 1 !",
+      "you_label": "Toi",
+      "ai_label": "Le machin",
+      "player1_label": "Le gars 1",
+      "player2_label": "Le gars 2"
+    }
   },
   "faq": {
     "title": "FAQ du Turfu",
