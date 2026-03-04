@@ -78,7 +78,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
 
   useKeyboardControls({
     wsRef,
-    gameMode: gameMode === 'ai' ? 'ai' : gameMode,
+    gameMode,
     enabled: !!currentSessionId && !isGameOver,
   });
 
