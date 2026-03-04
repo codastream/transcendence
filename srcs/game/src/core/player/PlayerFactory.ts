@@ -3,7 +3,13 @@
 // ============================================================================
 
 import { WebSocket } from 'ws';
-import { Player, PlayerRole, PlayerType, GUEST_USER_ID } from '../../types/game.types.js';
+import {
+  Player,
+  PlayerRole,
+  PlayerType,
+  GUEST_USER_ID,
+  AI_USER_ID,
+} from '../../types/game.types.js';
 
 /**
  * Create a human player (local or remote)
@@ -24,10 +30,10 @@ export function createGuestPlayer(role: PlayerRole = 'B'): Player {
 }
 
 /**
- * Create an AI player (controlled via REST RL API)
+ * Create an AI player (ws connection)
  */
-export function createAiPlayer(role: PlayerRole = 'B'): Player {
-  return { role, type: 'ai', userId: null, ws: null };
+export function createAiPlayer(role: PlayerRole = 'B', ws: WebSocket | null = null): Player {
+  return { role, type: 'ai', userId: AI_USER_ID, ws };
 }
 
 /**

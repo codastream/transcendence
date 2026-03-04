@@ -158,3 +158,4 @@ export const SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutes
 // ---- Guest User ----
 
 export const GUEST_USER_ID = 2;
+export const AI_USER_ID = 3;

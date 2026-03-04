@@ -4,7 +4,7 @@ import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
 import { authRoutes } from './routes/auth.routes.js';
 import { adminRoutes, moderatorRoutes } from './routes/admin.routes.js';
-import { initAdminUser, initInviteUser } from './utils/init-users.js';
+import { initAdminUser, initAIUser, initInviteUser } from './utils/init-users.js';
 import * as totpService from './services/totp.service.js';
 import * as onlineService from './services/online.service.js';
 import { loggerConfig } from './config/logger.config.js';
@@ -150,6 +150,7 @@ app.register(moderatorRoutes, { prefix: '/admin' });
 
     await initAdminUser();
     await initInviteUser();
+    await initAIUser();
 
     // Initialiser le client Redis pour les statuts en ligne
     onlineService.initRedisClient();

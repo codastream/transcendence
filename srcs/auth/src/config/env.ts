@@ -72,6 +72,19 @@ export const authenv = cleanEnv(process.env, {
     desc: 'Default invite password - CHANGE IN PRODUCTION',
   }),
 
+  AI_USERNAME: str({
+    default: 'pong_ai',
+    desc: 'Default AI username',
+  }),
+  AI_EMAIL: email({
+    default: 'pong_ai@transcendence.local',
+    desc: 'Default AI email',
+  }),
+  AI_PASSWORD: str({
+    default: 'AI123!',
+    desc: 'Default AI password - CHANGE IN PRODUCTION',
+  }),
+
   // Application Configuration
   APP_NAME: str({
     default: 'Transcendence',

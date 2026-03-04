@@ -7,7 +7,7 @@ import { WebSocket } from 'ws';
 import { FastifyInstance } from 'fastify';
 import { IGameMode, UserIdentity } from './IGameMode.js';
 import { Session } from '../core/session/Session.js';
-import { GameOverData, WS_CLOSE } from '../types/game.types.js';
+import { GameOverData, WS_CLOSE, AI_USER_ID } from '../types/game.types.js';
 import { createHumanPlayer, createAiPlayer } from '../core/player/PlayerFactory.js';
 import type { MatchRepository } from '../repositories/MatchRepository.js';
 
@@ -30,31 +30,39 @@ export class AiMode implements IGameMode {
       return false;
     }
 
-    // Player A: the human
-    const playerA = createHumanPlayer('A', user?.id ?? null, ws);
-    session.setPlayer('A', playerA);
-    ws.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
+    const role = session.getNextAvailableRole();
+    if (!role) {
+      app.log.info(`[${session.id}] AI mode: session full, refused connection`);
+      ws.close(WS_CLOSE.SESSION_FULL, 'Session full');
+      return false;
+    }
 
-    // Player B: AI (no WS, controlled via REST)
-    const aiB = createAiPlayer('B');
-    session.setPlayer('B', aiB);
+    // First player to join is always AI (B) and second player is human (A)
+    if (role === 'B') {
+      const aiPlayer = createAiPlayer('B', ws);
+      session.setPlayer('B', aiPlayer);
+      ws.send(JSON.stringify({ type: 'connected', message: 'Player B (AI)' }));
+      app.log.info(`[${session.id}] AI mode — Player B connected (AI)`);
+      return true;
+    }
 
-    app.log.info(`[${session.id}] AI mode — Player A (userId=${user?.id}), Player B = AI`);
+    const safeUserId = user?.id != null && Number.isFinite(user.id) ? user.id : null;
+    const player = createHumanPlayer(role, safeUserId, ws);
+    session.setPlayer(role, player);
 
-    // Auto-start: AI is always "ready"
-    if (session.game.status === 'waiting') {
+    ws.send(JSON.stringify({ type: 'connected', message: `Player ${role}` }));
+    app.log.info(`[${session.id}] Player ${role} connected (userId=${safeUserId})`);
+
+    // Auto-start when AI is in (B) and human joins (A)
+    if (this.canStart(session) && session.game.status === 'waiting') {
       session.game.start();
-      app.log.info(`[${session.id}] AI mode — game auto-started`);
+      app.log.info(`[${session.id}] AI mode: both players connected — game auto-started`);
     }
 
     return true;
   }
 
-  async onPlayerDisconnect(
-    session: Session,
-    ws: WebSocket,
-    app: FastifyInstance,
-  ): Promise<void> {
+  async onPlayerDisconnect(session: Session, ws: WebSocket, app: FastifyInstance): Promise<void> {
     session.removePlayerByWs(ws);
     app.log.info(`[${session.id}] AI mode — human player disconnected`);
 
@@ -63,13 +71,8 @@ export class AiMode implements IGameMode {
     }
   }
 
-  async onGameOver(
-    session: Session,
-    result: GameOverData,
-    app: FastifyInstance,
-  ): Promise<void> {
+  async onGameOver(session: Session, result: GameOverData, app: FastifyInstance): Promise<void> {
     const player1Id = session.getUserId('A');
-    // AI has no real userId — we still persist the match for stats
     if (player1Id == null || !Number.isFinite(player1Id)) {
       app.log.warn({ event: 'ai_match_no_human_player', sessionId: session.id });
       return;
@@ -77,11 +80,10 @@ export class AiMode implements IGameMode {
 
     try {
       // AI matches stored as free matches, player2 = 0 (AI marker)
-      const AI_PLAYER_ID = 0;
-      const winnerId = result.winner === 'left' ? player1Id : AI_PLAYER_ID;
+      const winnerId = result.winner === 'left' ? player1Id : AI_USER_ID;
       this.matchRepo.createFreeMatch(
         player1Id,
-        AI_PLAYER_ID,
+        AI_USER_ID,
         session.id,
         result.scores.left,
         result.scores.right,
