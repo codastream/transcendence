@@ -40,6 +40,7 @@ WORKDIR /app
 COPY --from=builder /app/node_modules ./node_modules
 
 # COPY DEV conf file
+COPY srcs/nginx ./srcs/nginx
 COPY srcs/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY srcs/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY srcs/nginx/conf.d/proxy_headers.conf /etc/nginx/conf.d/proxy_headers.conf
