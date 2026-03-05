@@ -6,6 +6,7 @@ import {
 } from '@transcendence/core';
 import { useTranslation } from 'react-i18next';
 import UserRow from '../components/molecules/UserRow';
+import Loader from '../components/atoms/Loader';
 import { Page } from '../components/organisms/PageContainer';
 import { UserActions } from '../types/react-types';
 import UserSearchContainer from '../components/molecules/UserSearchContainer';
@@ -84,7 +85,7 @@ export const FriendsPage = () => {
         <h2 className=" font-quantico text-gray-500 mb-1">{t('friends.list')}</h2>
       </div>
       <div className="flex flex-col gap-2">
-        {isLoading && <p>Loading..</p>}
+        {isLoading && <Loader message={t('global.loading')} />}
         {friends.length === 0 && <p className="text-gray-400 italic">{t('search.no_results')}</p>}
         {friends.map((f) => (
           <UserRow
