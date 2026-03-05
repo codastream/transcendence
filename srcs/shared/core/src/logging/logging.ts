@@ -41,6 +41,7 @@ export const LOG_EVENTS = {
   },
 
   APPLICATION: {
+    HANDLED_ERROR: 'handled_error',
     DATA_FAIL: 'data_failure',
     // service specific errors
     AUTH_FAIL: 'app_auth_failed',

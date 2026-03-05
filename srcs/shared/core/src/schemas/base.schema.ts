@@ -6,6 +6,7 @@ import { AUTH_CONFIG } from '../config/auth.js';
 
 export const usernameSchema = z
   .string()
+  .trim()
   .min(4, 'Username must be at least 4 characters')
   .max(20, 'Username must be at most 20 characters')
   .regex(/^[a-zA-Z0-9_]+$/, 'Username must contain only letters, numbers and underscores');
@@ -27,7 +28,13 @@ export const passwordSchema = z
   .regex(/^(?=.*\d)/, 'Password must contain at least one number')
   .regex(/^(?=.*[!@#$%^&*])/, 'Password must contain at least one special character (!@#$%^&*)');
 
-export const roleSchema = z.enum(['user', 'moderator', 'admin']);
+export enum UserRole {
+  ADMIN = 'admin',
+  USER = 'user',
+  MODERATOR = 'moderator',
+}
+
+export const UserRoleSchema = z.enum(UserRole);
 
 export const emailSchema = z.email();
 
@@ -49,5 +56,5 @@ export type emailDTO = z.output<typeof emailSchema>;
 export type idDTO = z.output<typeof idSchema>;
 
 export type IdDTO = z.output<typeof IdSchema>;
-export type RoleDTO = z.output<typeof roleSchema>;
+export type RoleDTO = z.output<typeof UserRole>;
 export type TargetUserIdDTO = z.output<typeof TargetUserIdSchema>;

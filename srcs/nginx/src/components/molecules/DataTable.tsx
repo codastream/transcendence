@@ -65,7 +65,7 @@ export function DataTable<T>({
               {rows.map((row) => (
                 <tr
                   key={rowKey(row)}
-                  className="hover:bg-gray-50 transition-colors border-t border-gray-100"
+                  className="hover:bg-gray-50/40 transition-colors border-t border-gray-100"
                 >
                   {columns.map((col) => (
                     <td key={col.header} className={`py-4 px-4 ${col.className ?? ''}`}>

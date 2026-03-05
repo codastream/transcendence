@@ -1,23 +1,21 @@
-import { env } from '../config/env.js';
+// ============================================================================
+// GameConsumer — Redis Streams consumer for user.events
+// Updated to use UserRepository instead of direct db imports
+// ============================================================================
+
 import type { Redis } from 'ioredis';
 import { FastifyInstance } from 'fastify';
 import { UserEvent, USER_EVENT } from '@transcendence/core';
-import { upsertUser, deleteUser } from './game.database.js';
+import { UserRepository } from '../repositories/UserRepository.js';
 
 const STREAM = 'user.events';
 const GROUP = 'game-service-group';
 const CONSUMER = 'consumer-1';
 
-const PENDING_IDLE_MS = 30_000; // 30s avant reclaim
-const RECOVERY_INTERVAL = 10; // toutes les 10 itérations
+const PENDING_IDLE_MS = 30_000;
+const RECOVERY_INTERVAL = 10;
 
-/* initialisation of the main consumer function
- * @function redis.xgroup create the group of the stream
- *    $ only new message after group creation
- *    0 replay all message
- *    if th group exist XGROUP DESTROY user.events game-service-group
- */
-export async function startGameConsumer(app: FastifyInstance) {
+export async function startGameConsumer(app: FastifyInstance, userRepo: UserRepository) {
   if (!app.redis) {
     app.log.warn('Redis not available, game consumer disabled');
     return;
@@ -30,16 +28,19 @@ export async function startGameConsumer(app: FastifyInstance) {
   } catch {
     // group already exists
   }
-  //main conumer loop
-  consumeLoop(app, redis).catch((err) => app.log.error({ err }, 'Game consumer fatal error'));
-}
-/* listen the Stream and consume each messages
- *
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function consumeLoop(app: FastifyInstance, redis: any): Promise<void> {
-  let loopCount = 0;
 
+  consumeLoop(app, redis, userRepo).catch((err) =>
+    app.log.error({ err }, 'Game consumer fatal error'),
+  );
+}
+
+async function consumeLoop(
+  app: FastifyInstance,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  redis: any,
+  userRepo: UserRepository,
+): Promise<void> {
+  let loopCount = 0;
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   while (!app.closing) {
@@ -51,7 +52,7 @@ async function consumeLoop(app: FastifyInstance, redis: any): Promise<void> {
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const streams = await redis.xreadgroup(
+      const streams: any = await redis.xreadgroup(
         'GROUP',
         GROUP,
         CONSUMER,
@@ -65,10 +66,10 @@ async function consumeLoop(app: FastifyInstance, redis: any): Promise<void> {
       );
 
       if (!streams) continue;
-      // each message is formated like {key , message, ... , key, message}
-      const [[, messages]] = streams;
+
+      const [[, messages]] = streams as [string, [string, string[]][]][];
       for (const [id, fields] of messages) {
-        await processMessage(app, redis, id, fields);
+        await processMessage(app, redis, userRepo, id, fields);
       }
     } catch (err: unknown) {
       app.log.warn({ err }, 'Consumer loop error');
@@ -81,25 +82,25 @@ async function consumeLoop(app: FastifyInstance, redis: any): Promise<void> {
 async function processMessage(
   app: FastifyInstance,
   redis: Redis,
+  userRepo: UserRepository,
   id: string,
   fields: string[],
 ): Promise<void> {
   try {
-    //fields[1] is key:data message:{UserEvent}
     const data = JSON.parse(fields[1]) as UserEvent;
 
     switch (data.type) {
       case USER_EVENT.CREATED:
       case USER_EVENT.UPDATED:
-        await upsertUser(data);
+        userRepo.upsertUser(data);
         break;
 
       case USER_EVENT.DELETED:
-        await deleteUser(data.id);
+        userRepo.deleteUser(data.id);
         break;
 
       default:
-        app.log.warn({ data }, `Unknown user event type`);
+        app.log.warn({ data }, 'Unknown user event type');
     }
 
     await redis.xack(STREAM, GROUP, id);

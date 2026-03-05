@@ -7,6 +7,8 @@ import { DBUser } from '../types/models.js';
 import crypto from 'crypto';
 import { AUTH_CONFIG } from '../utils/constants.js';
 import { authenv } from '../config/env.js';
+import { logger } from '../index.js';
+const { SqliteError } = Database;
 
 // DB path from validated environment
 const DB_PATH = authenv.AUTH_DB_PATH;
@@ -106,6 +108,8 @@ const insertUserStmt = db.prepare('INSERT INTO users (username, email, password)
 const updateUserStmt = db.prepare(
   'UPDATE users SET username = ?, email = ?, role = ? WHERE id = ?',
 );
+const updateUsernameStmt = db.prepare('UPDATE users SET username = ? WHERE id = ?');
+const updateEmailStmt = db.prepare('UPDATE users SET email = ? WHERE id = ?');
 const deleteUserStmt = db.prepare('DELETE FROM users WHERE id = ?');
 
 // OAuth statements
@@ -202,6 +206,19 @@ export function findUserById(id: number): DBUser | null {
     );
     error.code = 'DB_FIND_USER_BY_ID_ERROR';
     throw error;
+  }
+}
+
+export async function findUserByIdOrThrow(id: number): Promise<DBUser> {
+  try {
+    const user = findByIdStmt.get(id);
+    if (!user) {
+      throw new DataError(DATA_ERROR.NOT_FOUND, `No User`);
+    }
+    return user as DBUser;
+  } catch (err: unknown) {
+    if (err instanceof DataError) throw err;
+    throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error`, err);
   }
 }
 
@@ -354,6 +371,57 @@ export function updateUser(
       }
     }
     throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error ${err.message}`, err);
+  }
+}
+
+export async function updateUserUsername(userId: number, newUsername: string): Promise<void> {
+  try {
+    const info = updateUsernameStmt.run(newUsername, userId);
+    if (info.changes === 0) {
+      const user = findByIdStmt.get(userId);
+      if (!user) {
+        throw new DataError(DATA_ERROR.NOT_FOUND, 'User not found for update');
+      }
+    }
+  } catch (err: unknown) {
+    logger.error(err);
+    if (err instanceof DataError) {
+      throw err;
+    } else if (err instanceof SqliteError) {
+      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE' && err.message.includes('username')) {
+        throw new DataError(DATA_ERROR.DUPLICATE, 'Username taken', err, {
+          field: 'username',
+          value: newUsername,
+        });
+      }
+    } else {
+      throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error`, err);
+    }
+  }
+}
+
+export async function updateUserEmail(userId: number, newEmail: string): Promise<void> {
+  try {
+    const info = updateEmailStmt.run(newEmail, userId);
+    if (info.changes === 0) {
+      const user = findByIdStmt.get(userId);
+      if (!user) {
+        throw new DataError(DATA_ERROR.NOT_FOUND, 'User not found for update');
+      }
+    }
+  } catch (err: unknown) {
+    if (err instanceof DataError) {
+      throw err;
+    } else if (err instanceof SqliteError) {
+      if (err.code === 'SQLITE_CONSTRAINT_UNIQUE' && err.message.includes('email')) {
+        throw new DataError(DATA_ERROR.DUPLICATE, 'Email taken', err, {
+          field: 'email',
+          value: newEmail,
+        });
+      }
+    } else {
+      throw new DataError(DATA_ERROR.INTERNAL_ERROR, `DB Error`, err);
+    }
   }
 }
 

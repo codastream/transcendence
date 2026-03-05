@@ -47,7 +47,10 @@
   "global": {
     "loading": "Chargement...",
     "not_found": "Non trouvé",
-    "disabled": "désactivé"
+    "disabled": "désactivé",
+    "confirm": "confirmer",
+    "save": "enregistrer",
+    "cancel": "annuler"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -207,8 +210,14 @@
   },
   "zod_errors": {
     "invalid_format": "Vérifiez le format demandé",
+    "duplicate_entry": "Déjà pris",
     "too_small": "La valeur doit être plus longue",
-    "too_big": "La valeur doit être plus courte"
+    "too_big": "La valeur doit être plus courte",
+    "invalid_string": {
+      "email": "L'adresse email est incorrecte.",
+      "url": "L'URL est invalide."
+    },
+    "invalid_type": "Type invalide"
   },
   "validation": {
     "password": {
@@ -247,7 +256,8 @@
     "missing_user_name": "Nom d'utilisateur requis.",
     "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard.",
     "friend_self_add": "Choisissez un autre utilisateur que vous-même",
-    "friend_already": "Vous êtes déjà amis"
+    "friend_already": "Vous êtes déjà amis",
+    "required_field": "Champ requis"
   },
   "navbar": {
     "home": "Accueil",
@@ -265,7 +275,12 @@
   "profile": {
     "profile": "Profil",
     "2fa": "2FA",
-    "update_avatar": "Changer d'avatar"
+    "update_avatar": "Changer d'avatar",
+    "update_username": "Mettre à jour le pseudo",
+    "update_email": "Mettre à jour l'email",
+    "delete": "Supprimer le compte",
+    "delete_confirm_title": "Supprimer le compte ?",
+    "delete_confirm_text": "Êtes-vous sûr de vouloir supprimer votre profil ? Aucune récupération ne sera possible"
   },
   "2fa": {
     "title": "Authentification à deux facteurs",
@@ -322,8 +337,27 @@
   "game": {
     "playWithAI": "Match vs IA",
     "playWithFriends": "Match vs ami",
+    "playRemote": "Partie en ligne",
+    "playLocal": "Partie locale",
     "tournament": "Tournoi",
     "game": "Jeu",
+    "ambience": "Atmosphère",
+    "player_a": "joueur A",
+    "player_b": "joueur B",
+    "info_controls": "afficher les commandes",
+    "info_controls_mask": "masquer les commandes",
+    "loading_sessions": "chargement des sessions..",
+    "refresh_sessions": "mise à jour des sessions..",
+    "controls": {
+      "left_paddle": "pour la raquette de gauche",
+      "right_paddle": "pour la raquette de droite"
+    },
+    "status_list": {
+      "waiting": "prêt à démarrer",
+      "playing": "en cours",
+      "finished": "match terminé",
+      "paused:": "en pause"
+    },
     "participate": "Participer",
     "create": "Créer",
     "tournament_available": "Tournois disponibles",
@@ -341,11 +375,24 @@
     "semi_final": "Demi-Finale",
     "little_final": "Petite-Finale",
     "start": "Jouer",
+    "exit": "Quitter",
+    "play_again": "Rejouer",
     "run": "Lancement du tournoi",
+    "watch": "Regarder",
     "friends": "Amis",
     "waitiing": "Attente...",
     "creating": "Création du tournoi...",
-    "tournament_full": "Ce tournoi est déjà complet (maximum 4 joueurs)."
+    "tournament_full": "Ce tournoi est déjà complet (maximum 4 joueurs).",
+    "winner": {
+      "you_win": "Vous gagnez !",
+      "ai_wins": "L'IA gagne !",
+      "player1_wins": "Joueur 1 gagne !",
+      "player2_wins": "Joueur 2 gagne !",
+      "you_label": "Vous",
+      "ai_label": "IA",
+      "player1_label": "Joueur 1",
+      "player2_label": "Joueur 2"
+    }
   },
   "faq": {
     "title": "FAQ",

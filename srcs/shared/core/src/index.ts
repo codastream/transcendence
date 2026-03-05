@@ -51,10 +51,15 @@ export {
   emailSchema,
   passwordSchema,
   IdSchema,
-  roleSchema,
+  UserRoleSchema,
 } from './schemas/base.schema.js';
 export { UserNameSchema } from './schemas/user.schema.js';
-export { UserSchema, UserLoginSchema, UserRegisterSchema } from './schemas/auth.schema.js';
+export {
+  UserSchema,
+  UserFullSchema,
+  UserLoginSchema,
+  UserRegisterSchema,
+} from './schemas/auth.schema.js';
 export {
   // ProfileSchema,
   ProfileSimpleSchema,
@@ -77,6 +82,7 @@ export {
 // ============================================================================
 
 export type {
+  UserRole,
   idDTO,
   usernameDTO,
   emailDTO,
@@ -86,7 +92,7 @@ export type {
   statusUpdateDTO,
 } from './schemas/base.schema.js';
 export type { UserNameDTO, UserRequestDTO } from './schemas/user.schema.js';
-export type { UserDTO, UserLoginDTO, UserRegisterDTO } from './schemas/auth.schema.js';
+export type { UserDTO, UserFullDTO, UserLoginDTO, UserRegisterDTO } from './schemas/auth.schema.js';
 export type {
   FriendshipFullDTO,
   FriendshipUnifiedDTO,
@@ -98,11 +104,16 @@ export type {
 export type {
   ProfileDTO,
   ProfileSimpleDTO,
-  // ProfileAuthDTO,
+  ProfileWithAuthDTO,
   ProfileDataDTO,
-  // ProfileStoredDTO,
   ProfileCreateInDTO,
 } from './schemas/profile.schema.js';
+export type {
+  PlayerDTO,
+  MatchToPlayDTO,
+  TournamentDTO,
+  TournamentResultDTO,
+} from './schemas/game.schema.js';
 
 //=================================
 // Enum and Interface
@@ -110,5 +121,3 @@ export type {
 
 export type { UserEvent } from './schemas/user.schema.js';
 export { USER_EVENT } from './schemas/user.schema.js';
-export type { TournamentDTO } from './schemas/game.schema.js';
-export type { PlayerDTO, MatchToPlayDTO, TournamentResultDTO } from './schemas/game.schema.js';

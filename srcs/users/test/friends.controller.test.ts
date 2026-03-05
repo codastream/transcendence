@@ -173,13 +173,7 @@ describe('Friends Controller unit tests', () => {
 
     test('Should return 404 if not friends with target', async () => {
       vi.spyOn(friendshipService, 'removeFriend').mockRejectedValue(
-        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
-          userId: 1,
-          details: {
-            resource: LOG_RESOURCES.FRIEND,
-            targetId: 2,
-          },
-        }),
+        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {}),
       );
 
       const response = await app.inject({
@@ -193,13 +187,7 @@ describe('Friends Controller unit tests', () => {
 
     test('Should return 404 if profile not found', async () => {
       vi.spyOn(friendshipService, 'removeFriend').mockRejectedValue(
-        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
-          userId: 1,
-          details: {
-            resource: LOG_RESOURCES.PROFILE,
-            targetId: 2,
-          },
-        }),
+        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {}),
       );
 
       const response = await app.inject({

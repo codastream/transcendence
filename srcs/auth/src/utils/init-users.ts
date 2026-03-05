@@ -8,8 +8,6 @@ import { UserRole } from './constants.js';
  * Credentials par défaut
  */
 export async function initAdminUser(): Promise<void> {
-  const env = (globalThis as any).process?.env || {};
-
   try {
     // Vérifier si l'admin existe déjà
     const existingAdmin = authService.findByUsername(authenv.ADMIN_USERNAME);
@@ -78,8 +76,6 @@ export async function initAdminUser(): Promise<void> {
  * Credentials par défaut
  */
 export async function initInviteUser(): Promise<void> {
-  const env = (globalThis as any).process?.env || {};
-
   try {
     // Vérifier si l'invité existe déjà
     const existingInvite = authService.findByUsername(authenv.INVITE_USERNAME);
@@ -94,7 +90,7 @@ export async function initInviteUser(): Promise<void> {
     }
 
     // Créer l'utilisateur invité
-    const inviteId = authService.createUser({
+    const inviteId = await authService.createUser({
       username: authenv.INVITE_USERNAME,
       email: authenv.INVITE_EMAIL,
       password: authenv.INVITE_PASSWORD,
@@ -132,6 +128,44 @@ export async function initInviteUser(): Promise<void> {
     logger.error({
       event: 'invite_user_creation_failed',
       username: authenv.INVITE_USERNAME,
+      err: error?.message || error,
+      code: error?.code,
+    });
+    throw error;
+  }
+}
+
+export async function initAIUser(): Promise<void> {
+  try {
+    // Vérifier si l'utilisateur AI existe déjà
+    const existingAI = authService.findByUsername(authenv.AI_USERNAME);
+    if (existingAI) {
+      logger.info({
+        event: 'ai_user_exists',
+        username: authenv.AI_USERNAME,
+        message: 'AI user already exists, skipping creation',
+      });
+      return;
+    }
+
+    // Créer l'utilisateur AI
+    const aiId = await authService.createUser({
+      username: authenv.AI_USERNAME,
+      email: authenv.AI_EMAIL,
+      password: authenv.AI_PASSWORD,
+    });
+
+    logger.info({
+      event: 'ai_user_created',
+      username: authenv.AI_USERNAME,
+      email: authenv.AI_EMAIL,
+      id: aiId,
+      message: 'AI user created successfully',
+    });
+  } catch (error: any) {
+    logger.error({
+      event: 'ai_user_creation_failed',
+      username: authenv.AI_USERNAME,
       err: error?.message || error,
       code: error?.code,
     });

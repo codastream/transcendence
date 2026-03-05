@@ -16,16 +16,16 @@ import {
   isUserOnlineHandler,
   deleteUserHandler,
   oauthCallbackHandler,
+  patchUsernameHandler,
+  patchEmailHandler,
 } from '../controllers/auth.controller.js';
 import { AUTH_CONFIG } from '../utils/constants.js';
+import { patchEmailSchema, patchUsernameSchema } from '../utils/validation.js';
 
 export async function authRoutes(app: FastifyInstance) {
-  app.get(
-    '/',
-    async function (this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-      return { message: 'Auth service is running' };
-    },
-  );
+  app.get('/', async function (this: FastifyInstance) {
+    return { message: 'Auth service is running' };
+  });
 
   app.get(
     '/health',
@@ -63,6 +63,9 @@ export async function authRoutes(app: FastifyInstance) {
   );
 
   app.post('/logout', logoutHandler);
+
+  app.patch('/email', { schema: patchEmailSchema }, patchEmailHandler);
+  app.patch('/username', { schema: patchUsernameSchema }, patchUsernameHandler);
 
   app.get('/verify', verifyHandler);
 
@@ -129,7 +132,7 @@ export async function authRoutes(app: FastifyInstance) {
 
   // Suppression du compte utilisateur
   app.delete(
-    '/user/delete',
+    '/user',
     {
       config: {
         rateLimit: {

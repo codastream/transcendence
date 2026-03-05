@@ -69,7 +69,12 @@ export function TournamentTableDesktop({ tournaments, onJoin }: tournamentsProps
                 {t('game.join')}
               </button>
             ) : (
-              <span className="text-sm text-gray-400">{t('game.unavailable')}</span>
+              <button
+                onClick={() => onJoin(tour.id)}
+                className="px-5 py-2 rounded-full bg-cyan-500 text-white text-sm font-medium hover:bg-cyan-600 hover:scale-105 active:scale-100 transition"
+              >
+                {t('game.watch')}
+              </button>
             ),
         },
       ]}
@@ -96,14 +101,23 @@ export function TournamentListMobile({ tournaments, onJoin }: tournamentsProps) 
             <span className={`font-medium ${statusColor[tour.status]}`}>
               {t(statusLabel[tour.status])}
             </span>
-            {tour.status === 'WAITING' ? (
+            {tour.status === 'WAITING' && (
               <button
                 onClick={() => onJoin(tour.id)}
                 className="px-4 py-2 rounded-full bg-teal-500 text-white text-sm"
               >
                 {t('game.join')}
               </button>
-            ) : (
+            )}
+            {tour.status === 'IN_PROGRESS' && (
+              <button
+                onClick={() => onJoin(tour.id)}
+                className="px-4 py-2 rounded-full bg-teal-500 text-white text-sm"
+              >
+                {t('game.watch')}
+              </button>
+            )}
+            {tour.status !== 'FINISHED' && (
               <span className="text-sm text-gray-400">{t('game.unavailable')}</span>
             )}
           </div>

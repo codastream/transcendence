@@ -47,7 +47,10 @@
   "global": {
     "loading": "Laisse nous gérer ça...",
     "not_found": "Que dalle",
-    "disabled": "pas enclenché, le machin"
+    "disabled": "pas enclenché, le machin",
+    "confirm": "je suis sûr",
+    "save": "enregistre ça",
+    "cancel": "se dégonfler"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -223,8 +226,14 @@
   },
   "zod_errors": {
     "invalid_format": "T'as pas pigé le format ou quoi ?",
+    "duplicate_entry": "Déjà pris",
     "too_small": "Sois pas chiche, tu peux y aller niveau longueur",
-    "too_big": "T'as dépassé les bornes, coco. Revois ça à la baisse"
+    "too_big": "T'as dépassé les bornes, coco. Revois ça à la baisse",
+    "invalid_string": {
+      "email": "Tu fais dans la contrefaçon ?",
+      "url": "Mauvaise adresse"
+    },
+    "invalid_type": "Pas le bon type"
   },
   "validation": {
     "password": {
@@ -263,7 +272,8 @@
     "missing_user_name": "Ton blaze, il est où ?",
     "internal_error": "Putain, y'a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous.",
     "friend_self_add": "Tu peux pas t'ajouter toi-meme, vieux. Choisis un autre tandem.",
-    "friend_already": "T'es déjà pote, mon vieux !"
+    "friend_already": "T'es déjà pote, mon vieux !",
+    "required_field": "C'est trop vide ici"
   },
   "navbar": {
     "home": "Le bercail",
@@ -281,7 +291,12 @@
   "profile": {
     "profile": "Pedigree",
     "2fa": "Double contrôle",
-    "update_avatar": "Se faire retirer le portrait"
+    "update_avatar": "Se faire retirer le portrait",
+    "update_username": "Changer le blaze",
+    "update_email": "Changer le courrier'",
+    "delete": "Se faire oublier",
+    "delete_confirm_title": "On t'oublie ?",
+    "delete_confirm_text": "Tu quittes le navire ? Sois sûr de toi mon pote, y'aura pas de retour en arrière.."
   },
   "2fa": {
     "title": "Double vérification, vieux !",
@@ -341,6 +356,23 @@
     "playLocal": "Joue avec tes potes en remote",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
+    "ambience": "Atmosphère",
+    "loading_sessions": "on s'en occupe..",
+    "refresh_sessions": "il y a besoin de rafraîchir tout ça..",
+    "player_a": "machin",
+    "player_b": "truc",
+    "info_controls": "comment ça marche ce truc ?",
+    "info_controls_mask": "ça va, c'est pas trop compliqué",
+    "controls": {
+      "left_paddle": "si t'es à gauche",
+      "right_paddle": "si t'es à droite"
+    },
+    "status_list": {
+      "waiting": "on vous attend",
+      "playing": "faites honneur au sport",
+      "finished": "c'est plié",
+      "paused:": "temps mort"
+    },
     "participate": "Tu cherches des embrouilles!",
     "create": "Je vous mets au défi!",
     "tournament_available": "Vendetta disponibles",
@@ -358,11 +390,24 @@
     "semi_final": "On prends du Galon",
     "little_final": "Les loosers c'est ici",
     "start": "C'est parti",
+    "exit": "On se casse",
+    "play_again": "Encore une, on est pas des mauviettes !",
     "run": "Lancement de la Vendetta",
+    "watch": "Regarder le combat",
     "friends": "Les potes",
     "waitiing": "On t'attend...",
     "creating": "Création de la vendetta...",
-    "tournament_full": "Cette vendetta est complete(maximum 4 truands)."
+    "tournament_full": "Cette vendetta est complete(maximum 4 truands).",
+    "winner": {
+      "you_win": "T'as écrasé la machine, champion !",
+      "ai_wins": "Le machin t'a mis une raclée, vieux.",
+      "player1_wins": "Le gars 1 a mis une tarte au gars 2 !",
+      "player2_wins": "Le gars 2 a mis une tarte au gars 1 !",
+      "you_label": "Toi",
+      "ai_label": "Le machin",
+      "player1_label": "Le gars 1",
+      "player2_label": "Le gars 2"
+    }
   },
   "faq": {
     "title": "FAQ du Turfu",

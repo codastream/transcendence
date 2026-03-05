@@ -8,9 +8,16 @@ export const UserRegisterSchema = z.object({
 });
 
 export const UserSchema = z.object({
-  authId: idSchema,
+  id: idSchema,
   email: z.email(),
   username: usernameSchema,
+});
+
+export const UserFullSchema = UserSchema.extend({
+  role: z.string(),
+  is2faEnabled: z.boolean(),
+  oauthEmail: z.email().nullable(),
+  createdAt: z.date(),
 });
 
 export const UserLoginSchema = z.union([
@@ -26,5 +33,6 @@ export const UserLoginSchema = z.union([
 
 // inferred DTOs
 export type UserDTO = z.output<typeof UserSchema>;
+export type UserFullDTO = z.output<typeof UserFullSchema>;
 export type UserRegisterDTO = z.output<typeof UserRegisterSchema>;
 export type UserLoginDTO = z.output<typeof UserLoginSchema>;

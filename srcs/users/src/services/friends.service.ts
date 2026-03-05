@@ -63,7 +63,7 @@ export class FriendshipService {
       });
     }
 
-    await profileService.getById(userId);
+    await profileService.getProfileByIdOrThrow(userId);
     const fullTarget = await profileService.getByUsernameRaw(targetUsername);
 
     const existingFriendship = await friendshipRepository.findFriendshipBetween(

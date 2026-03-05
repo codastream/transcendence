@@ -20,6 +20,7 @@ vi.mock('../src/data/friends.data.js', () => ({
 }));
 
 const profileServiceMock = vi.hoisted(() => ({
+  getProfileByIdOrThrow: vi.fn(),
   getById: vi.fn(),
   getByUsernameRaw: vi.fn(),
 }));
@@ -33,7 +34,7 @@ import {
   checkFriendshipExistence,
   friendshipService,
 } from '../src/services/friends.service.js';
-import { mockFullProfileDTO2 } from './fixtures/profiles.fixtures.js';
+import { mockFullProfileDTO1, mockFullProfileDTO2 } from './fixtures/profiles.fixtures.js';
 
 const baseFriendship = {
   id: 42,
@@ -87,6 +88,7 @@ describe('FriendshipService', () => {
     });
 
     it('rejects when friendship already exists', async () => {
+      profileServiceMock.getProfileByIdOrThrow.mockResolvedValue(mockFullProfileDTO1);
       repoMocks.findFriendshipBetween.mockResolvedValue(baseFriendship);
       profileServiceMock.getByUsernameRaw.mockResolvedValue(mockFullProfileDTO2);
 
@@ -115,7 +117,7 @@ describe('FriendshipService', () => {
 
       const result = await friendshipService.createFriend('toto', 1, 'tata');
 
-      expect(profileServiceMock.getById).toHaveBeenCalledWith(1);
+      expect(profileServiceMock.getProfileByIdOrThrow).toHaveBeenCalledWith(1);
       expect(profileServiceMock.getByUsernameRaw).toHaveBeenCalledWith('tata');
       expect(repoMocks.createFriendship).toHaveBeenCalledWith(1, 2);
       expect(result).toEqual(baseFriendship);

@@ -1,6 +1,6 @@
 import React from 'react';
 
-type ButtonVariant = 'primary' | 'secondary' | 'alert';
+type ButtonVariant = 'primary' | 'secondary' | 'info' | 'alert';
 
 const baseStyle = `px-6 
   py-2 
@@ -17,6 +17,7 @@ const baseStyle = `px-6
 const variants = {
   primary: 'bg-zinc-700 text-white hover:bg-zinc-600',
   secondary: 'bg-cyan-200 text-cyan-900 border-cyan-400 hover:bg-cyan-100',
+  info: 'bg-emerald-200 text-emerald-900 border-emerald-400 hover:bg-emerald-100',
   alert: 'bg-red-300 text-red-900 border-red-600 hover:bg-red-300',
 };
 
@@ -30,8 +31,8 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = ({
   children,
   variant = 'primary',
-  className: className = '',
-  disabled,
+  className = '',
+  disabled = false,
   type = 'submit',
   ...props
 }: ButtonProps) => {

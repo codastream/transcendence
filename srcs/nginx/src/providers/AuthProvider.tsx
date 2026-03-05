@@ -49,11 +49,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const checkAuth = async () => {
       try {
         const me = await authApi.me();
-        try {
-          const profile = await profileApi.getProfileByUsername(me.username);
-          setUser(profile);
-        } catch {
-          setUser({ username: me.username, avatarUrl: null });
+        if (me) {
+          try {
+            const profile = await profileApi.getProfileByUsername(me.username);
+            setUser(profile);
+          } catch {
+            setUser({ username: me.username, avatarUrl: null });
+          }
         }
       } catch {
         setUser(null);
