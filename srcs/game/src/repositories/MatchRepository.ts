@@ -56,6 +56,7 @@ export class MatchRepository {
       LEFT JOIN player p1 ON p1.id = m.player1
       LEFT JOIN player p2 ON p2.id = m.player2
       LEFT JOIN player pw ON pw.id = m.winner_id
+      WHERE (m.player1 = ? OR m.player2 = ?)
       ORDER BY m.created_at DESC
       LIMIT 100
     `);
@@ -77,8 +78,12 @@ export class MatchRepository {
   ): number {
     try {
       const result = this.createFreeMatchStmt.run(
-        player1, player2, sessionId,
-        scorePlayer1, scorePlayer2, winnerId,
+        player1,
+        player2,
+        sessionId,
+        scorePlayer1,
+        scorePlayer2,
+        winnerId,
         Date.now(),
       );
       return Number(result.lastInsertRowid);
@@ -142,15 +147,25 @@ export class MatchRepository {
       if (!match) throw new Error('Match not found');
       if (match.round !== 'SEMI_1' && match.round !== 'SEMI_2') return;
 
-      const semisFinished = (this.countFinishedSemisStmt.get(match.tournament_id) as { count: number }).count;
+      const semisFinished = (
+        this.countFinishedSemisStmt.get(match.tournament_id) as { count: number }
+      ).count;
       if (semisFinished !== 2) return;
 
-      const semi1 = this.getMatchByRoundStmt.get(match.tournament_id, 'SEMI_1') as {
-        player1: number; player2: number; winner_id: number | null;
-      } | undefined;
-      const semi2 = this.getMatchByRoundStmt.get(match.tournament_id, 'SEMI_2') as {
-        player1: number; player2: number; winner_id: number | null;
-      } | undefined;
+      const semi1 = this.getMatchByRoundStmt.get(match.tournament_id, 'SEMI_1') as
+        | {
+            player1: number;
+            player2: number;
+            winner_id: number | null;
+          }
+        | undefined;
+      const semi2 = this.getMatchByRoundStmt.get(match.tournament_id, 'SEMI_2') as
+        | {
+            player1: number;
+            player2: number;
+            winner_id: number | null;
+          }
+        | undefined;
 
       const winner1 = semi1?.winner_id;
       const winner2 = semi2?.winner_id;
@@ -160,13 +175,20 @@ export class MatchRepository {
       const now = Date.now();
 
       this.createMatchStmt.run(match.tournament_id, winner1, winner2, randomUUID(), 'FINAL', now);
-      this.createMatchStmt.run(match.tournament_id, loser1, loser2, randomUUID(), 'LITTLE_FINAL', now);
+      this.createMatchStmt.run(
+        match.tournament_id,
+        loser1,
+        loser2,
+        randomUUID(),
+        'LITTLE_FINAL',
+        now,
+      );
     })();
   }
 
-  getMatchHistory(): any[] {
+  getMatchHistory(userId: number): any[] {
     try {
-      return this.getMatchHistoryStmt.all();
+      return this.getMatchHistoryStmt.all(userId, userId) as any[];
     } catch (err: unknown) {
       throw new AppError(
         ERR_DEFS.DB_SELECT_ERROR,

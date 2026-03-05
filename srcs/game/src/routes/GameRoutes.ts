@@ -57,8 +57,8 @@ export async function gameRoutes(
   );
 
   // ---- Stats / History ----
-  app.get('/stats', ctrl.getTournamentStats);
-  app.get('/history', ctrl.getMatchHistory);
+  app.get('/stats', { preHandler: app.recoveryHeaders }, ctrl.getTournamentStats);
+  app.get('/history', { preHandler: app.recoveryHeaders }, ctrl.getMatchHistory);
 
   // ---- RL API (AI training) ----
   app.post('/ai/reset', ctrl.resetGame);

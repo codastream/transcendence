@@ -8,6 +8,8 @@ export interface PlayerStat {
   tournaments_won: number;
   matches_played: number;
   matches_won: number;
+  tournamentsWinRate: number;
+  matchesWinRate: number;
 }
 
 export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
@@ -38,12 +40,15 @@ export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
           ),
         },
         {
+          header: t('stats.tournaments_win_rate', 'Tournaments Win Rate'),
+          cell: (row) => <span className="text-cyan-600">{row.tournamentsWinRate} %</span>,
+        },
+        {
           header: t('stats.matches_played', 'Matches Played'),
           cell: (row) => <span className="text-gray-600">{row.matches_played}</span>,
         },
         {
           header: t('stats.matches_won', 'Matches Won'),
-          className: 'text-right',
           cell: (row) => (
             <span
               className={row.matches_won > 0 ? 'font-medium text-emerald-600' : 'text-gray-500'}
@@ -51,6 +56,11 @@ export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
               {row.matches_won}
             </span>
           ),
+        },
+        {
+          header: t('stats.matches_win_rate', 'Matches Win Rate'),
+          className: 'text-right',
+          cell: (row) => <span className="text-cyan-600">{row.matchesWinRate} %</span>,
         },
       ]}
     />

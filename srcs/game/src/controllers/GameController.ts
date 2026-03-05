@@ -225,12 +225,14 @@ export function createGameController(
 
     // ---- Stats / History ----
 
-    async getTournamentStats(_req: FastifyRequest, reply: FastifyReply) {
-      return reply.code(200).send(tournamentRepo.getTournamentStats());
+    async getTournamentStats(req: FastifyRequest, reply: FastifyReply) {
+      const userId = req.user?.id ?? null;
+      return reply.code(200).send(tournamentRepo.getTournamentStats(userId));
     },
 
-    async getMatchHistory(_req: FastifyRequest, reply: FastifyReply) {
-      return reply.code(200).send(matchRepo.getMatchHistory());
+    async getMatchHistory(req: FastifyRequest, reply: FastifyReply) {
+      const userId = req.user?.id ?? null;
+      return reply.code(200).send(matchRepo.getMatchHistory(userId));
     },
 
     // ---- RL API (AI mode) ----
