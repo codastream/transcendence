@@ -2,6 +2,9 @@
 // TournamentMode — Two players from a tournament bracket
 // Validates authorized players from DB match before allowing join.
 // Persists results + triggers bracket progression + blockchain publish.
+//
+// Rôle A = player1 en DB (left paddle), Rôle B = player2 en DB (right paddle)
+// L'assignation est déterministe : pas de course condition sur le rôle.
 // ============================================================================
 
 import { WebSocket } from 'ws';
@@ -12,6 +15,7 @@ import { GameOverData, WS_CLOSE } from '../types/game.types.js';
 import { createHumanPlayer } from '../core/player/PlayerFactory.js';
 import type { MatchRepository } from '../repositories/MatchRepository.js';
 import type { TournamentRepository } from '../repositories/TournamentRepository.js';
+import { broadcastToSession, sendToWs } from '../websocket/WsBroadcast.js';
 
 export class TournamentMode implements IGameMode {
   constructor(
@@ -54,22 +58,57 @@ export class TournamentMode implements IGameMode {
       return false;
     }
 
-    const role = session.getNextAvailableRole();
-    if (!role) {
-      ws.close(WS_CLOSE.SESSION_FULL, 'Session full');
+    // Rôle déterministe depuis la DB :
+    // player1 de la DB → rôle A (paddle gauche)
+    // player2 de la DB → rôle B (paddle droit)
+    let role: 'A' | 'B';
+    if (match) {
+      role = user.id === match.player1 ? 'A' : 'B';
+    } else {
+      // Pas encore de match en DB : assignation séquentielle fallback
+      const nextRole = session.getNextAvailableRole();
+      if (!nextRole) {
+        ws.close(WS_CLOSE.SESSION_FULL, 'Session full');
+        return false;
+      }
+      role = nextRole;
+    }
+
+    // Vérifier que ce slot n'est pas déjà pris (protection double-connexion)
+    if (session.getPlayer(role)) {
+      ws.close(WS_CLOSE.SESSION_FULL, 'Slot already taken');
       return false;
     }
 
-    const player = createHumanPlayer(role, user.id, ws);
+    const player = createHumanPlayer(role, user.id, ws, user.username);
     session.setPlayer(role, player);
 
-    ws.send(JSON.stringify({ type: 'connected', message: `Player ${role}` }));
-    app.log.info(`[${session.id}] Tournament: Player ${role} (userId=${user.id}) connected`);
+    // Informer le joueur de son rôle et du nom de la session
+    sendToWs(ws, {
+      type: 'connected',
+      message: `${user.username} connected`,
+      player: { role, username: user.username, userId: user.id, ready: false },
+      sessionName: session.displayName,
+    });
+    app.log.info(
+      `[${session.id}] Tournament: Player ${role} (userId=${user.id}, username=${user.username}) connected`,
+    );
 
-    // Auto-start when both tournament players are in
+    // Informer TOUS les joueurs de la connexion du nouveau joueur
+    broadcastToSession(session, {
+      type: 'player_joined',
+      message: `${user.username} a rejoint la partie`,
+      players: session.getPlayersInfo(),
+    });
+
+    // Quand les deux joueurs sont là, passer en mode ready_check (pas d'auto-start)
     if (this.canStart(session) && session.game.status === 'waiting') {
-      session.game.start();
-      app.log.info(`[${session.id}] Tournament: both players — game auto-started`);
+      broadcastToSession(session, {
+        type: 'ready_check',
+        message: 'Les deux joueurs sont connectés. Envoyez "ready" pour démarrer.',
+        players: session.getPlayersInfo(),
+      });
+      app.log.info(`[${session.id}] Tournament: both players connected — waiting for ready`);
     }
 
     return true;
@@ -77,11 +116,17 @@ export class TournamentMode implements IGameMode {
 
   async onPlayerDisconnect(session: Session, ws: WebSocket, app: FastifyInstance): Promise<void> {
     const player = session.removePlayerByWs(ws);
-    app.log.info(`[${session.id}] Tournament: Player ${player?.role ?? '?'} disconnected`);
+    app.log.info(
+      `[${session.id}] Tournament: Player ${player?.role ?? '?'} (${player?.username ?? '?'}) disconnected`,
+    );
+
+    // Réinitialiser les ready players si la partie n'a pas encore commencé
+    if (session.game.status === 'waiting') {
+      session.clearReady();
+    }
 
     // A disconnection mid-game must stop the engine so GameLoop can persist the
-    // partial result and advance the bracket. Without this, the match is never
-    // recorded and the tournament stalls.
+    // partial result and advance the bracket.
     if (session.game.status === 'playing') {
       app.log.info(`[${session.id}] Tournament: player left mid-game — game stopped (forfeit)`);
       session.game.stop();
@@ -102,8 +147,8 @@ export class TournamentMode implements IGameMode {
         return;
       }
 
-      // Map roles to DB players: A = left, B = right
-      // Determine score mapping based on which DB player is assigned to role A
+      // Map roles to DB players: A = left paddle, B = right paddle
+      // Rôle A est toujours player1 en DB (assignation déterministe dans onPlayerJoin)
       const playerAUserId = session.getUserId('A');
       let scorePlayer1: number;
       let scorePlayer2: number;

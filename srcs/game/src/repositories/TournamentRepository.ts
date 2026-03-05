@@ -68,7 +68,7 @@ export class TournamentRepository {
       SELECT * FROM tournament_player WHERE player_id = ? AND tournament_id = ?
     `);
     this.getPlayersIdStmt = db.prepare(`
-      SELECT player_id FROM tournament_player WHERE tournament_id = ?
+      SELECT player_id FROM tournament_player WHERE tournament_id = ? ORDER BY slot ASC
     `);
     this.createMatchStmt = db.prepare(`
       INSERT INTO match(tournament_id, player1, player2, sessionId, round, created_at)
@@ -184,15 +184,33 @@ export class TournamentRepository {
       throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
     }
     const now = Date.now();
-    this.createMatchStmt.run(tournamentId, players[0].player_id, players[1].player_id, randomUUID(), 'SEMI_1', now);
-    this.createMatchStmt.run(tournamentId, players[2].player_id, players[3].player_id, randomUUID(), 'SEMI_2', now);
+    this.createMatchStmt.run(
+      tournamentId,
+      players[0].player_id,
+      players[1].player_id,
+      randomUUID(),
+      'SEMI_1',
+      now,
+    );
+    this.createMatchStmt.run(
+      tournamentId,
+      players[2].player_id,
+      players[3].player_id,
+      randomUUID(),
+      'SEMI_2',
+      now,
+    );
   }
 
   listTournaments(): TournamentDTO[] {
     try {
       return this.listTournamentsStmt.all() as TournamentDTO[];
     } catch (err: unknown) {
-      throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: 'listTournaments' }] }, err);
+      throw new AppError(
+        ERR_DEFS.DB_SELECT_ERROR,
+        { details: [{ field: 'listTournaments' }] },
+        err,
+      );
     }
   }
 
@@ -210,7 +228,11 @@ export class TournamentRepository {
 
   getMatchToPlay(tournamentId: number, userId: number): MatchToPlayDTO | null {
     try {
-      const match = this.getMatchToPlayStmt.get(tournamentId, userId, userId) as MatchToPlayDTO | null;
+      const match = this.getMatchToPlayStmt.get(
+        tournamentId,
+        userId,
+        userId,
+      ) as MatchToPlayDTO | null;
       if (!match) {
         const errorDetail: ErrorDetail = {
           field: `No match to play for user ${userId} in tournament ${tournamentId}`,
@@ -248,21 +270,32 @@ export class TournamentRepository {
       this.db.transaction(() => {
         this.changeStatusStmt.run('FINISHED', tournamentId);
 
-        const finalMatch = this.getMatchByRoundStmt.get(tournamentId, 'FINAL') as {
-          player1: number; player2: number; winner_id: number | null;
-        } | undefined;
-        const littleFinalMatch = this.getMatchByRoundStmt.get(tournamentId, 'LITTLE_FINAL') as {
-          player1: number; player2: number; winner_id: number | null;
-        } | undefined;
+        const finalMatch = this.getMatchByRoundStmt.get(tournamentId, 'FINAL') as
+          | {
+              player1: number;
+              player2: number;
+              winner_id: number | null;
+            }
+          | undefined;
+        const littleFinalMatch = this.getMatchByRoundStmt.get(tournamentId, 'LITTLE_FINAL') as
+          | {
+              player1: number;
+              player2: number;
+              winner_id: number | null;
+            }
+          | undefined;
 
         if (finalMatch?.winner_id != null) {
-          const loser = finalMatch.player1 === finalMatch.winner_id ? finalMatch.player2 : finalMatch.player1;
+          const loser =
+            finalMatch.player1 === finalMatch.winner_id ? finalMatch.player2 : finalMatch.player1;
           this.addPlayerPositionStmt.run(1, tournamentId, finalMatch.winner_id);
           this.addPlayerPositionStmt.run(2, tournamentId, loser);
         }
         if (littleFinalMatch?.winner_id != null) {
-          const loser = littleFinalMatch.player1 === littleFinalMatch.winner_id
-            ? littleFinalMatch.player2 : littleFinalMatch.player1;
+          const loser =
+            littleFinalMatch.player1 === littleFinalMatch.winner_id
+              ? littleFinalMatch.player2
+              : littleFinalMatch.player1;
           this.addPlayerPositionStmt.run(3, tournamentId, littleFinalMatch.winner_id);
           this.addPlayerPositionStmt.run(4, tournamentId, loser);
         }
@@ -280,16 +313,25 @@ export class TournamentRepository {
     try {
       return this.getTournamentStatsStmt.all();
     } catch (err: unknown) {
-      throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: 'getTournamentStats' }] }, err);
+      throw new AppError(
+        ERR_DEFS.DB_SELECT_ERROR,
+        { details: [{ field: 'getTournamentStats' }] },
+        err,
+      );
     }
   }
 
   getTournamentResultForBlockchain(tournamentId: number): {
-    tour_id: number; player1: number; player2: number; player3: number; player4: number;
+    tour_id: number;
+    player1: number;
+    player2: number;
+    player3: number;
+    player4: number;
   } | null {
     try {
       const rows = this.getBlockchainPlayersStmt.all(tournamentId) as Array<{
-        player_id: number; final_position: number | null;
+        player_id: number;
+        final_position: number | null;
       }>;
       const byPosition: Record<number, number> = {};
       for (const row of rows) {

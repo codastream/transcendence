@@ -31,9 +31,16 @@ export class LocalMode implements IGameMode {
     }
 
     // Player A: the authenticated user
-    const playerA = createHumanPlayer('A', user?.id ?? null, ws);
+    const playerA = createHumanPlayer('A', user?.id ?? null, ws, user?.username ?? 'anonymous');
     session.setPlayer('A', playerA);
-    ws.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
+    ws.send(
+      JSON.stringify({
+        type: 'connected',
+        message: `${playerA.username} connected`,
+        player: { role: 'A', username: playerA.username, userId: user?.id ?? null, ready: false },
+        sessionName: session.displayName,
+      }),
+    );
 
     // Player B: guest (no WS, controlled locally)
     const guestB = createGuestPlayer('B');
@@ -42,7 +49,9 @@ export class LocalMode implements IGameMode {
     // Ensure the guest player row exists in the DB once at join time, not on every
     this.matchRepo.ensureGuestPlayer();
 
-    app.log.info(`[${session.id}] Local mode — Player A (userId=${user?.id}), Player B = GUEST`);
+    app.log.info(
+      `[${session.id}] Local mode — Player A (${playerA.username}, userId=${user?.id}), Player B = GUEST`,
+    );
 
     // Auto-start with single player
     if (session.game.status === 'waiting') {

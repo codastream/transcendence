@@ -49,7 +49,12 @@ export function createGameController(
 
       try {
         const result = createSession(
-          { gameMode, tournamentId, creatorUserId: userId },
+          {
+            gameMode,
+            tournamentId,
+            creatorUserId: userId,
+            creatorUsername: req.user?.username ?? null,
+          },
           sessionStore,
           matchRepo,
           tournamentRepo,
@@ -66,6 +71,7 @@ export function createGameController(
           status: 'success',
           message: 'Game session created',
           sessionId: result.sessionId,
+          sessionName: result.session.displayName,
           wsUrl: `/game/ws/${result.sessionId}`,
         });
       } catch (err: unknown) {
@@ -127,10 +133,12 @@ export function createGameController(
     async listGameSessions(_req: FastifyRequest, reply: FastifyReply) {
       const sessions = sessionStore.listByMode('remote').map((s) => ({
         sessionId: s.id,
+        sessionName: s.displayName,
         state: s.game.getState(),
         playerCount: s.connectedPlayerCount,
         hasInterval: s.interval !== null,
         gameMode: s.gameMode,
+        players: s.getPlayersInfo(),
       }));
 
       return { status: 'success', count: sessions.length, sessions };

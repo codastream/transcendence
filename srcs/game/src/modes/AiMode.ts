@@ -1,6 +1,7 @@
 // ============================================================================
 // AiMode — Human (Player A) vs AI (Player B controlled via REST RL API)
 // AI paddle movement comes from the pong-ai service calling REST endpoints.
+// Player A = human (WS connection), Player B = AI (headless, no WS).
 // ============================================================================
 
 import { WebSocket } from 'ws';
@@ -15,7 +16,7 @@ export class AiMode implements IGameMode {
   constructor(private matchRepo: MatchRepository) {}
 
   canStart(session: Session): boolean {
-    // AI mode starts with 1 human player (AI is virtual)
+    // AI mode starts when 1 human player is connected (AI connected WS first)
     return session.connectedPlayerCount >= 1;
   }
 
@@ -25,46 +26,47 @@ export class AiMode implements IGameMode {
     user: UserIdentity | null,
     app: FastifyInstance,
   ): Promise<boolean> {
-    if (session.isFull()) {
+    // Only one human WS connection is allowed (player A)
+    if (session.getPlayer('A') !== undefined) {
+      app.log.warn(`[${session.id}] AI mode: human player already connected, refusing`);
       ws.close(WS_CLOSE.SESSION_FULL, 'Session full');
       return false;
     }
 
-    const role = session.getNextAvailableRole();
-    if (!role) {
-      app.log.info(`[${session.id}] AI mode: session full, refused connection`);
-      ws.close(WS_CLOSE.SESSION_FULL, 'Session full');
-      return false;
-    }
-
-    // First player to join is always AI (B) and second player is human (A)
-    if (role === 'B') {
-      const aiPlayer = createAiPlayer('B', ws);
-      session.setPlayer('B', aiPlayer);
-      ws.send(JSON.stringify({ type: 'connected', message: 'Player B (AI)' }));
-      app.log.info(`[${session.id}] AI mode — Player B connected (AI)`);
-      return true;
-    }
-
+    // Player A = human
     const safeUserId = user?.id != null && Number.isFinite(user.id) ? user.id : null;
-    const player = createHumanPlayer(role, safeUserId, ws);
-    session.setPlayer(role, player);
+    const playerA = createHumanPlayer('A', safeUserId, ws, user?.username ?? 'anonymous');
+    session.setPlayer('A', playerA);
 
-    ws.send(JSON.stringify({ type: 'connected', message: `Player ${role}` }));
-    app.log.info(`[${session.id}] Player ${role} connected (userId=${safeUserId})`);
+    // Player B = AI (headless — no WS, controlled via REST /ai/step)
+    // Created here so the right paddle exists from the start.
+    const aiPlayer = createAiPlayer('B');
+    session.setPlayer('B', aiPlayer);
 
-    // Auto-start when AI is in (B) and human joins (A)
+    ws.send(
+      JSON.stringify({
+        type: 'connected',
+        message: `${playerA.username} connected`,
+        player: { role: 'A', username: playerA.username, userId: safeUserId, ready: false },
+        sessionName: session.displayName,
+      }),
+    );
+    app.log.info(
+      `[${session.id}] AI mode — Player A (userId=${safeUserId}), Player B = AI (headless)`,
+    );
+
+    // Auto-start: 1 human + AI created = ready to play
     if (this.canStart(session) && session.game.status === 'waiting') {
       session.game.start();
-      app.log.info(`[${session.id}] AI mode: both players connected — game auto-started`);
+      app.log.info(`[${session.id}] AI mode: human connected + AI ready — game auto-started`);
     }
 
     return true;
   }
 
   async onPlayerDisconnect(session: Session, ws: WebSocket, app: FastifyInstance): Promise<void> {
-    session.removePlayerByWs(ws);
-    app.log.info(`[${session.id}] AI mode — human player disconnected`);
+    const player = session.removePlayerByWs(ws);
+    app.log.info(`[${session.id}] AI mode — human player ${player?.username ?? '?'} disconnected`);
 
     // Stop whether 'waiting' or 'playing': without a human the session is meaningless.
     if (session.connectedPlayerCount === 0 && session.game.status !== 'finished') {
@@ -81,7 +83,7 @@ export class AiMode implements IGameMode {
     }
 
     try {
-      // AI matches stored as free matches, player2 = 0 (AI marker)
+      // AI matches stored as free matches, player2 = AI_USER_ID marker
       const winnerId = result.winner === 'left' ? player1Id : AI_USER_ID;
       this.matchRepo.createFreeMatch(
         player1Id,
