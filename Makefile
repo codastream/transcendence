@@ -304,4 +304,12 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all ai re-ai clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima studio-user
+.PHONY : all dev ai re re-ai redev clean fclean reset-hard clean-pack \
+	volumes certs envs install build build-dev \
+	start start-dev stop down down-dev \
+	nginx nginx-nc nginx-dev nginx-reload redis \
+	api api-dev auth auth-nc auth-dev user user-nc user-dev game game-dev block block-nc block-dev pong-ai \
+	test test-user test-coverage test-coverage-user test-pong-ai test-block \
+	redis-cli shell-% shell-nginx shell-redis shell-api shell-auth shell-user shell-game shell-block shell-pong-ai \
+	logs logs-% logs-nginx logs-redis logs-api logs-auth logs-user logs-game logs-block logs-pong-ai show \
+	users-showdb user-migrate-dev

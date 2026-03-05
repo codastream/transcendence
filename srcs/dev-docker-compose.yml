@@ -57,7 +57,7 @@ services:
     command: >
       sh -c "npx prisma generate &&
         npx prisma db push && 
-        npx nodemon --watch src --watch ../../shared/core/src -e ts --exec 'npx tsx' src/index.ts"
+        npx nodemon --watch src --watch ../shared/core/src -e ts --exec 'npx tsx' src/index.ts"
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
@@ -99,7 +99,7 @@ services:
     networks:
       - app-network
     command: >
-      sh -c "npx nodemon --watch src --watch ../../shared/core/src -e ts --exec 'npx tsx' src/index.ts"
+      sh -c "npx nodemon --watch src --watch ../shared/core/src -e ts --exec 'npx tsx' src/index.ts"
     restart: unless-stopped
     depends_on:
       user-service:
@@ -190,7 +190,7 @@ services:
       - ../make/scripts/certs/certs/ca:/etc/ca:ro
     networks:
       - app-network
-    command: npx nodemon --watch src --watch ../../shared/core/src -e ts --exec "npx tsx" src/server.ts
+    command: npx nodemon --watch src --watch ../shared/core/src -e ts --exec "npx tsx" src/Server.ts
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
