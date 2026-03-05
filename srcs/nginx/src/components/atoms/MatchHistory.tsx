@@ -31,7 +31,7 @@ export const HistoryTableDesktop = ({ history }: { history: MatchHistory[] }) =>
       emptyMessage={t('history.empty', 'No matches yet.')}
       columns={[
         {
-          header: 'Round',
+          header: t('history.round'),
           cell: (m) => (
             <span className="text-gray-600">
               {m.round ? (roundLabel[m.round] ?? m.round) : '—'}
@@ -39,11 +39,11 @@ export const HistoryTableDesktop = ({ history }: { history: MatchHistory[] }) =>
           ),
         },
         {
-          header: 'Player 1',
+          header: t('history.player1'),
           cell: (m) => <span className="font-bold text-gray-700">{m.username_player1}</span>,
         },
         {
-          header: 'Score',
+          header: t('history.score'),
           className: 'text-center',
           cell: (m) => (
             <span className="font-bold text-teal-600">
@@ -52,21 +52,21 @@ export const HistoryTableDesktop = ({ history }: { history: MatchHistory[] }) =>
           ),
         },
         {
-          header: 'Player 2',
+          header: t('history.player2'),
           cell: (m) => <span className="font-bold text-gray-700">{m.username_player2}</span>,
         },
         {
-          header: 'Winner',
+          header: t('history.winner'),
           cell: (m) => (
             <span className="font-medium text-emerald-600">{m.username_winner ?? '—'}</span>
           ),
         },
         {
-          header: 'Tournament',
+          header: t('history.tournament'),
           className: 'text-right',
           cell: (m) => (
             <span className="text-sm text-gray-500">
-              {m.tournament_id ? `#${m.tournament_id}` : 'Free'}
+              {m.tournament_id ? `#${m.tournament_id}` : '🥸️'}
             </span>
           ),
         },
