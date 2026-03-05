@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { UseGameSessionsReturn } from '../../hooks/GameSessions.tsx';
-import { GameStatus } from './Arena.tsx';
+import type { GameStatus } from '../../types/game.types';
 
 interface GameStatusBarProps {
   className?: string;
@@ -11,12 +11,6 @@ interface GameStatusBarProps {
   labelLeft?: string;
   labelRight?: string;
   status?: GameStatus;
-}
-export interface GameSession {
-  sessionId: string;
-  createdAt?: string;
-  playerCount?: number;
-  status?: 'waiting' | 'playing' | 'finished';
 }
 
 const GameStatusBar = ({

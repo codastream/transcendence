@@ -377,6 +377,7 @@
     "start": "Jouer",
     "exit": "Quitter",
     "play_again": "Rejouer",
+    "new_game": "Nouvelle partie",
     "run": "Lancement du tournoi",
     "watch": "Regarder",
     "friends": "Amis",
@@ -391,7 +392,24 @@
       "you_label": "Vous",
       "ai_label": "IA",
       "player1_label": "Joueur 1",
-      "player2_label": "Joueur 2"
+      "player2_label": "Joueur 2",
+      "forfeit": "Adversaire déconnecté — victoire par forfait !"
+    },
+    "lobby": {
+      "waiting_player": "En attente...",
+      "you": "vous",
+      "ready": "Prêt",
+      "not_ready": "Pas prêt",
+      "btn_ready": "Je suis prêt !",
+      "waiting_opponent": "En attente de l'adversaire...",
+      "phase": {
+        "connecting": "Connexion en cours...",
+        "waiting_players": "En attente du 2e joueur...",
+        "ready_check": "Les deux joueurs sont là — confirmez votre présence !",
+        "playing": "Partie en cours",
+        "finished": "Partie terminée",
+        "disconnected": "Adversaire déconnecté"
+      }
     }
   },
   "faq": {

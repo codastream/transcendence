@@ -102,7 +102,8 @@ export interface ServerMessage {
     | 'pong'
     | 'player_joined'
     | 'ready_check'
-    | 'player_ready';
+    | 'player_ready'
+    | 'player_disconnected';
   sessionId?: string;
   sessionName?: string;
   data?: GameState;

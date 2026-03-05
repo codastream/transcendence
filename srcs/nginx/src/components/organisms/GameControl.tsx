@@ -5,7 +5,6 @@ import { useState } from 'react';
 interface GameControlProps {
   className?: string;
   onCreateLocalGame: () => void;
-  onStartGame: () => void;
   onExitGame: () => void;
   isPlaying: boolean;
   gameMode: string;
@@ -15,7 +14,6 @@ interface GameControlProps {
 const GameControl = ({
   className,
   onCreateLocalGame,
-  onStartGame,
   onExitGame,
   isPlaying,
   gameMode,
@@ -52,9 +50,15 @@ const GameControl = ({
           </Button>
         )}
 
-        {!isPlaying && (
-          <Button id="start-game-btn" variant="secondary" type="button" onClick={onStartGame}>
-            {t('game.start')}
+        {(gameMode === 'local' || gameMode === 'ai') && !isPlaying && (
+          <Button
+            id="new-game-btn"
+            variant="primary"
+            type="button"
+            onClick={onCreateLocalGame}
+            disabled={loading}
+          >
+            {loading ? t('global.loading') : t('game.new_game')}
           </Button>
         )}
 

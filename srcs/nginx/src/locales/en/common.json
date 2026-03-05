@@ -344,6 +344,7 @@
     "ambience": "Atmosphere",
     "participate": "Participate",
     "create": "Create Game",
+    "new_game": "New Game",
     "player_a": "player A",
     "player_b": "player B",
     "info_controls": "show controls",
@@ -391,7 +392,24 @@
       "you_label": "You",
       "ai_label": "AI",
       "player1_label": "Player 1",
-      "player2_label": "Player 2"
+      "player2_label": "Player 2",
+      "forfeit": "Opponent disconnected — win by forfeit!"
+    },
+    "lobby": {
+      "waiting_player": "Waiting...",
+      "you": "you",
+      "ready": "Ready",
+      "not_ready": "Not ready",
+      "btn_ready": "I'm ready!",
+      "waiting_opponent": "Waiting for opponent...",
+      "phase": {
+        "connecting": "Connecting...",
+        "waiting_players": "Waiting for 2nd player...",
+        "ready_check": "Both players connected — confirm you're ready!",
+        "playing": "Game in progress",
+        "finished": "Game finished",
+        "disconnected": "Opponent disconnected"
+      }
     }
   },
   "faq": {

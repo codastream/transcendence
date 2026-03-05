@@ -392,6 +392,7 @@
     "start": "C'est parti",
     "exit": "On se casse",
     "play_again": "Encore une, on est pas des mauviettes !",
+    "new_game": "On remet ça !",
     "run": "Lancement de la Vendetta",
     "watch": "Regarder le combat",
     "friends": "Les potes",
@@ -406,7 +407,24 @@
       "you_label": "Toi",
       "ai_label": "Le machin",
       "player1_label": "Le gars 1",
-      "player2_label": "Le gars 2"
+      "player2_label": "Le gars 2",
+      "forfeit": "L'autre s'est barré — t'as gagné par forfait, veinard !"
+    },
+    "lobby": {
+      "waiting_player": "On attend...",
+      "you": "toi",
+      "ready": "Ché prêt",
+      "not_ready": "Pas là",
+      "btn_ready": "C'est bon pour moi !",
+      "waiting_opponent": "On attend l'autre con...",
+      "phase": {
+        "connecting": "On se connecte...",
+        "waiting_players": "On attend le 2ème gaillard...",
+        "ready_check": "Les deux sont là — faut confirmer, vite !",
+        "playing": "La parties est lancée",
+        "finished": "La partie, c'est fini",
+        "disconnected": "L'autre s'est barré"
+      }
     }
   },
   "faq": {

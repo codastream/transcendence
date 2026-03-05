@@ -39,9 +39,14 @@ export const HomePage = () => {
                 {t('game.playWithAI')}
               </CircleButton>
             </Link>
-            <Link to="/game/simple-game">
+            <Link to="/game/local">
               <CircleButton size={280} isMoving={true}>
-                {t('game.playWithFriends')}
+                {t('game.playLocal')}
+              </CircleButton>
+            </Link>
+            <Link to="/game/remote">
+              <CircleButton size={280} isMoving={true}>
+                {t('game.playRemote')}
               </CircleButton>
             </Link>
             <Link className="md:col-span-2" to="/game/tournament">

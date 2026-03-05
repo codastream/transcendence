@@ -86,6 +86,11 @@ export class RemoteMode implements IGameMode {
 
     // A disconnection during 'playing' ends the game immediately.
     if (session.game.status === 'playing') {
+      broadcastToSession(session, {
+        type: 'player_disconnected',
+        message: `${player?.username ?? 'Un joueur'} a quitté la partie — victoire par forfait`,
+        players: session.getPlayersInfo(),
+      });
       app.log.info(`[${session.id}] Remote: player left mid-game — game stopped (forfeit)`);
       session.game.stop();
       return;

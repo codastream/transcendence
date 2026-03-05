@@ -1,30 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { BackgroundMode } from '../../pages/GamePage';
-export interface Scores {
-  left: number;
-  right: number;
-}
-export type GameStatus = 'waiting' | 'playing' | 'paused' | 'finished';
-export interface GameState {
-  ball: {
-    x: number;
-    y: number;
-    radius: number;
-  };
-  paddles: {
-    left: {
-      y: number;
-      height: number;
-    };
-    right: {
-      y: number;
-      height: number;
-    };
-  };
-  scores: Scores;
-  status: GameStatus;
-  cosmicBackground: number[][] | null;
-}
+import type { BackgroundMode, GameState } from '../../types/game.types';
 
 interface ArenaProps {
   currentMode?: BackgroundMode;
