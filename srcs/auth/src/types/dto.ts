@@ -1,6 +1,5 @@
 export interface CreateProfileDTO {
   authId: number;
-  email: string;
   username: string;
 }
 

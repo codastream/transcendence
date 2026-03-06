@@ -73,7 +73,6 @@ const mockProfile: ProfileDTO = {
 const createPayload: ProfileCreateInDTO = {
   authId: 1,
   username: 'toto',
-  email: 'toto@mail.com',
 };
 
 const mockBuffer = Buffer.from('fake-image-data');
@@ -98,7 +97,6 @@ describe('ProfileRepository', () => {
         data: {
           authId: createPayload.authId,
           username: createPayload.username,
-          email: createPayload.email,
           avatarUrl: null,
         },
       });

@@ -227,6 +227,10 @@ users-showdb:
 user-migrate-dev:
 	$(D_COMPOSE_DEV) exec ${UM_SERVICE_NAME} npx prisma migrate dev
 
+.PHONY: user-migrate-reset-dev
+user-migrate-reset-dev:
+	$(D_COMPOSE_DEV) exec ${UM_SERVICE_NAME} npx prisma migrate reset
+
 logs:
 	$(D_COMPOSE) logs -f
 # generic rule : replace % with service name

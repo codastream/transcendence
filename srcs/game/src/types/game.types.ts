@@ -49,6 +49,9 @@ export interface Scores {
 
 export type GameStatus = 'waiting' | 'playing' | 'paused' | 'finished';
 
+/** Statut du lobby avant le démarrage de la partie */
+export type LobbyStatus = 'waiting_players' | 'waiting_ready' | 'starting';
+
 // ---- Game State (serializable snapshot) ----
 
 export interface GameState {
@@ -71,7 +74,7 @@ export interface GameState {
 // ---- WebSocket Protocol ----
 
 export interface ClientMessage {
-  type: 'paddle' | 'start' | 'stop' | 'ping';
+  type: 'paddle' | 'start' | 'stop' | 'ping' | 'ready';
   paddle?: PaddleSide;
   direction?: PaddleDirection;
 }
@@ -83,12 +86,33 @@ export interface GameOverData {
   status: GameStatus;
 }
 
+export interface PlayerInfo {
+  role: 'A' | 'B';
+  username: string;
+  userId: number | null;
+  ready: boolean;
+}
+
 export interface ServerMessage {
-  type: 'connected' | 'state' | 'gameOver' | 'error' | 'pong';
+  type:
+    | 'connected'
+    | 'state'
+    | 'gameOver'
+    | 'error'
+    | 'pong'
+    | 'player_joined'
+    | 'ready_check'
+    | 'player_ready'
+    | 'player_disconnected';
   sessionId?: string;
+  sessionName?: string;
   data?: GameState;
   gameOverData?: GameOverData;
   message?: string;
+  /** Info du joueur connecté (pour 'connected' et 'player_joined') */
+  player?: PlayerInfo;
+  /** Liste de tous les joueurs du lobby (pour 'ready_check') */
+  players?: PlayerInfo[];
 }
 
 // ---- Game Mode ----
@@ -104,6 +128,7 @@ export interface Player {
   role: PlayerRole;
   type: PlayerType;
   userId: number | null;
+  username: string;
   ws: WebSocket | null;
 }
 

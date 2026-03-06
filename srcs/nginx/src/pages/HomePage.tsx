@@ -19,7 +19,6 @@ const colors = {
 export const HomePage = () => {
   const { t } = useTranslation();
 
-  // Centralisation des données pour la logique de grille
   const menuItems = [
     { to: '/game/pong-ai', label: 'game.playWithAI', size: 220 },
     { to: '/game/simple-game', label: 'game.playWithFriends', size: 280 },
@@ -31,7 +30,6 @@ export const HomePage = () => {
   const isOdd = menuItems.length % 2 !== 0;
 
   return (
-    // h-screen pour forcer la hauteur du viewport
     <div className="w-full h-screen overflow-hidden">
       <Background colorStart={colors.start} colorEnd={colors.end}>
         <div className="flex flex-col h-full">

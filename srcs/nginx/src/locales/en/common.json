@@ -50,7 +50,8 @@
     "disabled": "disabled",
     "confirm": "confirm",
     "save": "save",
-    "cancel": "cancel"
+    "cancel": "cancel",
+    "refresh": "Refresh"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -349,6 +350,7 @@
     "ambience": "Atmosphere",
     "participate": "Participate",
     "create": "Create Game",
+    "new_game": "New Game",
     "player_a": "player A",
     "player_b": "player B",
     "info_controls": "show controls",
@@ -379,7 +381,21 @@
     "final": "Final",
     "semi_final": "Semi-Final",
     "little_final": "Little-Finale",
-    "start": "Start Game",
+    "start_button": "Start Game",
+    "start": {
+      "create_title": "Create a game",
+      "vs_ai": "Play against AI",
+      "local": "Local game",
+      "remote": "Online game",
+      "match_list": "Match list",
+      "available_sessions": "Available sessions",
+      "no_sessions": "No sessions available"
+    },
+    "gameover": {
+      "title": "Game Over",
+      "next_match": "Next match",
+      "view_results": "View results"
+    },
     "exit": "Exit",
     "play_again": "Play Again",
     "run": "Launch Tournament",
@@ -396,7 +412,32 @@
       "you_label": "You",
       "ai_label": "AI",
       "player1_label": "Player 1",
-      "player2_label": "Player 2"
+      "player2_label": "Player 2",
+      "forfeit": "Opponent disconnected — win by forfeit!"
+    },
+    "lobby": {
+      "waiting_player": "Waiting...",
+      "you": "you",
+      "ready": "Ready",
+      "not_ready": "Not ready",
+      "btn_ready": "I'm ready!",
+      "info_waiting_player2": "Lobby: waiting for player 2 to start the match.",
+      "waiting_opponent": "Waiting for opponent...",
+      "phase": {
+        "connecting": "Connecting...",
+        "waiting_players": "Waiting for 2nd player...",
+        "ready_check": "Both players connected — confirm you're ready!",
+        "playing": "Game in progress",
+        "finished": "Game finished",
+        "disconnected": "Opponent disconnected"
+      }
+    },
+    "error": {
+      "session_not_found": "Session not found or expired. Please create a new game or refresh the list.",
+      "connection_failed": "Failed to connect to the game session. The session may have expired or the server is unavailable. Please try again.",
+      "websocket_error": "Connection error. Please check your internet connection and try again.",
+      "invalid_session": "Invalid game session. Please create a new game.",
+      "server_error": "Server error. Please try again in a few moments."
     }
   },
   "faq": {

@@ -15,6 +15,8 @@ export interface CreateSessionInput {
   gameMode: GameMode;
   tournamentId?: number | null;
   creatorUserId: number | null;
+  /** Nom d'affichage du créateur, pour nommer la session de façon lisible */
+  creatorUsername?: string | null;
 }
 
 export interface CreateSessionResult {
@@ -54,7 +56,17 @@ export function createSession(
 
   // Create new session with the appropriate mode strategy
   const mode = createGameMode(input.gameMode, matchRepo, tournamentRepo);
-  const session = new Session(sessionId, input.gameMode, input.tournamentId ?? null, mode);
+
+  // Nom lisible : "Partie de Alice" plutôt qu'un UUID
+  const displayName = input.creatorUsername ? `${input.creatorUsername}` : sessionId.slice(0, 8);
+
+  const session = new Session(
+    sessionId,
+    input.gameMode,
+    input.tournamentId ?? null,
+    mode,
+    displayName,
+  );
 
   sessionStore.set(sessionId, session);
 

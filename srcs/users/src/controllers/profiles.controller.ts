@@ -52,6 +52,7 @@ export class ProfileController {
     const { username } = req.params as {
       username: usernameDTO;
     };
+    const { id: userId } = req.user;
     const { newUsername } = req.body;
 
     req.log.trace({
@@ -59,7 +60,7 @@ export class ProfileController {
       param: username,
     });
     const profileSimpleDTO = await profileService.updateUsername(username, newUsername);
-    userBus.emit(USER_EVENT.UPDATED, username);
+    userBus.emit(USER_EVENT.UPDATED, userId);
     return reply.status(200).send(profileSimpleDTO);
   }
 

@@ -1,7 +1,7 @@
 // ============================================================================
 // LocalMode — Single player, both paddles on same keyboard
 // Player A = authenticated user, Player B = guest (GUEST_USER_ID)
-// Auto-starts on first player connection.
+// Waits for human player to send 'ready' before starting.
 // ============================================================================
 
 import { WebSocket } from 'ws';
@@ -11,6 +11,7 @@ import { Session } from '../core/session/Session.js';
 import { GameOverData, GUEST_USER_ID, WS_CLOSE } from '../types/game.types.js';
 import { createHumanPlayer, createGuestPlayer } from '../core/player/PlayerFactory.js';
 import type { MatchRepository } from '../repositories/MatchRepository.js';
+import { broadcastToSession, sendToWs } from '../websocket/WsBroadcast.js';
 
 export class LocalMode implements IGameMode {
   constructor(private matchRepo: MatchRepository) {}
@@ -31,31 +32,58 @@ export class LocalMode implements IGameMode {
     }
 
     // Player A: the authenticated user
-    const playerA = createHumanPlayer('A', user?.id ?? null, ws);
+    const playerA = createHumanPlayer('A', user?.id ?? null, ws, user?.username ?? 'anonymous');
     session.setPlayer('A', playerA);
-    ws.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
+
+    sendToWs(ws, {
+      type: 'connected',
+      message: `${playerA.username} connected`,
+      player: { role: 'A', username: playerA.username, userId: user?.id ?? null, ready: false },
+      sessionName: session.displayName,
+    });
 
     // Player B: guest (no WS, controlled locally)
     const guestB = createGuestPlayer('B');
     session.setPlayer('B', guestB);
 
-    // Ensure the guest player row exists in the DB once at join time, not on every
+    // Ensure the guest player row exists in the DB once at join time
     this.matchRepo.ensureGuestPlayer();
 
-    app.log.info(`[${session.id}] Local mode — Player A (userId=${user?.id}), Player B = GUEST`);
+    app.log.info(
+      `[${session.id}] Local mode — Player A (${playerA.username}, userId=${user?.id}), Player B = GUEST`,
+    );
 
-    // Auto-start with single player
-    if (session.game.status === 'waiting') {
-      session.game.start();
-      app.log.info(`[${session.id}] Local mode — game auto-started`);
+    // Broadcast player list + trigger ready_check (single player mode)
+    broadcastToSession(session, {
+      type: 'player_joined',
+      message: `${playerA.username} a rejoint la partie`,
+      players: session.getPlayersInfo(),
+    });
+
+    if (this.canStart(session) && session.game.status === 'waiting') {
+      broadcastToSession(session, {
+        type: 'ready_check',
+        message: 'Prêt ? Envoyez "ready" pour démarrer.',
+        players: session.getPlayersInfo(),
+      });
+      app.log.info(`[${session.id}] Local mode — waiting for player ready`);
     }
 
     return true;
   }
 
   async onPlayerDisconnect(session: Session, ws: WebSocket, app: FastifyInstance): Promise<void> {
-    session.removePlayerByWs(ws);
+    const player = session.removePlayerByWs(ws);
     app.log.info(`[${session.id}] Local mode — player disconnected`);
+
+    // Broadcast disconnect to remaining watchers (if any)
+    if (session.game.status === 'playing') {
+      broadcastToSession(session, {
+        type: 'player_disconnected',
+        message: `${player?.username ?? 'Un joueur'} a quitté la partie`,
+        players: session.getPlayersInfo(),
+      });
+    }
 
     // Stop the game regardless of status: no human player remains to control paddles.
     // Stopping during 'playing' triggers the GameLoop's game-over + persist path.
