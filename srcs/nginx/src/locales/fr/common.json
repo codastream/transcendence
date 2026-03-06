@@ -416,6 +416,7 @@
       "ready": "Prêt",
       "not_ready": "Pas prêt",
       "btn_ready": "Je suis prêt !",
+      "info_waiting_player2": "Lobby : en attente du joueur 2 pour démarrer la partie.",
       "waiting_opponent": "En attente de l'adversaire...",
       "phase": {
         "connecting": "Connexion en cours...",

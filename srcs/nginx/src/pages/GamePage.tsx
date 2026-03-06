@@ -11,6 +11,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useGameWebSocket } from '../hooks/GameWebSocket';
 import { useGameState } from '../hooks/GameState';
 import { useGameLobby } from '../hooks/useGameLobby';
@@ -56,6 +57,8 @@ const BG_COLORS = { start: '#00ff9f', end: '#0088ff' };
 
 export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const { t } = useTranslation('common');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // ── Hooks ──────────────────────────────────────────────────────────────────
   const { openWebSocket, closeWebSocket, connected: wsConnected } = useGameWebSocket();
@@ -290,6 +293,21 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
 
   const awaitingReady = readyCheckReceived && !readySent;
 
+  useEffect(() => {
+    if (gameMode === 'tournament') return;
+
+    const targetPath =
+      activeMode === 'remote'
+        ? '/game/remote'
+        : activeMode === 'ai'
+          ? '/game/pong-ai'
+          : '/game/local';
+
+    if (location.pathname !== targetPath) {
+      navigate(targetPath, { replace: true });
+    }
+  }, [activeMode, gameMode, location.pathname, navigate]);
+
   // ── Rendu ──────────────────────────────────────────────────────────────────
   return (
     <div className="w-full h-full relative overflow-hidden">
@@ -318,7 +336,9 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
             scores={scores}
             labelLeft={labelLeft}
             labelRight={labelRight}
+            gameMode={activeMode}
             lobbyPhase={lobby.phase}
+            playersCount={lobby.players.length}
             awaitingReady={awaitingReady}
             gameStateRef={gameStateRef}
             bgMode={bgMode}

@@ -416,6 +416,7 @@
       "ready": "Ready",
       "not_ready": "Not ready",
       "btn_ready": "I'm ready!",
+      "info_waiting_player2": "Lobby: waiting for player 2 to start the match.",
       "waiting_opponent": "Waiting for opponent...",
       "phase": {
         "connecting": "Connecting...",

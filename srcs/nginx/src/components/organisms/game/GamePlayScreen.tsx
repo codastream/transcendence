@@ -18,6 +18,7 @@ import type {
   LobbyPhase,
   GameState,
   Scores,
+  GameMode,
 } from '../../../types/game.types';
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -32,7 +33,9 @@ interface GamePlayScreenProps {
   labelRight: string;
 
   // Lobby / pre-game
+  gameMode: GameMode;
   lobbyPhase: LobbyPhase;
+  playersCount: number;
   /** true = ready_check reçu ET joueur n'a pas encore cliqué "prêt" */
   awaitingReady: boolean;
 
@@ -55,7 +58,9 @@ const GamePlayScreen = ({
   scores,
   labelLeft,
   labelRight,
+  gameMode,
   lobbyPhase,
+  playersCount,
   awaitingReady,
   gameStateRef,
   bgMode,
@@ -65,10 +70,14 @@ const GamePlayScreen = ({
 }: GamePlayScreenProps) => {
   const { t } = useTranslation('common');
   const [showControls, setShowControls] = useState(false);
+  const isRemoteLikeMode = gameMode === 'remote' || gameMode === 'tournament';
+  const isGameStarted = lobbyPhase === 'playing' || lobbyPhase === 'finished';
+  const missingPlayers = isRemoteLikeMode && !isGameStarted && playersCount < 2;
 
-  // Pré-jeu : afficher l'overlay quand le serveur n'a pas encore lancé la partie
-  const showConnecting = lobbyPhase === 'connecting' || lobbyPhase === 'waiting_players';
+  // Pré-jeu : attendre tant que les deux joueurs ne sont pas présents
+  const showConnecting = missingPlayers;
   const showPreGameOverlay = showConnecting || awaitingReady;
+  const showLobbyInfoBanner = missingPlayers;
 
   return (
     <div className="w-full h-full flex flex-col flex-1 overflow-hidden md:max-w-8xl md:mx-auto">
@@ -119,6 +128,19 @@ const GamePlayScreen = ({
             {t('game.exit')}
           </Button>
         </div>
+
+        {showLobbyInfoBanner && (
+          <div className="mx-4 mb-2 rounded-lg border border-white/80 bg-white px-4 py-2 text-center shadow-md">
+            <p className="font-mono text-xs text-slate-900">
+              {lobbyPhase === 'ready_check'
+                ? t('game.lobby.phase.ready_check')
+                : t(
+                    'game.lobby.info_waiting_player2',
+                    'Lobby: en attente du joueur 2 pour démarrer la partie.',
+                  )}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* ── Zone centrale : Arena + PreGameOverlay ── */}

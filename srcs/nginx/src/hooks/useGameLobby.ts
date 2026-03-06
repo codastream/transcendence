@@ -54,6 +54,7 @@ export const useGameLobby = (): UseLobbyReturn => {
       ...prev,
       phase: 'waiting_players',
       localPlayer: player,
+      players: [player],
       sessionName: sessionName ?? null,
     }));
   }, []);
