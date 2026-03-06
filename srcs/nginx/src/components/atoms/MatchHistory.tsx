@@ -86,7 +86,7 @@ export const HistoryListMobile = ({ history }: { history: MatchHistory[] }) => {
         <>
           <div className="flex justify-between items-center">
             <span className="font-semibold text-gray-700">
-              {m.round ? (roundLabel[m.round] ?? m.round) : 'Free match'}
+              {m.round ? (roundLabel[m.round] ?? m.round) : t('history.free_match')}
             </span>
             <span className="text-sm text-gray-500">
               {m.tournament_id ? `Tournament #${m.tournament_id}` : ''}

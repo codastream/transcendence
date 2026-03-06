@@ -407,6 +407,7 @@
     },
     "gameover": {
       "title": "C'est plié",
+      "wins": "t'as éclaboussé de sa classe",
       "next_match": "Le prochain round",
       "view_results": "Voir les résultats"
     },
@@ -560,6 +561,8 @@
     "player": "Le gars",
     "tournaments_played": "Vendettas jouées",
     "tournaments_won": "Vendettas gagnées",
+    "tournaments_win_rate'": "Efficacité en tournoi",
+    "matches_win_rate'": "Efficacité en match",
     "matches_played": "Matchs joués",
     "matches_won": "Matchs remportés"
   },

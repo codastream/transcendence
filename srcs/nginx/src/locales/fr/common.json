@@ -391,6 +391,7 @@
     },
     "gameover": {
       "title": "Game Over",
+      "wins": "a remporté la partie",
       "next_match": "Match suivant",
       "view_results": "Voir les résultats"
     },
@@ -544,6 +545,8 @@
     "player": "Joueur",
     "tournaments_played": "Tournois joués",
     "tournaments_won": "Tournois gagnés",
+    "tournaments_win_rate'": "Efficacité en tournoi",
+    "matches_win_rate'": "Efficacité en match",
     "matches_played": "Matchs joués",
     "matches_won": "Matchs gagnés"
   },

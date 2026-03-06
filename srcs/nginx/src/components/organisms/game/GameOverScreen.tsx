@@ -62,7 +62,7 @@ const GameOverScreen = ({
       const humanSide = localRole === 'A' ? 'left' : 'right';
       return winner === humanSide ? t('game.winner.you_win') : t('game.winner.ai_wins');
     }
-    return `${winnerName} wins!`;
+    return `${winnerName} ${t('game.wins')!}`;
   };
 
   const winnerColor = winner === 'left' ? '#34d399' : '#fb7185';

@@ -392,6 +392,7 @@
       "no_sessions": "No sessions available"
     },
     "gameover": {
+      "wins": "wins",
       "title": "Game Over",
       "next_match": "Next match",
       "view_results": "View results"

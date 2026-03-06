@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Background from '../atoms/Background';
 import { NavBar } from '../molecules/NavBar';
 import { Footer } from '../molecules/Footer';
+import Scrollable from '../atoms/Scrollable';
 
 const colors = {
   start: '#00ff9f',
@@ -11,7 +12,7 @@ const colors = {
 /*This component is the architecture of all tournament pages.*/
 export default function TournamentLayout() {
   return (
-    <div className={`w-full relative flex flex-col flex min-h-screen`}>
+    <div className={`w-full relative flex flex-col h-screen`}>
       <Background
         grainIntensity={4}
         baseFrequency={0.28}
@@ -23,10 +24,10 @@ export default function TournamentLayout() {
             <NavBar></NavBar>
           </div>
         }
-        <div className="flex min-h-screen justify-center">
+        <Scrollable>
           <Outlet />
-        </div>
-        <Footer className="absolute bottom-0 w-full" />
+        </Scrollable>
+        <Footer className="absolute bottom-0 mt-6 w-full" />
       </Background>
     </div>
   );

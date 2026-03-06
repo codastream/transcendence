@@ -11,7 +11,7 @@ if [ ! -f "$DB_FILE" ]; then
   ./node_modules/.bin/prisma migrate deploy
 else
   echo "Existing DB — using db push..."
-  ./node_modules/.bin/prisma db push
+  ./node_modules/.bin/prisma db push --accept-data-loss
 fi
 
 echo "Starting app..."
