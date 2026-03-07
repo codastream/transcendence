@@ -1,8 +1,6 @@
 // ============================================================================
 // TournamentHubPage — Page d'accueil des tournois
 //
-// Fusionne l'ancien TournamentMenuPage + TournamentsListPage + TournamentCreatePage.
-// Affiche un bouton « Créer » et la liste des tournois avec « Rejoindre ».
 // Polling léger (5 s) pour rafraîchir la liste.
 // ============================================================================
 
