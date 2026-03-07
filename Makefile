@@ -5,7 +5,7 @@ include make/config.mk
 all : volumes certs colima install build
 	$(D_COMPOSE) up -d
 
-dev: volumes colima install build-dev
+dev: volumes certs colima install build-dev
 	$(D_COMPOSE_DEV) up -d
 
 ai: volumes certs colima
@@ -291,8 +291,13 @@ clean-pack:
 	npm run clean
 	npm cache clean --force
 
+clean-certs:
+	@echo "Cleaning certificates..."
+	rm -rf make/scripts/certs/certs
+	rm -rf make/scripts/certs/ca
+
 # Hard reset - deletes everything including folder
-reset-hard: clean clean-pack
+reset-hard: clean clean-pack clean-certs
 	@echo "WARNING: Full reset including Colima stop"
 	@if [ -n "$$($(CONTAINER_CMD) -q)" ]; then $(CONTAINER_CMD) rmi -f $$($(CONTAINER_CMD) images -q); else echo "No images to remove."; fi
 	-$(CONTAINER_CMD) volume prune -f
@@ -305,8 +310,6 @@ ifneq ($(CHIP), arm64)
 endif
 endif
 	rm -rf $(VOLUMES_PATH)
-	@echo "Remove certificates"
-	rm -rf make/scripts/certs/certs
 
 .PHONY : all dev ai re re-ai redev clean fclean reset-hard clean-pack \
 	volumes certs envs install build build-dev \
