@@ -1,6 +1,7 @@
 // ============================================================================
 // RemoteMode — Two remote players, each controlling one paddle via WebSocket
-// Auto-starts when 2nd player connects.
+// Requiert que les DEUX joueurs soient connectés ET envoient 'ready' pour démarrer.
+// Plus d'auto-start immédiat : étape de préparation (ready check).
 // ============================================================================
 
 import { WebSocket } from 'ws';
@@ -10,6 +11,7 @@ import { Session } from '../core/session/Session.js';
 import { GameOverData, WS_CLOSE } from '../types/game.types.js';
 import { createHumanPlayer } from '../core/player/PlayerFactory.js';
 import type { MatchRepository } from '../repositories/MatchRepository.js';
+import { broadcastToSession, sendToWs } from '../websocket/WsBroadcast.js';
 
 export class RemoteMode implements IGameMode {
   constructor(private matchRepo: MatchRepository) {}
@@ -32,16 +34,35 @@ export class RemoteMode implements IGameMode {
     }
 
     const safeUserId = user?.id != null && Number.isFinite(user.id) ? user.id : null;
-    const player = createHumanPlayer(role, safeUserId, ws);
+    const player = createHumanPlayer(role, safeUserId, ws, user?.username ?? 'anonymous');
     session.setPlayer(role, player);
 
-    ws.send(JSON.stringify({ type: 'connected', message: `Player ${role}` }));
-    app.log.info(`[${session.id}] Player ${role} connected (userId=${safeUserId})`);
+    // Informer le joueur de son rôle
+    sendToWs(ws, {
+      type: 'connected',
+      message: `${player.username} connected`,
+      player: { role, username: player.username, userId: safeUserId, ready: false },
+      sessionName: session.displayName,
+    });
+    app.log.info(
+      `[${session.id}] Player ${role} (${player.username}, userId=${safeUserId}) connected`,
+    );
 
-    // Auto-start when both players are in
+    // Informer tout le lobby de la nouvelle connexion
+    broadcastToSession(session, {
+      type: 'player_joined',
+      message: `${player.username} a rejoint la partie`,
+      players: session.getPlayersInfo(),
+    });
+
+    // Quand les deux joueurs sont là, passer en mode ready_check
     if (this.canStart(session) && session.game.status === 'waiting') {
-      session.game.start();
-      app.log.info(`[${session.id}] Remote: both players connected — game auto-started`);
+      broadcastToSession(session, {
+        type: 'ready_check',
+        message: 'Les deux joueurs sont connectés. Envoyez "ready" pour démarrer.',
+        players: session.getPlayersInfo(),
+      });
+      app.log.info(`[${session.id}] Remote: both players connected — waiting for ready`);
     }
 
     return true;
@@ -49,19 +70,63 @@ export class RemoteMode implements IGameMode {
 
   async onPlayerDisconnect(session: Session, ws: WebSocket, app: FastifyInstance): Promise<void> {
     const player = session.removePlayerByWs(ws);
-    app.log.info(`[${session.id}] Remote: Player ${player?.role ?? '?'} disconnected`);
+    app.log.info(
+      `[${session.id}] Remote: Player ${player?.role ?? '?'} (${player?.username ?? '?'}) disconnected`,
+    );
 
-    // A disconnection during 'playing' ends the game immediately.
-    // Stopping triggers GameLoop's finished branch → onGameOver → persist path.
-    if (session.game.status === 'playing') {
-      app.log.info(`[${session.id}] Remote: player left mid-game — game stopped (forfeit)`);
+    // Déterminer s'il reste un joueur connecté
+    const remainingPlayer = session.getAllPlayers().find((p) => p.ws !== null);
+
+    // Si un joueur reste ET que le jeu est en attente ou en cours → victoire par forfait
+    if (
+      remainingPlayer &&
+      (session.game.status === 'waiting' || session.game.status === 'playing')
+    ) {
+      app.log.info(
+        `[${session.id}] Remote: ${player?.username ?? 'Un joueur'} disconnected — ${remainingPlayer.username} wins by forfeit`,
+      );
+
+      // Affecter les scores : le joueur restant obtient le score max, l'autre 0
+      const maxScore = session.game.settings.maxScore;
+      if (remainingPlayer.role === 'A') {
+        session.game.scores.left = maxScore;
+        session.game.scores.right = 0;
+      } else {
+        session.game.scores.left = 0;
+        session.game.scores.right = maxScore;
+      }
+
+      // Marquer le jeu comme terminé
       session.game.stop();
+
+      // Broadcast la victoire par forfait
+      broadcastToSession(session, {
+        type: 'player_disconnected',
+        message: `${player?.username ?? 'Un joueur'} a quitté la partie — ${remainingPlayer.username} gagne par forfait`,
+        players: session.getPlayersInfo(),
+      });
+
+      // Le GameLoop détectera le status 'finished' et persistera le résultat
       return;
     }
 
-    if (session.connectedPlayerCount === 0 && session.game.status === 'waiting') {
-      session.game.stop();
-      app.log.info(`[${session.id}] Remote: no players left, session stopped`);
+    // Si plus aucun joueur n'est connecté
+    if (session.connectedPlayerCount === 0) {
+      session.clearReady();
+      if (session.game.status === 'waiting') {
+        session.game.stop();
+        app.log.info(`[${session.id}] Remote: no players left, session stopped`);
+      }
+    }
+
+    // Si un joueur se déconnecte mais qu'on attend encore l'autre (ex: seul le premier était connecté)
+    if (session.game.status === 'waiting' && session.connectedPlayerCount > 0) {
+      session.clearReady();
+      broadcastToSession(session, {
+        type: 'player_joined',
+        message: `${player?.username ?? 'Un joueur'} a quitté la session`,
+        players: session.getPlayersInfo(),
+      });
     }
   }
 

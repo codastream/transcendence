@@ -5,13 +5,16 @@
 
 import { WebSocket } from 'ws';
 import { FastifyInstance } from 'fastify';
-import { ClientMessage, ServerMessage, WS_CLOSE } from '../types/game.types.js';
+import { ClientMessage, ServerMessage, WS_CLOSE, PaddleDirection } from '../types/game.types.js';
 import { Session } from '../core/session/Session.js';
 import { broadcastToSession, sendToWs } from './WsBroadcast.js';
 
+/** Directions valides pour le paddle */
+const VALID_DIRECTIONS: readonly PaddleDirection[] = ['up', 'down', 'stop'];
+
 /**
  * Attach message handlers to a client WebSocket.
- * Delegates start/stop/paddle/ping to the session and engine.
+ * Delegates start/stop/paddle/ping/ready to the session and engine.
  */
 export function attachWsMessageHandler(
   ws: WebSocket,
@@ -24,17 +27,64 @@ export function attachWsMessageHandler(
 
       switch (message.type) {
         case 'start':
-          // Only allow registered players to start the game (not unauthorized connections)
-          if (session.getPlayerByWs(ws) && session.game.status === 'waiting') {
+          // Vérification : le joueur doit être enregistré ET la session doit pouvoir démarrer
+          // (canStart vérifie le nombre de joueurs requis selon le mode).
+          if (
+            session.getPlayerByWs(ws) &&
+            session.game.status === 'waiting' &&
+            session.mode.canStart(session)
+          ) {
+            session.clearReady();
             session.game.start();
             broadcastToSession(session, {
               type: 'state',
               message: 'Game started',
               data: session.game.getState(),
             });
-            app.log.info(`[${session.id}] Game started via WS`);
+            app.log.info(`[${session.id}] Game started via WS 'start' message`);
+          } else if (!session.mode.canStart(session)) {
+            sendToWs(ws, {
+              type: 'error',
+              message: 'Not enough players to start the game',
+            });
           }
           break;
+
+        case 'ready': {
+          // Marque ce joueur comme prêt.
+          // Quand tous les joueurs connectés sont prêts ET canStart est satisfait → démarrage.
+          const player = session.getPlayerByWs(ws);
+          if (!player) {
+            sendToWs(ws, { type: 'error', message: 'Player not found in session' });
+            break;
+          }
+          if (session.game.status !== 'waiting') {
+            sendToWs(ws, { type: 'error', message: 'Game already started or finished' });
+            break;
+          }
+
+          const allReady = session.markReady(player.role);
+
+          // Broadcast l'état de préparation à tous les joueurs
+          broadcastToSession(session, {
+            type: 'player_ready',
+            message: `${player.username} est prêt`,
+            players: session.getPlayersInfo(),
+          });
+          app.log.info(`[${session.id}] Player ${player.role} (${player.username}) is ready`);
+
+          // Démarre le jeu quand tous sont prêts ET que le mode l'autorise
+          if (allReady && session.mode.canStart(session)) {
+            session.game.start();
+            broadcastToSession(session, {
+              type: 'state',
+              message: 'Game started',
+              data: session.game.getState(),
+            });
+            app.log.info(`[${session.id}] All players ready — game started`);
+          }
+          break;
+        }
 
         case 'stop':
           // "stop" means quit — close this player's connection
@@ -43,8 +93,14 @@ export function attachWsMessageHandler(
 
         case 'paddle':
           if (message.paddle && message.direction) {
-            // In non-local modes, each player may only control their own paddle.
-            // Player A controls 'left', Player B controls 'right'.
+            // Valider que la direction est une valeur autorisée
+            if (!VALID_DIRECTIONS.includes(message.direction)) {
+              sendToWs(ws, { type: 'error', message: 'Invalid paddle direction' });
+              break;
+            }
+
+            // En mode non-local, chaque joueur ne peut contrôler que son propre paddle.
+            // Player A contrôle 'left', Player B contrôle 'right'.
             if (session.gameMode !== 'local') {
               const player = session.getPlayerByWs(ws);
               const expectedSide = player?.role === 'A' ? 'left' : 'right';

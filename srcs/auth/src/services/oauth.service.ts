@@ -196,7 +196,6 @@ async function createNewOAuthUser(
   try {
     await createUserProfile({
       authId: userId,
-      email: profile.email,
       username,
     });
   } catch (error) {

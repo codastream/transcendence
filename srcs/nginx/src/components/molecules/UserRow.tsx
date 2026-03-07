@@ -13,6 +13,7 @@ interface Props {
   user: ProfileSimpleDTO | null;
   avatarSize?: AvatarSize;
   actions: UserActions[];
+  isOnline?: boolean;
   onAction?: (action: UserActions, user: ProfileSimpleDTO) => void;
 }
 
@@ -23,7 +24,7 @@ const actionProps: Record<UserActions, { icon: LucideIcon; color: string; labelK
   [UserActions.CHANGE]: { icon: UserRoundMinus, color: 'text-red-300', labelKey: 'friends.remove' },
 };
 
-const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
+const UserRow = ({ user, avatarSize = 'md', actions, isOnline = false, onAction }: Props) => {
   const { t } = useTranslation();
   const xOffset = 20;
   // const baseRadius = 90;
@@ -58,11 +59,20 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
       >
         <div className="flex w-[100%] flex-row items-center justify-between gap-2">
           <div className="flex flex-row items-center gap-2">
-            <Avatar
-              alt="user avatar"
-              size={avatarSize}
-              src={user?.avatarUrl || defaultAvatar}
-            ></Avatar>
+            <div className="relative inline-flex">
+              <Avatar
+                alt="user avatar"
+                size={avatarSize}
+                src={user?.avatarUrl || defaultAvatar}
+              ></Avatar>{' '}
+              <span
+                className={[
+                  'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-800',
+                  isOnline ? 'bg-emerald-500' : 'bg-gray-400',
+                ].join(' ')}
+                aria-label={isOnline ? 'online' : 'offline'}
+              />
+            </div>
             <span className="text-white text-md font-quantico font-semibold ml-1 mt-1 tracking-widest">
               {user?.username}
             </span>

@@ -50,7 +50,8 @@
     "disabled": "disabled",
     "confirm": "confirm",
     "save": "save",
-    "cancel": "cancel"
+    "cancel": "cancel",
+    "refresh": "Refresh"
   },
   "companyName": "Patapong SA",
   "serviceName": "Spin Pong",
@@ -283,7 +284,15 @@
     "update_email": "Update email",
     "delete": "Delete profile",
     "delete_confirm_title": "Delete your account ?",
-    "delete_confirm_text": "Are you sure you want to delete your account ? There is no recovery for your data after this."
+    "delete_confirm_text": "Are you sure you want to delete your account ? There is no recovery for your data after this.",
+    "game_insights": "Game insights",
+    "view_stats": "View stats",
+    "view_history": "View history",
+    "match_performance": "Match performance",
+    "no_stats_available": "No stats available.",
+    "recent_matches": "Recent matches",
+    "loading_history": "Loading history...",
+    "no_recent_matches": "No recent matches."
   },
   "2fa": {
     "title": "Two-Factor Authentication",
@@ -324,6 +333,8 @@
   "friends": {
     "friends": "Friends",
     "add": "add to friends",
+    "add_title": "Add a friend",
+    "list": "Existing friends",
     "remove": "remove from friends",
     "play": "play"
   },
@@ -347,6 +358,7 @@
     "ambience": "Atmosphere",
     "participate": "Participate",
     "create": "Create Game",
+    "new_game": "New Game",
     "player_a": "player A",
     "player_b": "player B",
     "info_controls": "show controls",
@@ -377,7 +389,25 @@
     "final": "Final",
     "semi_final": "Semi-Final",
     "little_final": "Little-Finale",
-    "start": "Start Game",
+    "start_button": "Start Game",
+    "start": {
+      "create_title": "Create a game",
+      "vs_ai": "Play against AI",
+      "local": "Local game",
+      "remote": "Online game",
+      "match_list": "Match list",
+      "available_sessions": "Available sessions",
+      "no_sessions": "No sessions available"
+    },
+    "gameover": {
+      "wins": "{{winner}} wins",
+      "title": "Game Over",
+      "resolving_next_match": "Analyzing next match...",
+      "next_match": "Next match",
+      "view_results": "View results",
+      "winner_line": "Winner: {{winner}}",
+      "loser_line": "Loser: {{loser}}"
+    },
     "exit": "Exit",
     "play_again": "Play Again",
     "run": "Launch Tournament",
@@ -394,7 +424,33 @@
       "you_label": "You",
       "ai_label": "AI",
       "player1_label": "Player 1",
-      "player2_label": "Player 2"
+      "player2_label": "Player 2",
+      "forfeit": "Opponent disconnected — win by forfeit!"
+    },
+    "lobby": {
+      "waiting_player": "Waiting...",
+      "you": "you",
+      "ready": "Ready",
+      "not_ready": "Not ready",
+      "btn_ready": "I'm ready!",
+      "info_waiting_player2": "Lobby: waiting for player 2 to start the match.",
+      "waiting_opponent": "Waiting for opponent...",
+      "phase": {
+        "connecting": "Connecting...",
+        "waiting_players": "Waiting for 2nd player...",
+        "ready_check": "Both players connected — confirm you're ready!",
+        "playing": "Game in progress",
+        "finished": "Game finished",
+        "disconnected": "Opponent disconnected"
+      }
+    },
+    "error": {
+      "session_not_found": "Session not found or expired. Please create a new game or refresh the list.",
+      "connection_failed": "Failed to connect to the game session. The session may have expired or the server is unavailable. Please try again.",
+      "websocket_error": "Connection error. Please check your internet connection and try again.",
+      "invalid_session": "Invalid game session. Please create a new game.",
+      "server_error": "Server error. Please try again in a few moments.",
+      "failed_create_tournament": "Failed to create tournament. Please try again."
     }
   },
   "faq": {
@@ -498,21 +554,53 @@
   "stats": {
     "title": "Player Statistics",
     "loading": "Loading...",
+    "loading_stats": "Loading stats...",
+    "error_loading": "Failed to load stats.",
     "empty": "No players yet.",
     "player": "Player",
+    "stats_for": "Stats for {{username}}",
+    "my_performance": "My performance",
+    "last_match": "Last match",
+    "matches": "Matches",
+    "wins_losses": "Wins / Losses",
+    "points": "Points",
+    "tournaments": "Tournaments",
+    "match_win_rate": "Match win rate",
+    "tournament_win_rate": "Tournament win rate",
+    "points_efficiency": "Points efficiency",
     "tournaments_played": "Tournaments Played",
     "tournaments_won": "Tournaments Won",
+    "tournaments_lost": "Tournaments Lost",
+    "tournaments_win_rate": "Tournaments Win Rate",
     "matches_played": "Matches Played",
-    "matches_won": "Matches Won"
+    "matches_won": "Matches Won",
+    "matches_lost": "Matches Lost",
+    "matches_win_rate": "Matches Win Rate",
+    "points_scored": "Points Scored",
+    "points_conceded": "Points Conceded",
+    "avg_points_scored": "Avg Points Scored",
+    "avg_points_conceded": "Avg Points Conceded"
   },
   "history": {
     "title": "Match History",
+    "loading_history": "Loading history...",
+    "error_loading": "Failed to load history.",
     "empty": "No matches yet.",
+    "history_for": "History for {{username}}",
+    "my_history": "My match history",
+    "matches_count": "{{count}} matches",
+    "wins": "Wins",
+    "losses": "Losses",
+    "pending": "Pending",
+    "tournaments": "Tournaments",
+    "date": "Date",
     "round": "Round",
     "player1": "Player 1",
     "score": "Score",
     "player2": "Player 2",
     "winner": "Winner",
+    "result": "Result",
+    "opponent": "Opponent",
     "tournament": "Tournament",
     "free_match": "Free",
     "semi1": "Semi-final 1",

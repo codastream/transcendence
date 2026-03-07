@@ -22,7 +22,6 @@ export class ProfileRepository {
         data: {
           authId: payload.authId,
           username: payload.username,
-          email: payload.email ?? null,
           avatarUrl: payload.avatarUrl ?? null,
         },
       });

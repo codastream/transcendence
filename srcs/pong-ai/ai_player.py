@@ -102,8 +102,7 @@ class AIPlayer:
 
         try:
             await self.websocket.send(json.dumps({"type": "ping"}))
-            await self.websocket.send(json.dumps({"type": "start"}))
-            print("AI player started, waiting for game state...", flush=True)
+            print("AI player connected, waiting for ready_check...", flush=True)
 
             while self.playing and self._is_connected():
                 try:
@@ -113,7 +112,18 @@ class AIPlayer:
                     )
                     message = json.loads(message_str)
 
-                    if message.get("type") == "state":
+                    if message.get("type") == "connected":
+                        # Detect assigned role and derive the controlled paddle side
+                        role = message.get("player", {}).get("role", "B")
+                        self.paddle = "right" if role == "B" else "left"
+                        print(f"AI assigned role={role}, controlling paddle='{self.paddle}'", flush=True)
+
+                    elif message.get("type") == "ready_check":
+                        # Acknowledge ready — game will start once the human clicks Ready too
+                        await self.websocket.send(json.dumps({"type": "ready"}))
+                        print("AI sent ready", flush=True)
+
+                    elif message.get("type") == "state":
                         game_state = message.get("data", {})
                         status = game_state.get("status")
 
@@ -137,9 +147,6 @@ class AIPlayer:
                     elif message.get("type") == "gameOver":
                         print("Game over", flush=True)
                         self.playing = False
-
-                    elif message.get("type") == "connected":
-                        print(f"AI assigned paddle: {self.paddle}", flush=True)
 
                     elif message.get("type") == "pong":
                         pass  # keepalive ack, nothing to do

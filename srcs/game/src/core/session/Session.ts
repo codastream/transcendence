@@ -4,7 +4,7 @@
 
 import { WebSocket } from 'ws';
 import { PongGame } from '../engine/PongGame.js';
-import { Player, PlayerRole, GameMode, WS_CLOSE } from '../../types/game.types.js';
+import { Player, PlayerRole, GameMode, WS_CLOSE, PlayerInfo } from '../../types/game.types.js';
 import type { IGameMode } from '../../modes/IGameMode.js';
 
 export class Session {
@@ -15,6 +15,15 @@ export class Session {
   readonly game: PongGame;
   readonly mode: IGameMode;
 
+  /**
+   * Nom lisible de la session (ex: "match de Alice" au lieu du UUID).
+   * Utilisé uniquement pour l'affichage côté client.
+   */
+  displayName: string;
+
+  /** Rôles ayant envoyé le signal 'ready' — pour le mécanisme de préparation */
+  private readyPlayers: Set<PlayerRole> = new Set();
+
   /** Ordered by role: A = left, B = right */
   private players: Map<PlayerRole, Player> = new Map();
 
@@ -24,13 +33,20 @@ export class Session {
   /** Guards against double-persist on game finish */
   persisted: boolean = false;
 
-  constructor(id: string, gameMode: GameMode, tournamentId: number | null, mode: IGameMode) {
+  constructor(
+    id: string,
+    gameMode: GameMode,
+    tournamentId: number | null,
+    mode: IGameMode,
+    displayName?: string,
+  ) {
     this.id = id;
     this.gameMode = gameMode;
     this.tournamentId = tournamentId;
     this.mode = mode;
     this.createdAt = Date.now();
     this.game = new PongGame(id);
+    this.displayName = displayName ?? id;
   }
 
   // ---- Player Management ----
@@ -89,6 +105,44 @@ export class Session {
   /** Get all players */
   getAllPlayers(): Player[] {
     return Array.from(this.players.values());
+  }
+
+  // ---- Ready Check ----
+
+  /** Marque un rôle comme prêt. Retourne true si TOUS les joueurs connectés sont prêts. */
+  markReady(role: PlayerRole): boolean {
+    this.readyPlayers.add(role);
+    return this.areAllReady();
+  }
+
+  /** Vérifie si un rôle spécifique est prêt */
+  isReady(role: PlayerRole): boolean {
+    return this.readyPlayers.has(role);
+  }
+
+  /** Vérifie si tous les joueurs connectés (ws !== null) sont prêts */
+  areAllReady(): boolean {
+    for (const [role, player] of this.players.entries()) {
+      if (player.ws !== null && !this.readyPlayers.has(role)) return false;
+    }
+    return this.readyPlayers.size > 0;
+  }
+
+  /** Réinitialise les ready players (ex: nouveau round) */
+  clearReady(): void {
+    this.readyPlayers.clear();
+  }
+
+  /**
+   * Construit la liste PlayerInfo pour les messages WS (connected, player_joined, ready_check).
+   */
+  getPlayersInfo(): PlayerInfo[] {
+    return Array.from(this.players.entries()).map(([role, p]) => ({
+      role,
+      username: p.username ?? (p.type === 'ai' ? 'AI' : p.type === 'guest' ? 'Guest' : 'anonymous'),
+      userId: p.userId,
+      ready: this.readyPlayers.has(role),
+    }));
   }
 
   /** Get all active WebSocket connections */

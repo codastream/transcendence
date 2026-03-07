@@ -26,7 +26,7 @@ const Background = ({
   colorStart,
   colorEnd,
   grainIntensity = 4,
-  baseFrequency = 0.02201,
+  baseFrequency = 0.28,
   animated = true,
   direction = 9,
 }: BackgroundProps) => {

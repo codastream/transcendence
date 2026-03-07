@@ -1,32 +1,5 @@
 import { useRef, useCallback } from 'react';
-
-export interface Scores {
-  left: number;
-  right: number;
-}
-
-export type GameStatus = 'waiting' | 'playing' | 'paused' | 'finished';
-
-export interface GameState {
-  ball: {
-    x: number;
-    y: number;
-    radius: number;
-  };
-  paddles: {
-    left: {
-      y: number;
-      height: number;
-    };
-    right: {
-      y: number;
-      height: number;
-    };
-  };
-  scores: Scores;
-  status: GameStatus;
-  cosmicBackground: number[][] | null;
-}
+import type { GameState } from '../types/game.types';
 
 export const useGameState = () => {
   // Ref to store the latest game state

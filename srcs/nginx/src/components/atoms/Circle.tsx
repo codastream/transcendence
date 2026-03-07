@@ -14,7 +14,6 @@ const Circle = ({ children, className = '', size = 120 }: CircleProps) => {
       }
       className={`
       bg-white/80
-      lg-bg-teal-100/10
       shadow-2xl
       z-0
       flex
@@ -24,11 +23,11 @@ const Circle = ({ children, className = '', size = 120 }: CircleProps) => {
       relative
       w-[95vw]
       h-[80vh]
+      max-h-[90vh]
       rounded-3xl
       mx-auto
       text-gray-700
-      
-      sm: mt-5
+      sm:mt-2
       lg:absolute
       lg:top-1/2
       lg:left-1/2
@@ -36,10 +35,14 @@ const Circle = ({ children, className = '', size = 120 }: CircleProps) => {
       lg:-translate-y-1/2
       lg:h-(--circle-size) 
       lg:w-(--circle-size) 
+      lg:max-h-(--circle-size)
+      lg:max-w-(--circle-size)
       lg:rounded-full
       ${className}`}
     >
-      <div className="relative z-10 text-center w-full max-w-4xl px-2 md:px-6 ">{children}</div>
+      <div className="relative z-10 w-full max-w-4xl px-2 md:px-6 md:max-h-[80vh] max-h-[70vh] overflow-y-auto no-scrollbar pt-8 lg:mt-16 flex flex-col items-center text-center">
+        {children}
+      </div>
     </div>
   );
 };

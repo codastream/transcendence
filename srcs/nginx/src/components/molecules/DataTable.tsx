@@ -38,7 +38,7 @@ export function DataTable<T>({
   emptyMessage = 'No data.',
 }: DataTableProps<T>) {
   return (
-    <div className="w-[70%] max-w-5xl mx-auto my-12">
+    <div className="w-full max-w-5xl mx-auto my-8 px-4 md:px-0">
       <div className="bg-white/70 rounded-3xl shadow-2xl p-8 border border-cyan-300">
         <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700 font-quantico">
           {title}
@@ -103,15 +103,15 @@ export function DataCardList<T>({
 }: DataCardListProps<T>) {
   if (rows.length === 0) return <p className="text-center text-gray-500 py-10">{emptyMessage}</p>;
   return (
-    <>
+    <div className="w-full max-w-5xl mx-auto px-4 md:px-0 py-4 space-y-4">
       {rows.map((row) => (
         <div
           key={rowKey(row)}
-          className="bg-white rounded-2xl p-4 m-4 shadow border border-cyan-100 flex flex-col gap-3"
+          className="w-full bg-white rounded-2xl p-4 shadow border border-cyan-100 flex flex-col gap-3"
         >
           {renderCard(row)}
         </div>
       ))}
-    </>
+    </div>
   );
 }

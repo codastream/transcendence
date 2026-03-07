@@ -53,11 +53,13 @@ export const App = () => {
             path="/game/tournament/:tournamentId"
             element={<GamePage sessionId={null} gameMode="tournament" />}
           />
+          <Route path="/game" element={<GamePage sessionId={null} gameMode="remote" />} />
 
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
+
           <Route element={<TournamentLayout />}>
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/history" element={<HistoryPage />} />

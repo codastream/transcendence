@@ -1,6 +1,10 @@
 // ============================================================================
-// AiMode — Human (Player A) vs AI (Player B controlled via REST RL API)
-// AI paddle movement comes from the pong-ai service calling REST endpoints.
+// AiMode — Human (Player A) vs AI (Player B controlled by pong-ai via WS)
+// Both players connect via WebSocket:
+//   - Player A = human (frontend)
+//   - Player B = pong-ai Python service
+// ready_check fires when both are connected.
+// Game starts when both have sent {type: 'ready'}.
 // ============================================================================
 
 import { WebSocket } from 'ws';
@@ -10,13 +14,14 @@ import { Session } from '../core/session/Session.js';
 import { GameOverData, WS_CLOSE, AI_USER_ID } from '../types/game.types.js';
 import { createHumanPlayer, createAiPlayer } from '../core/player/PlayerFactory.js';
 import type { MatchRepository } from '../repositories/MatchRepository.js';
+import { broadcastToSession, sendToWs } from '../websocket/WsBroadcast.js';
 
 export class AiMode implements IGameMode {
   constructor(private matchRepo: MatchRepository) {}
 
   canStart(session: Session): boolean {
-    // AI mode starts with 1 human player (AI is virtual)
-    return session.connectedPlayerCount >= 1;
+    // Both players must be WS-connected (human + pong-ai service)
+    return session.connectedPlayerCount >= 2;
   }
 
   async onPlayerJoin(
@@ -25,51 +30,77 @@ export class AiMode implements IGameMode {
     user: UserIdentity | null,
     app: FastifyInstance,
   ): Promise<boolean> {
-    if (session.isFull()) {
+    const isAiConnection = user?.id === AI_USER_ID || user == null;
+    const role = isAiConnection ? 'B' : 'A';
+
+    if (session.getPlayer(role)) {
+      app.log.warn(
+        `[${session.id}] AI mode: slot ${role} already occupied, refusing duplicate connection`,
+      );
       ws.close(WS_CLOSE.SESSION_FULL, 'Session full');
       return false;
     }
 
-    const role = session.getNextAvailableRole();
-    if (!role) {
-      app.log.info(`[${session.id}] AI mode: session full, refused connection`);
-      ws.close(WS_CLOSE.SESSION_FULL, 'Session full');
-      return false;
-    }
+    const player = isAiConnection
+      ? createAiPlayer('B', ws)
+      : createHumanPlayer('A', user.id, ws, user.username ?? 'anonymous');
 
-    // First player to join is always AI (B) and second player is human (A)
-    if (role === 'B') {
-      const aiPlayer = createAiPlayer('B', ws);
-      session.setPlayer('B', aiPlayer);
-      ws.send(JSON.stringify({ type: 'connected', message: 'Player B (AI)' }));
-      app.log.info(`[${session.id}] AI mode — Player B connected (AI)`);
-      return true;
-    }
+    app.log.info(
+      isAiConnection
+        ? `[${session.id}] AI mode — Player B (pong-ai service) connected via WS`
+        : `[${session.id}] AI mode — Player A (human, userId=${user.id}) connected`,
+    );
 
-    const safeUserId = user?.id != null && Number.isFinite(user.id) ? user.id : null;
-    const player = createHumanPlayer(role, safeUserId, ws);
     session.setPlayer(role, player);
 
-    ws.send(JSON.stringify({ type: 'connected', message: `Player ${role}` }));
-    app.log.info(`[${session.id}] Player ${role} connected (userId=${safeUserId})`);
+    sendToWs(ws, {
+      type: 'connected',
+      message: `${player.username} connected`,
+      player: { role, username: player.username, userId: player.userId ?? null, ready: false },
+      sessionName: session.displayName,
+    });
 
-    // Auto-start when AI is in (B) and human joins (A)
+    broadcastToSession(session, {
+      type: 'player_joined',
+      message: `${player.username} a rejoint la partie`,
+      players: session.getPlayersInfo(),
+    });
+
+    // Trigger ready_check once both players are connected
     if (this.canStart(session) && session.game.status === 'waiting') {
-      session.game.start();
-      app.log.info(`[${session.id}] AI mode: both players connected — game auto-started`);
+      broadcastToSession(session, {
+        type: 'ready_check',
+        message: 'Prêt ? Envoyez "ready" pour démarrer.',
+        players: session.getPlayersInfo(),
+      });
+      app.log.info(`[${session.id}] AI mode — ready_check sent to both players`);
     }
 
     return true;
   }
 
   async onPlayerDisconnect(session: Session, ws: WebSocket, app: FastifyInstance): Promise<void> {
-    session.removePlayerByWs(ws);
-    app.log.info(`[${session.id}] AI mode — human player disconnected`);
+    const player = session.removePlayerByWs(ws);
+    app.log.info(
+      `[${session.id}] AI mode — player ${player?.username ?? '?'} (role ${player?.role ?? '?'}) disconnected`,
+    );
 
-    // Stop whether 'waiting' or 'playing': without a human the session is meaningless.
-    if (session.connectedPlayerCount === 0 && session.game.status !== 'finished') {
+    const wasPlaying = session.game.status === 'playing';
+
+    if (wasPlaying) {
+      broadcastToSession(session, {
+        type: 'player_disconnected',
+        message: `${player?.username ?? 'Un joueur'} a quitté la partie`,
+        players: session.getPlayersInfo(),
+      });
       session.game.stop();
-      app.log.info(`[${session.id}] AI mode — session stopped (no human player)`);
+      app.log.info(`[${session.id}] AI mode — game stopped after disconnect`);
+    } else if (session.game.status !== 'finished') {
+      // Waiting state: no connected players left → clean up
+      if (session.connectedPlayerCount === 0) {
+        session.game.stop();
+        app.log.info(`[${session.id}] AI mode — session stopped (no players left)`);
+      }
     }
   }
 
@@ -81,7 +112,7 @@ export class AiMode implements IGameMode {
     }
 
     try {
-      // AI matches stored as free matches, player2 = 0 (AI marker)
+      // AI matches stored as free matches, player2 = AI_USER_ID marker
       const winnerId = result.winner === 'left' ? player1Id : AI_USER_ID;
       this.matchRepo.createFreeMatch(
         player1Id,
