@@ -176,7 +176,6 @@ async function addSubTournament(logger: AppLogger, tournament: BlockTournamentIn
     }
   } catch (err: any) {
     const event = errorEventMap[err.code];
-    console.error(`==================== code: ${err.code}, id: ${rowSnapId}`);
     if (event) {
       logger.error({ event, err });
     } else {

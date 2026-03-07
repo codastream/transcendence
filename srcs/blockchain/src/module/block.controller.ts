@@ -55,7 +55,6 @@ export async function addTournament(
     }
   } catch (err: any) {
     const event = errorEventMap[err.code];
-    console.error(`Error event: ${event}, code: ${err.code}, message: ${err.message}`);
     this.log.warn({ event, err });
     if (event) {
       this.log.error({ event, err });
