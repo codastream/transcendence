@@ -408,11 +408,14 @@ export async function patchUsernameHandler(
   const id = Number(request.headers['x-user-id'] as string);
   const { newUsername } = request.body;
 
-  // Empêcher l'admin de modifier son propre username
-  const userRole = authService.getUserRole(id);
-  if (userRole === 'admin') {
+  // Empêcher les comptes protégés de modifier leur username
+  const protectedAccounts = ['admin', 'invite', 'pong_ai'];
+  if (protectedAccounts.includes(username?.toLowerCase())) {
     return reply.code(403).send({
-      error: { message: 'Admin cannot change their own username', code: 'SELF_UPDATE_FORBIDDEN' },
+      error: {
+        message: 'Protected accounts cannot change their username',
+        code: 'SELF_UPDATE_FORBIDDEN',
+      },
     });
   }
 
@@ -442,6 +445,18 @@ export async function patchEmailHandler(
   const username = request.headers['x-user-name'] as string;
   const id = Number(request.headers['x-user-id'] as string);
   const { newEmail } = request.body;
+
+  // Empêcher les comptes protégés de modifier leur email
+  const protectedAccounts = ['admin', 'invite', 'pong_ai'];
+  if (protectedAccounts.includes(username?.toLowerCase())) {
+    return reply.code(403).send({
+      error: {
+        message: 'Protected accounts cannot change their email',
+        code: 'SELF_UPDATE_FORBIDDEN',
+      },
+    });
+  }
+
   request.log.trace({ event: 'patch_email' });
   const updatedUser = await authService.updateUserEmailAndFetch(id, username, newEmail);
   return reply.send({

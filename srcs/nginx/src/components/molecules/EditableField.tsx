@@ -10,6 +10,7 @@ interface EditableFieldProps {
   onCancel?: () => void;
   error?: string | null;
   isPending?: boolean;
+  disabled?: boolean;
 }
 
 export const EditableField = ({
@@ -19,6 +20,7 @@ export const EditableField = ({
   onCancel,
   error,
   isPending = false,
+  disabled = false,
 }: EditableFieldProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
@@ -67,7 +69,9 @@ export const EditableField = ({
   ) : (
     <div className="flex flex-row justify-between items-center mt-4">
       <p className="mr-3 ts-form-title">{value}</p>
-      <Pencil className="cursor-pointer" color="white" onClick={() => setIsEditing(true)} />
+      {!disabled && (
+        <Pencil className="cursor-pointer" color="white" onClick={() => setIsEditing(true)} />
+      )}
     </div>
   );
 };
