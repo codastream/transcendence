@@ -52,4 +52,26 @@ export function initRedisSubscriber(fastify: FastifyInstance) {
       return;
     }
   });
+  userBus.on(USER_EVENT.DELETED, async (authId: number) => {
+    try {
+      await fastify.redis.xadd(
+        'user.events',
+        '*',
+        'data',
+        JSON.stringify({
+          type: 'USER_DELETED',
+          id: authId,
+          timestamp: Date.now(),
+        }),
+      );
+      fastify.log.info(`Event streamed to Redis for user ${authId}`);
+      try {
+      } catch (err) {
+        fastify.log.error(err, 'Failed to stream user event to Redis');
+      }
+    } catch {
+      fastify.log.warn(`Profile not found for auth id ${authId}, skipping Redis event`);
+      return;
+    }
+  });
 }

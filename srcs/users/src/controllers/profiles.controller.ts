@@ -88,8 +88,10 @@ export class ProfileController {
     const { username } = req.params as {
       username: usernameDTO;
     };
+    const { id: userId } = req.user;
     req.log.trace({ event: `${LOG_ACTIONS.DELETE}_${LOG_RESOURCES.PROFILE}`, param: username });
     const profileSimpleDTO = await profileService.deleteByUsername(username);
+    userBus.emit(USER_EVENT.DELETED, userId);
     return reply.status(200).send(profileSimpleDTO);
   }
 
@@ -98,6 +100,7 @@ export class ProfileController {
       userId: number;
     };
     req.log.trace({ event: `${LOG_ACTIONS.DELETE}_${LOG_RESOURCES.PROFILE}`, param: userId });
+    userBus.emit(USER_EVENT.DELETED, userId);
     await profileService.deleteById(userId);
     return reply.status(204).send();
   }
