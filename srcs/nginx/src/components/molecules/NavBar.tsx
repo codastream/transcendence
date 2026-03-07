@@ -9,6 +9,9 @@ import { useTranslation } from 'react-i18next';
 export const NavBar = () => {
   const { user, isLoggedIn, logout } = useAuth();
   const { t } = useTranslation();
+  const myPublicProfilePath = user?.username
+    ? `/profile/${encodeURIComponent(user.username)}`
+    : '/me';
 
   const playItems = [
     { label: t('navbar.play_friend'), to: '/friends' },
@@ -24,7 +27,7 @@ export const NavBar = () => {
   ];
 
   const profileItems = [
-    { label: t('navbar.profile'), to: '/me' },
+    { label: t('navbar.profile'), to: myPublicProfilePath },
     { label: t('faq.title'), to: '/faq' },
     { label: t('navbar.profile_logout'), onClick: () => logout() },
   ];

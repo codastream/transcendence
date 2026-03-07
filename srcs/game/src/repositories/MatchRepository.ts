@@ -47,18 +47,27 @@ export class MatchRepository {
     `);
     this.getMatchHistoryStmt = db.prepare(`
       SELECT
-        m.id, m.tournament_id, m.round,
+        m.id, m.tournament_id, m.round, m.player1, m.player2,
         m.score_player1, m.score_player2, m.winner_id, m.created_at,
         p1.username AS username_player1,
         p2.username AS username_player2,
-        pw.username AS username_winner
+        pw.username AS username_winner,
+        CASE
+          WHEN m.player1 = ? THEN p2.username
+          ELSE p1.username
+        END AS opponent_username,
+        CASE
+          WHEN m.winner_id IS NULL THEN 'PENDING'
+          WHEN m.winner_id = ? THEN 'WIN'
+          ELSE 'LOSS'
+        END AS result
       FROM match m
       LEFT JOIN player p1 ON p1.id = m.player1
       LEFT JOIN player p2 ON p2.id = m.player2
       LEFT JOIN player pw ON pw.id = m.winner_id
       WHERE (m.player1 = ? OR m.player2 = ?)
       ORDER BY m.created_at DESC
-      LIMIT 100
+      LIMIT ?
     `);
     this.ensureGuestPlayerStmt = db.prepare(`
       INSERT OR IGNORE INTO player (id, username, avatar, updated_at) VALUES (?, 'Guest', NULL, ?)
@@ -186,9 +195,9 @@ export class MatchRepository {
     })();
   }
 
-  getMatchHistory(userId: number): any[] {
+  getMatchHistory(userId: number, limit: number = 100): any[] {
     try {
-      return this.getMatchHistoryStmt.all(userId, userId) as any[];
+      return this.getMatchHistoryStmt.all(userId, userId, userId, userId, limit) as any[];
     } catch (err: unknown) {
       throw new AppError(
         ERR_DEFS.DB_SELECT_ERROR,

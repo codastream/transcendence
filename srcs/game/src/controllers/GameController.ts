@@ -2,10 +2,10 @@
 // GameController — Thin HTTP layer, delegates to usecases and repositories
 // ============================================================================
 
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import { WebSocket } from 'ws';
-import { AppError, LOG_REASONS } from '@transcendence/core';
-import { GameMode, GameSettings, WS_CLOSE, TournamentParams } from '../types/game.types.js';
+import { AppError, LOG_REASONS, ErrorDetail } from '@transcendence/core';
+import { GameMode, GameSettings, TournamentParams } from '../types/game.types.js';
 import { SessionStore } from '../core/session/SessionStore.js';
 import { MatchRepository } from '../repositories/MatchRepository.js';
 import { TournamentRepository } from '../repositories/TournamentRepository.js';
@@ -13,6 +13,28 @@ import { UserRepository } from '../repositories/UserRepository.js';
 import { createSession } from '../usecases/CreateSession.js';
 import { startGameLoop } from '../usecases/GameLoop.js';
 import { handleWsConnection } from '../websocket/WsConnectionManager.js';
+
+type StatsHistoryQuery = {
+  username?: string;
+  userId?: string | number;
+  limit?: string | number;
+};
+
+function parsePositiveInt(value: string | number | undefined): number | null {
+  if (value == null) return null;
+  const parsed = typeof value === 'number' ? value : Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) return null;
+  return parsed;
+}
+
+function hasLogReason(error: AppError, expectedReason: string): boolean {
+  const details = error.context?.details;
+  if (!Array.isArray(details)) return false;
+  return details.some((detail) => {
+    const reason = (detail as ErrorDetail).reason;
+    return reason === expectedReason;
+  });
+}
 
 /**
  * Creates a controller object bound to the shared dependencies.
@@ -24,6 +46,38 @@ export function createGameController(
   tournamentRepo: TournamentRepository,
   userRepo: UserRepository,
 ) {
+  const resolveTargetUserId = (
+    query: StatsHistoryQuery,
+    fallbackUserId: number | null,
+  ): { targetUserId: number | null; error: string | null; statusCode?: number } => {
+    const requestedUsername = query.username?.trim();
+    if (requestedUsername) {
+      const targetUser = userRepo.getUserByUsername(requestedUsername);
+      if (!targetUser) {
+        return {
+          targetUserId: null,
+          error: `User ${requestedUsername} not found in game service`,
+          statusCode: 404,
+        };
+      }
+      return { targetUserId: targetUser.id, error: null };
+    }
+
+    if (query.userId != null) {
+      const requestedUserId = parsePositiveInt(query.userId);
+      if (!requestedUserId) {
+        return {
+          targetUserId: null,
+          error: 'userId must be a positive integer',
+          statusCode: 400,
+        };
+      }
+      return { targetUserId: requestedUserId, error: null };
+    }
+
+    return { targetUserId: fallbackUserId, error: null };
+  };
+
   return {
     // ---- Session Management ----
 
@@ -130,7 +184,7 @@ export function createGameController(
       };
     },
 
-    async listGameSessions(_req: FastifyRequest, reply: FastifyReply) {
+    async listGameSessions() {
       const sessions = sessionStore.listByMode('remote').map((s) => ({
         sessionId: s.id,
         sessionName: s.displayName,
@@ -196,10 +250,8 @@ export function createGameController(
         tournamentRepo.joinTournament(userId, tourId);
       } catch (err: unknown) {
         if (err instanceof AppError) {
-          const isFull = err.context?.details?.some(
-            (d: any) => d.reason === LOG_REASONS.TOURNAMENT.FULL,
-          );
-          if (isFull) return reply.code(409).send({ message: err.message });
+          const isFull = hasLogReason(err, LOG_REASONS.TOURNAMENT.FULL);
+          if (isFull) return reply.code(409).send({ message: String(err.message) });
         }
         throw err;
       }
@@ -222,10 +274,8 @@ export function createGameController(
         return reply.code(200).send(matchToPlay);
       } catch (err: unknown) {
         if (err instanceof AppError) {
-          const isNoMatch = err.context?.details?.some(
-            (d: any) => d.reason === LOG_REASONS.TOURNAMENT.NO_MATCH_TO_PLAY,
-          );
-          if (isNoMatch) return reply.code(404).send({ message: err.message });
+          const isNoMatch = hasLogReason(err, LOG_REASONS.TOURNAMENT.NO_MATCH_TO_PLAY);
+          if (isNoMatch) return reply.code(404).send({ message: String(err.message) });
         }
         throw err;
       }
@@ -234,13 +284,30 @@ export function createGameController(
     // ---- Stats / History ----
 
     async getTournamentStats(req: FastifyRequest, reply: FastifyReply) {
-      const userId = req.user?.id ?? null;
-      return reply.code(200).send(tournamentRepo.getTournamentStats(userId));
+      const query = (req.query ?? {}) as StatsHistoryQuery;
+      const authUserId = req.user?.id ?? null;
+      const { targetUserId, error, statusCode = 400 } = resolveTargetUserId(query, authUserId);
+
+      if (!targetUserId) {
+        return reply.code(statusCode).send({ status: 'failure', message: error ?? 'Invalid user' });
+      }
+
+      return reply.code(200).send(tournamentRepo.getTournamentStats(targetUserId));
     },
 
     async getMatchHistory(req: FastifyRequest, reply: FastifyReply) {
-      const userId = req.user?.id ?? null;
-      return reply.code(200).send(matchRepo.getMatchHistory(userId));
+      const query = (req.query ?? {}) as StatsHistoryQuery;
+      const authUserId = req.user?.id ?? null;
+      const { targetUserId, error, statusCode = 400 } = resolveTargetUserId(query, authUserId);
+
+      if (!targetUserId) {
+        return reply.code(statusCode).send({ status: 'failure', message: error ?? 'Invalid user' });
+      }
+
+      const rawLimit = parsePositiveInt(query.limit);
+      const limit = rawLimit == null ? 100 : Math.min(rawLimit, 200);
+
+      return reply.code(200).send(matchRepo.getMatchHistory(targetUserId, limit));
     },
 
     // ---- RL API (AI mode) ----

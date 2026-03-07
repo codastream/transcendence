@@ -59,6 +59,7 @@ export const App = () => {
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />
           <Route path="/tournaments/*" element={<TournamentRoutes />} />
+
           <Route element={<TournamentLayout />}>
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/history" element={<HistoryPage />} />

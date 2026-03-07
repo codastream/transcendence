@@ -24,7 +24,7 @@ export default function TournamentLayout() {
             <NavBar></NavBar>
           </div>
         }
-        <Scrollable>
+        <Scrollable disableMaxWidth>
           <Outlet />
         </Scrollable>
         <Footer className="absolute bottom-0 mt-6 w-full" />

@@ -60,7 +60,6 @@ export const HomePage = () => {
               })}
             </Scrollable>
           </main>
-
           <Footer />
         </div>
       </Background>

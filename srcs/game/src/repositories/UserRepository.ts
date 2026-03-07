@@ -18,6 +18,7 @@ export class UserRepository {
   private upsertUserStmt;
   private deleteUserStmt;
   private getUserStmt;
+  private getUserByUsernameStmt;
   private getPlayerStatsStmt;
   private ensureGuestPlayerStmt;
 
@@ -33,6 +34,9 @@ export class UserRepository {
     `);
     this.deleteUserStmt = db.prepare(`DELETE FROM player WHERE id = ?`);
     this.getUserStmt = db.prepare(`SELECT * FROM player WHERE id = ?`);
+    this.getUserByUsernameStmt = db.prepare(`
+      SELECT * FROM player WHERE username = ? COLLATE NOCASE
+    `);
     this.getPlayerStatsStmt = db.prepare(`SELECT * FROM match WHERE player1 = ? OR player2 = ?`);
     this.ensureGuestPlayerStmt = db.prepare(`
       INSERT OR IGNORE INTO player (id, username, avatar, updated_at)
@@ -74,6 +78,19 @@ export class UserRepository {
     } catch (err: unknown) {
       if (err instanceof AppError) throw err;
       throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: `getUser ${id}` }] }, err);
+    }
+  }
+
+  getUserByUsername(username: string): PlayerRecord | null {
+    try {
+      const result = this.getUserByUsernameStmt.get(username) as PlayerRecord | undefined;
+      return result ?? null;
+    } catch (err: unknown) {
+      throw new AppError(
+        ERR_DEFS.DB_SELECT_ERROR,
+        { details: [{ field: `getUserByUsername ${username}` }] },
+        err,
+      );
     }
   }
 

@@ -13,6 +13,31 @@ import {
   ErrorDetail,
 } from '@transcendence/core';
 
+interface TournamentPlayerView {
+  player_id: number;
+  username: string | null;
+  avatar: string | null;
+  slot: number;
+}
+
+interface TournamentStatRow {
+  player_id: number;
+  username: string;
+  tournaments_played: number;
+  tournaments_won: number;
+  tournaments_lost: number;
+  matches_played: number;
+  matches_won: number;
+  matches_lost: number;
+  points_scored: number;
+  points_conceded: number;
+  avg_points_scored: number;
+  avg_points_conceded: number;
+  tournamentsWinRate: number;
+  matchesWinRate: number;
+  last_match_at: number | null;
+}
+
 export class TournamentRepository {
   private db;
   private createTournamentStmt;
@@ -91,38 +116,107 @@ export class TournamentRepository {
       SELECT player1, player2, winner_id FROM match WHERE tournament_id = ? AND round = ?
     `);
     this.getTournamentStatsStmt = db.prepare(`
+      WITH base AS (
+        SELECT
+          p.id AS player_id,
+          COALESCE(p.username, 'unknown') AS username,
+          (
+            SELECT COUNT(DISTINCT tp.tournament_id)
+            FROM tournament_player tp
+            WHERE tp.player_id = p.id
+          ) AS tournaments_played,
+          (
+            SELECT COUNT(DISTINCT tp.tournament_id)
+            FROM tournament_player tp
+            WHERE tp.player_id = p.id AND tp.final_position = 1
+          ) AS tournaments_won,
+          (
+            SELECT COUNT(DISTINCT tp.tournament_id)
+            FROM tournament_player tp
+            WHERE tp.player_id = p.id AND tp.final_position > 1
+          ) AS tournaments_lost,
+          (
+            SELECT COUNT(*)
+            FROM match m
+            WHERE m.player1 = p.id OR m.player2 = p.id
+          ) AS matches_played,
+          (
+            SELECT COUNT(*)
+            FROM match m
+            WHERE (m.player1 = p.id OR m.player2 = p.id) AND m.winner_id = p.id
+          ) AS matches_won,
+          (
+            SELECT COUNT(*)
+            FROM match m
+            WHERE (m.player1 = p.id OR m.player2 = p.id)
+              AND m.winner_id IS NOT NULL
+              AND m.winner_id <> p.id
+          ) AS matches_lost,
+          (
+            SELECT COALESCE(
+              SUM(
+                CASE
+                  WHEN m.player1 = p.id THEN COALESCE(m.score_player1, 0)
+                  WHEN m.player2 = p.id THEN COALESCE(m.score_player2, 0)
+                  ELSE 0
+                END
+              ),
+              0
+            )
+            FROM match m
+            WHERE m.player1 = p.id OR m.player2 = p.id
+          ) AS points_scored,
+          (
+            SELECT COALESCE(
+              SUM(
+                CASE
+                  WHEN m.player1 = p.id THEN COALESCE(m.score_player2, 0)
+                  WHEN m.player2 = p.id THEN COALESCE(m.score_player1, 0)
+                  ELSE 0
+                END
+              ),
+              0
+            )
+            FROM match m
+            WHERE m.player1 = p.id OR m.player2 = p.id
+          ) AS points_conceded,
+          (
+            SELECT MAX(m.created_at)
+            FROM match m
+            WHERE m.player1 = p.id OR m.player2 = p.id
+          ) AS last_match_at
+        FROM player p
+        WHERE p.id = ?
+      )
       SELECT
-        p.id AS player_id,
-        COALESCE(p.username, 'unknown') AS username,
-        COUNT(DISTINCT tp.tournament_id) AS tournaments_played,
-        COUNT(DISTINCT CASE WHEN tp.final_position = 1 THEN tp.tournament_id END) AS tournaments_won,
-        COUNT(DISTINCT CASE WHEN tp.final_position > 1 THEN tp.tournament_id END) AS tournaments_lost,
-        COUNT(DISTINCT m.id) AS matches_played,
-        COUNT(DISTINCT CASE WHEN m.winner_id = p.id THEN m.id END) AS matches_won,
-        COUNT(DISTINCT CASE WHEN m.winner_id <> p.id THEN m.id END) AS matches_lost,
-      CASE 
-        WHEN COUNT(DISTINCT tp.tournament_id) = 0 THEN 0.0
-        ELSE ROUND(
-          (COUNT(DISTINCT CASE WHEN tp.final_position = 1 THEN tp.tournament_id END) * 100.0) 
-          / COUNT(DISTINCT tp.tournament_id), 
-          2
-        )
-      END AS tournamentsWinRate,
-      
-      CASE 
-        WHEN COUNT(DISTINCT m.id) = 0 THEN 0.0
-        ELSE ROUND(
-          (COUNT(DISTINCT CASE WHEN m.winner_id = p.id THEN m.id END) * 100.0) 
-          / COUNT(DISTINCT m.id), 
-          2
-        )
-      END AS matchesWinRate
-      FROM player p
-      LEFT JOIN tournament_player tp ON tp.player_id = p.id
-      LEFT JOIN match m ON m.tournament_id = tp.tournament_id 
-                        AND (m.player1 = p.id OR m.player2 = p.id)
-      WHERE p.id = ?
-      GROUP BY p.id, p.username
+        player_id,
+        username,
+        tournaments_played,
+        tournaments_won,
+        tournaments_lost,
+        matches_played,
+        matches_won,
+        matches_lost,
+        points_scored,
+        points_conceded,
+        CASE
+          WHEN matches_played = 0 THEN 0.0
+          ELSE ROUND(points_scored * 1.0 / matches_played, 2)
+        END AS avg_points_scored,
+        CASE
+          WHEN matches_played = 0 THEN 0.0
+          ELSE ROUND(points_conceded * 1.0 / matches_played, 2)
+        END AS avg_points_conceded,
+        CASE
+          WHEN tournaments_played = 0 THEN 0.0
+          ELSE ROUND((tournaments_won * 100.0) / tournaments_played, 2)
+        END AS tournamentsWinRate,
+        CASE
+          WHEN matches_played = 0 THEN 0.0
+          ELSE ROUND((matches_won * 100.0) / matches_played, 2)
+        END AS matchesWinRate,
+        last_match_at
+      FROM base
     `);
     this.getBlockchainPlayersStmt = db.prepare(`
       SELECT tp.player_id, tp.final_position
@@ -234,9 +328,9 @@ export class TournamentRepository {
     }
   }
 
-  showTournament(tournamentId: number): any[] {
+  showTournament(tournamentId: number): TournamentPlayerView[] {
     try {
-      return this.listPlayersStmt.all(tournamentId) as any[];
+      return this.listPlayersStmt.all(tournamentId) as TournamentPlayerView[];
     } catch (err: unknown) {
       throw new AppError(
         ERR_DEFS.DB_SELECT_ERROR,
@@ -329,9 +423,9 @@ export class TournamentRepository {
     }
   }
 
-  getTournamentStats(userId: number): any[] {
+  getTournamentStats(userId: number): TournamentStatRow[] {
     try {
-      return this.getTournamentStatsStmt.all(userId) as any[];
+      return this.getTournamentStatsStmt.all(userId) as TournamentStatRow[];
     } catch (err: unknown) {
       throw new AppError(
         ERR_DEFS.DB_SELECT_ERROR,
