@@ -278,6 +278,7 @@
   },
   "profile": {
     "profile": "Profile",
+    "my_profile": "Customize profile",
     "2fa": "2FA",
     "update_avatar": "Update avatar",
     "update_username": "Update username",

@@ -293,6 +293,7 @@
   },
   "profile": {
     "profile": "Pedigree",
+    "my_profile": "Ton compte",
     "2fa": "Double contrôle",
     "update_avatar": "Se faire retirer le portrait",
     "update_username": "Changer le blaze",

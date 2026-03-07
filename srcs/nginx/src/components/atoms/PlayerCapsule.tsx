@@ -14,7 +14,7 @@ export function PlayerCapsule({ player }: { player: Player }) {
     >
       {/* Avatar + status */}
       <div className="relative">
-        <Avatar src={player.avatar} size="sm" />
+        <Avatar src={player.avatar} size="sm" username={player.name} />
 
         <span
           className={[

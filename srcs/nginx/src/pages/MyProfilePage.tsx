@@ -171,7 +171,7 @@ export const MyProfilePage = () => {
         {/* Section profil */}
         <div className="mb-3">
           <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">
-            {t('profile.profile')}
+            {t('profile.my_profile')}
           </h1>
           <div className="flex flex-col items-center">
             <Avatar src={profile.avatarUrl} size="lg"></Avatar>

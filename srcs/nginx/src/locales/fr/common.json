@@ -277,6 +277,7 @@
   },
   "profile": {
     "profile": "Profil",
+    "my_profile": "Personnaliser le profile",
     "2fa": "2FA",
     "update_avatar": "Changer d'avatar",
     "update_username": "Mettre à jour le pseudo",

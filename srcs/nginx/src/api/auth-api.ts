@@ -90,6 +90,24 @@ export const authApi = {
     };
   },
 
+  checkOnlineStatus: async (username: string): Promise<boolean> => {
+    const { data } = await api.get<{ username: string; isOnline: boolean }>(
+      `/auth/is-online/${username}`,
+    );
+    return data.isOnline;
+  },
+
+  checkBulkOnlineStatus: async (usernames: string[]): Promise<Map<string, boolean>> => {
+    const results = await Promise.all(
+      usernames.map((username) =>
+        api
+          .get<{ username: string; isOnline: boolean }>(`/auth/is-online/${username}`)
+          .catch(() => ({ data: { username, isOnline: false } })),
+      ),
+    );
+    return new Map(results.map((r) => [r.data.username, r.data.isOnline]));
+  },
+
   updateUsername: async (newUsername: string): Promise<UserDTO> => {
     validateFromSchema(newUsername, 'username', usernameSchema);
     const { data } = await api.patch(`/auth/username`, { newUsername });

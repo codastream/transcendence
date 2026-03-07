@@ -58,7 +58,7 @@ export const NavBar = () => {
             className="hover:opacity-80 transition-opacity"
             style={{ textDecoration: 'none', color: 'inherit' }}
           >
-            <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
+            <Avatar key={user.avatarUrl} src={user.avatarUrl} to={'/me'} size="sm"></Avatar>
           </Link>
         )}
 

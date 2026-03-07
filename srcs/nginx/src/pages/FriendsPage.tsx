@@ -12,6 +12,7 @@ import { UserActions } from '../types/react-types';
 import UserSearchContainer from '../components/molecules/UserSearchContainer';
 import { friendApi } from '../api/friend-api';
 import { useEffect, useState } from 'react';
+import { authApi } from '../api/auth-api';
 
 export const FriendsPage = () => {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ export const FriendsPage = () => {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSearch, setIsSearch] = useState<boolean>(true);
+  const [onlineStatuses, setOnlineStatuses] = useState<Map<string, boolean>>(new Map());
 
   const allowedActions: UserActions[] = [UserActions.PLAY, UserActions.REMOVE];
 
@@ -39,6 +41,28 @@ export const FriendsPage = () => {
     };
     fetchFriends();
   }, []);
+
+  useEffect(() => {
+    const fetchOnlineStatuses = async () => {
+      if (friends.length === 0) return;
+      try {
+        setLoading(true);
+        const usernames = friends.map((f) => f.friend.username);
+        const statuses = await authApi.checkBulkOnlineStatus(usernames);
+        setOnlineStatuses(statuses);
+      } catch (err) {
+        if (err instanceof FrontendError) {
+          setErrorMessage(err.message);
+        }
+        setIsSearch(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (friends.length > 0) {
+      fetchOnlineStatuses();
+    }
+  }, [friends]);
 
   const handleUserAction = async (action: UserActions, targetUser: ProfileSimpleDTO) => {
     try {
@@ -93,6 +117,7 @@ export const FriendsPage = () => {
             user={f.friend}
             actions={allowedActions}
             onAction={handleUserAction}
+            isOnline={onlineStatuses.get(f.friend.username)}
           />
         ))}
       </div>
