@@ -26,7 +26,7 @@ const Avatar = ({
     lg: 'w-24 h-24',
   };
 
-  const destination = to || (username ? `/profile/${username}` : null);
+  const destination = to || (username ? `/profile/${encodeURIComponent(username)}` : null);
 
   const content = (
     <div

@@ -81,7 +81,10 @@ const StartGameScreen = ({
 
   // Filtrer les sessions créées par l'ami si le filtre s'applique
   const displayedSessions = friendNameFilter
-    ? sessionsList.filter((s) => s.sessionName?.includes(friendNameFilter))
+    ? sessionsList.filter(
+        (s) =>
+          s.sessionName && s.sessionName.toLocaleLowerCase() === friendNameFilter.toLowerCase(),
+      )
     : sessionsList;
 
   return (
