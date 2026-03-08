@@ -545,3 +545,5 @@ Module of choice justification: We chose to implement a LED panel for scores as 
 ### npolack — Scrum Master
 
 - **Game Engine**: Real-time Pong gameplay over WebSockets, game session management (create/list/delete), configurable game settings, player stats
+
+> README file was created and maintained by `@lisambet` with contributions from the team.
