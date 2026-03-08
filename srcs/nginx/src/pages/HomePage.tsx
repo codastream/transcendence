@@ -20,11 +20,11 @@ export const HomePage = () => {
   const { t } = useTranslation();
 
   const menuItems = [
-    { to: '/game/pong-ai', label: 'game.playWithAI', size: 220 },
-    { to: '/friends', label: 'game.playWithFriends', size: 280 },
-    { to: '/tournaments', label: 'game.tournament', size: 250 },
-    { to: '/game/remote', label: 'game.playRemote', size: 220 },
-    { to: '/game/local', label: 'game.playLocal', size: 280 },
+    { to: '/game/pong-ai', label: 'game.playWithAI', size: 140 },
+    { to: '/friends', label: 'game.playWithFriends', size: 180 },
+    { to: '/tournaments', label: 'game.tournament', size: 150 },
+    { to: '/game/remote', label: 'game.playRemote', size: 160 },
+    { to: '/game/local', label: 'game.playLocal', size: 140 },
   ];
 
   const isOdd = menuItems.length % 2 !== 0;
@@ -37,17 +37,17 @@ export const HomePage = () => {
 
           <main className="grow overflow-hidden">
             <Scrollable
-              className="h-full md:grid md:grid-cols-2 md:place-items-center md:gap-x-12 md:gap-y-12 lg:gap-8"
+              className="h-full md:grid md:grid-cols-2 md:place-items-center md:gap-x-2 md:gap-y-2 lg:gap-3"
               isAnimated={true}
             >
               {menuItems.map((item, index) => {
-                const isCentered = isOdd && index === menuItems.length - 1;
+                const isSpanning = isOdd && index === Math.round(menuItems.length / 2) - 1;
                 return (
                   <Link
                     key={item.to}
                     to={item.to}
                     className={
-                      isCentered
+                      isSpanning
                         ? 'md:col-span-2 flex justify-center w-full'
                         : 'flex justify-center w-full'
                     }
