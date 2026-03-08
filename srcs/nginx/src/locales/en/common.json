@@ -51,6 +51,8 @@
     "confirm": "confirm",
     "save": "save",
     "cancel": "cancel",
+    "copy": "copy",
+    "copied": "copied",
     "refresh": "Refresh"
   },
   "companyName": "Patapong SA",
@@ -260,6 +262,7 @@
     "stats": "Stats",
     "stats_history": "History",
     "profile": "Profile",
+    "profile_public": "Public profile",
     "profile_logout": "Logout",
     "profile_login": "Login"
   },
@@ -418,6 +421,12 @@
       "forfeit": "Opponent disconnected — win by forfeit!"
     },
     "lobby": {
+      "waiting_title": "Game Lobby",
+      "waiting_description": "Waiting for the 2nd player to join...",
+      "hosted_by": "Hosted by",
+      "session_id": "Session ID",
+      "waiting_for_second_player": "waiting for the 2nd player",
+      "starting_soon": "starting soon",
       "waiting_player": "Waiting...",
       "you": "you",
       "ready": "Ready",

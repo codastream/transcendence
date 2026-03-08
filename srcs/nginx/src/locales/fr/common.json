@@ -51,6 +51,8 @@
     "confirm": "confirmer",
     "save": "enregistrer",
     "cancel": "annuler",
+    "copy": "copier",
+    "copied": "copié",
     "refresh": "Actualiser"
   },
   "companyName": "Patapong SA",
@@ -259,6 +261,7 @@
     "stats": "Stats",
     "stats_history": "Historique",
     "profile": "Profil",
+    "profile_public": "Profil public",
     "profile_logout": "Se déconnecter",
     "profile_login": "Se connecter"
   },
@@ -417,6 +420,12 @@
       "forfeit": "Adversaire déconnecté — victoire par forfait !"
     },
     "lobby": {
+      "waiting_title": "Lobby de la partie",
+      "waiting_description": "En attente du 2e joueur...",
+      "hosted_by": "Hébergé par",
+      "session_id": "ID de session",
+      "waiting_for_second_player": "en attente du 2e joueur",
+      "starting_soon": "démarrage imminent",
       "waiting_player": "En attente...",
       "you": "vous",
       "ready": "Prêt",

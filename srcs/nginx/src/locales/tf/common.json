@@ -51,6 +51,8 @@
     "confirm": "je suis sûr",
     "save": "enregistre ça",
     "cancel": "se dégonfler",
+    "copy": "colle-moi ça quelque part",
+    "copied": "c'est dans ta poche",
     "refresh": "On rafraîchit"
   },
   "companyName": "Patapong SA",
@@ -266,7 +268,8 @@
     "play_tournament": "La compét'",
     "stats": "Ton palmarès",
     "stats_history": "Ton historique",
-    "profile": "Ton pedigree",
+    "profile_public": "Ton pedigree",
+    "profile": "Retape ton profil",
     "profile_logout": "Allez, on se tire",
     "profile_login": "Viens te connecter"
   },
@@ -425,6 +428,12 @@
       "forfeit": "L'autre s'est barré — t'as gagné par forfait, veinard !"
     },
     "lobby": {
+      "waiting_title": "La salle d'attente",
+      "waiting_description": "On attend le second gaillard...",
+      "hosted_by": "Géré par",
+      "session_id": "Code de la partie",
+      "waiting_for_second_player": "on attend que l'autre débarque",
+      "starting_soon": "ça va lancer bientôt",
       "waiting_player": "On attend...",
       "you": "toi",
       "ready": "Ch'uis prêt",

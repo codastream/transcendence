@@ -24,6 +24,7 @@ import Background from '../components/atoms/Background';
 import StartGameScreen from '../components/organisms/game/StartGameScreen';
 import GamePlayScreen from '../components/organisms/game/GamePlayScreen';
 import GameOverScreen from '../components/organisms/game/GameOverScreen';
+import LobbyScreen from '../components/organisms/game/LobbyScreen';
 import TournamentResultsScreen, {
   TournamentHistoryMatch,
 } from '../components/organisms/game/TournamentResultsScreen';
@@ -40,8 +41,8 @@ export type { BackgroundMode } from '../types/game.types';
 
 // ── Types ────────────────────────────────────────────
 
-/** Les 3 écrans du flux de jeu */
-type GameScreen = 'start' | 'playing' | 'gameover' | 'tournament_results';
+/** Les 4 écrans du flux de jeu */
+type GameScreen = 'start' | 'lobby' | 'playing' | 'gameover' | 'tournament_results';
 
 interface MatchToPlayResponse {
   sessionId: string;
@@ -51,25 +52,7 @@ interface MatchToPlayResponse {
   player2: number;
 }
 
-interface TournamentPlayerResponse {
-  player_id: number;
-  username: string;
-  avatar: string | null;
-  slot: 1 | 2 | 3 | 4;
-}
-
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-interface GamePageProps {
-  /** Session pré-sélectionnée (mode tournament : fournie par TournamentPage) */
-  sessionId: string | null;
-  /**
-   * Mode initial. En mode tournament, sessionId est fourni et on démarre
-   * directement sur l'écran de jeu. Pour tous les autres modes, on démarre
-   * sur l'écran de démarrage.
-   */
-  gameMode: GameMode;
-}
 
 // ── Constantes ───────────────────────────────────────────────────────────────
 
@@ -77,12 +60,16 @@ const BG_COLORS = { start: '#00ff9f', end: '#0088ff' };
 
 // ── Composant ────────────────────────────────────────────────────────────────
 
-export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
+export const GamePage = () => {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams<{ tournamentId?: string }>();
   const { username: targetFriend } = useParams<{ username?: string }>();
+
+  // ── Déduction du gameMode depuis l'URL
+  const gameModeFromUrl = tournamentId ? 'tournament' : targetFriend ? 'remote' : null;
+  const [gameMode, setGameMode] = useState<GameMode | null>(gameModeFromUrl);
 
   // ── Hooks ──────────────────────────────────────────────────────────────────
   const {
@@ -115,7 +102,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [nextMatchSessionId, setNextMatchSessionId] = useState<string | null>(null);
   const [isResolvingTournamentNextMatch, setIsResolvingTournamentNextMatch] = useState(false);
-  const [tournamentResults, setTournamentResults] = useState<TournamentHistoryMatch[]>([]);
+  const [tournamentResults] = useState<TournamentHistoryMatch[]>([]);
   const [tournamentResultsError, setTournamentResultsError] = useState<string | null>(null);
 
   // ── Machine à états : écran courant ───────────────────────────────
@@ -148,8 +135,8 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     createSession,
     exitSession,
   } = useGameSession({
-    gameMode,
-    initialSessionId: sessionId,
+    gameMode: gameMode ?? 'remote', // Utiliser le gameMode local (null = remote par défaut)
+    initialSessionId: null, // Pas de sessionId pré-défini (on crée/rejoint via WS)
     onBeforeCreate,
     autoCreate: gameMode === 'tournament',
   });
@@ -266,23 +253,26 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
 
   /** Créer une partie locale → écran de jeu */
   const handleCreateLocal = useCallback(async () => {
+    setGameMode('local');
     await createSession('local');
     setScreen('playing');
   }, [createSession]);
 
   /** Créer une partie IA → écran de jeu */
   const handleCreateAi = useCallback(async () => {
+    setGameMode('ai');
     await createSession('ai');
     setScreen('playing');
   }, [createSession]);
 
-  /** Créer une partie remote → écran de jeu */
+  /** Créer une partie remote → lobby (attente du 2e joueur) */
   const handleCreateRemote = useCallback(async () => {
+    setGameMode('remote');
     await createSession('remote');
-    setScreen('playing');
+    setScreen('lobby');
   }, [createSession]);
 
-  /** Rejoindre une session existante depuis la liste → écran de jeu */
+  /** Rejoindre une session existante depuis la liste → lobby (attente du démarrage) */
   const handleJoinSession = useCallback(
     (id: string) => {
       setConnectionError(null);
@@ -311,7 +301,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
           console.error('[JoinSession] Connection failed:', err);
         });
 
-      setScreen('playing');
+      setScreen('lobby');
     },
     [onBeforeCreate, openWebSocketWithRetry, handleWsMessage, sessions.sessionsList, t],
   );
@@ -336,6 +326,12 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   /** Quitter → supprime la session et navigue vers /home */
   const handleExit = useCallback(async () => {
     await exitSession();
+  }, [exitSession]);
+
+  /** Quitter depuis le lobby → retour à start */
+  const handleExitFromLobby = useCallback(async () => {
+    await exitSession();
+    setScreen('start');
   }, [exitSession]);
 
   const handleNextTournamentMatch = useCallback(async () => {
@@ -384,61 +380,6 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
 
   const awaitingReady = readyCheckReceived && !readySent;
 
-  async function loadTournamentResults() {
-    if (!tournamentId) {
-      setTournamentResults([]);
-      setTournamentResultsError(t('game.tournament_results.unavailable'));
-      return;
-    }
-
-    try {
-      setTournamentResultsError(null);
-
-      const [historyRes, playersRes] = await Promise.all([
-        api.get<TournamentHistoryMatch[]>('/game/history'),
-        api.get<TournamentPlayerResponse[]>(`/game/tournaments/${tournamentId}`),
-      ]);
-
-      const playersById = new Map<number, string>(
-        playersRes.data.map((player) => [player.player_id, player.username]),
-      );
-
-      const roundOrder: Record<string, number> = {
-        SEMI_1: 1,
-        SEMI_2: 2,
-        LITTLE_FINAL: 3,
-        FINAL: 4,
-      };
-
-      const results = historyRes.data
-        .filter((match) => String(match.tournament_id) === String(tournamentId))
-        .filter((match) => typeof match.round === 'string' && match.round in roundOrder)
-        .sort((a, b) => roundOrder[a.round] - roundOrder[b.round])
-        .map((match) => ({
-          ...match,
-          username_player1:
-            match.username_player1 ??
-            (typeof match.player1 === 'number' ? playersById.get(match.player1) : null) ??
-            t('game.winner.player1_label'),
-          username_player2:
-            match.username_player2 ??
-            (typeof match.player2 === 'number' ? playersById.get(match.player2) : null) ??
-            t('game.winner.player2_label'),
-          username_winner:
-            match.username_winner ??
-            (typeof match.winner_id === 'number' ? playersById.get(match.winner_id) : null) ??
-            t('game.tournament_results.unknown_winner'),
-        }));
-
-      setTournamentResults(results);
-      setTournamentResultsError(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('game.tournament_results.fetch_error');
-      setTournamentResultsError(message);
-      setTournamentResults([]);
-    }
-  }
-
   async function resolveTournamentNextStep() {
     if (!isTournamentMode || !tournamentId) return;
 
@@ -485,6 +426,13 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     }
   }
 
+  // ── Transition auto : lobby → playing quand 2e joueur arrive
+  useEffect(() => {
+    if (screen === 'lobby' && lobby.players.length === 2) {
+      setScreen('playing');
+    }
+  }, [screen, lobby.players.length]);
+
   useEffect(() => {
     if (!isTournamentMode) return;
     if (isLoading) return;
@@ -495,19 +443,27 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   }, [isTournamentMode, isLoading, currentSessionId]);
 
   useEffect(() => {
-    if (isTournamentMode) return;
-
-    const targetPath =
-      activeMode === 'remote'
-        ? '/game/remote'
-        : activeMode === 'ai'
-          ? '/game/pong-ai'
-          : '/game/local';
-
-    if (location.pathname !== targetPath) {
-      navigate(targetPath, { replace: true });
+    // Routes simplifiées : pas besoin de naviguer pour local/ai
+    // Rester sur /game et laisser gameMode être géré par l'état local
+    if (!isTournamentMode && !targetFriend) {
+      return;
     }
-  }, [activeMode, isTournamentMode, location.pathname, navigate]);
+
+    // Vérifier que la route actuelle correspond au gameMode
+    const shouldBeOnTournamentRoute = isTournamentMode && tournamentId;
+    const shouldBeOnRemoteRoute = targetFriend && gameMode === 'remote';
+
+    if (
+      shouldBeOnTournamentRoute &&
+      !location.pathname.includes(`/game/tournament/${tournamentId}`)
+    ) {
+      navigate(`/game/tournament/${tournamentId}`, { replace: true });
+    }
+
+    if (shouldBeOnRemoteRoute && !location.pathname.includes(`/game/remote/${targetFriend}`)) {
+      navigate(`/game/remote/${targetFriend}`, { replace: true });
+    }
+  }, [gameMode, isTournamentMode, targetFriend, tournamentId, location.pathname, navigate]);
 
   // ── Rendu ──────────────────────────────────────────────────────────────────
   return (
@@ -530,6 +486,16 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
             onJoinSession={handleJoinSession}
             connectionError={connectionError}
             friendNameFilter={targetFriend}
+          />
+        )}
+
+        {/* ── Écran 1.5 : Lobby (attente du 2e joueur) ── */}
+        {screen === 'lobby' && (
+          <LobbyScreen
+            sessionId={currentSessionId ?? ''}
+            usernameHost={lobby.players[0]?.username ?? null}
+            playersCount={lobby.players.length}
+            onCancel={handleExitFromLobby}
           />
         )}
 

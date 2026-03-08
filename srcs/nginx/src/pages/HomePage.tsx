@@ -20,11 +20,11 @@ export const HomePage = () => {
   const { t } = useTranslation();
 
   const menuItems = [
-    { to: '/game/pong-ai', label: 'game.playWithAI', size: 140 },
-    { to: '/friends', label: 'game.playWithFriends', size: 180 },
+    { to: '/game', label: 'game.play', size: 140 },
+    { to: '/friends', label: 'friends.friends', size: 180 },
     { to: '/tournaments', label: 'game.tournament', size: 150 },
-    { to: '/game/remote', label: 'game.playRemote', size: 160 },
-    { to: '/game/local', label: 'game.playLocal', size: 140 },
+    { to: '/stats', label: 'navbar.stats_history', size: 150 },
+    { to: '/history', label: 'navbar.stats', size: 150 },
   ];
 
   const isOdd = menuItems.length % 2 !== 0;
