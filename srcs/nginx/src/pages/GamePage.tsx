@@ -24,9 +24,6 @@ import Background from '../components/atoms/Background';
 import StartGameScreen from '../components/organisms/game/StartGameScreen';
 import GamePlayScreen from '../components/organisms/game/GamePlayScreen';
 import GameOverScreen from '../components/organisms/game/GameOverScreen';
-import TournamentResultsScreen, {
-  TournamentHistoryMatch,
-} from '../components/organisms/game/TournamentResultsScreen';
 import type {
   ServerMessage,
   Scores,
@@ -41,29 +38,13 @@ export type { BackgroundMode } from '../types/game.types';
 // ── Types ────────────────────────────────────────────
 
 /** Les 3 écrans du flux de jeu */
-type GameScreen = 'start' | 'playing' | 'gameover' | 'tournament_results';
+type GameScreen = 'start' | 'playing' | 'gameover';
 
 interface MatchToPlayResponse {
   sessionId: string;
-  id: number;
-  round: string;
-  player1: number;
-  player2: number;
-}
-
-interface TournamentPlayerResponse {
-  player_id: number;
-  username: string;
-  avatar: string | null;
-  slot: 1 | 2 | 3 | 4;
 }
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
-
-interface GamePageProps {
-  /** Session pré-sélectionnée (mode tournament : fournie par TournamentPage) */
-  sessionId: string | null;
-}
 
 // ── Constantes ───────────────────────────────────────────────────────────────
 
@@ -71,7 +52,7 @@ const BG_COLORS = { start: '#00ff9f', end: '#0088ff' };
 
 // ── Composant ────────────────────────────────────────────────────────────────
 
-export const GamePage = ({ sessionId }: GamePageProps) => {
+export const GamePage = () => {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const location = useLocation();
@@ -113,8 +94,6 @@ export const GamePage = ({ sessionId }: GamePageProps) => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [nextMatchSessionId, setNextMatchSessionId] = useState<string | null>(null);
   const [isResolvingTournamentNextMatch, setIsResolvingTournamentNextMatch] = useState(false);
-  const [tournamentResults, setTournamentResults] = useState<TournamentHistoryMatch[]>([]);
-  const [tournamentResultsError, setTournamentResultsError] = useState<string | null>(null);
 
   // ── Machine à états : écran courant ───────────────────────────────
   const [screen, setScreen] = useState<GameScreen>(gameMode === 'tournament' ? 'playing' : 'start');
@@ -342,7 +321,6 @@ export const GamePage = ({ sessionId }: GamePageProps) => {
   const handleNextTournamentMatch = useCallback(async () => {
     if (!isTournamentMode) return;
 
-    setTournamentResultsError(null);
     setNextMatchSessionId(null);
 
     try {
@@ -385,66 +363,10 @@ export const GamePage = ({ sessionId }: GamePageProps) => {
 
   const awaitingReady = readyCheckReceived && !readySent;
 
-  async function loadTournamentResults() {
-    if (!tournamentId) {
-      setTournamentResults([]);
-      setTournamentResultsError(t('game.tournament_results.unavailable'));
-      return;
-    }
-
-    try {
-      setTournamentResultsError(null);
-
-      const [historyRes, playersRes] = await Promise.all([
-        api.get<TournamentHistoryMatch[]>('/game/history'),
-        api.get<TournamentPlayerResponse[]>(`/game/tournaments/${tournamentId}`),
-      ]);
-
-      const playersById = new Map<number, string>(
-        playersRes.data.map((player) => [player.player_id, player.username]),
-      );
-
-      const roundOrder: Record<string, number> = {
-        SEMI_1: 1,
-        SEMI_2: 2,
-        LITTLE_FINAL: 3,
-        FINAL: 4,
-      };
-
-      const results = historyRes.data
-        .filter((match) => String(match.tournament_id) === String(tournamentId))
-        .filter((match) => typeof match.round === 'string' && match.round in roundOrder)
-        .sort((a, b) => roundOrder[a.round] - roundOrder[b.round])
-        .map((match) => ({
-          ...match,
-          username_player1:
-            match.username_player1 ??
-            (typeof match.player1 === 'number' ? playersById.get(match.player1) : null) ??
-            t('game.winner.player1_label'),
-          username_player2:
-            match.username_player2 ??
-            (typeof match.player2 === 'number' ? playersById.get(match.player2) : null) ??
-            t('game.winner.player2_label'),
-          username_winner:
-            match.username_winner ??
-            (typeof match.winner_id === 'number' ? playersById.get(match.winner_id) : null) ??
-            t('game.tournament_results.unknown_winner'),
-        }));
-
-      setTournamentResults(results);
-      setTournamentResultsError(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('game.tournament_results.fetch_error');
-      setTournamentResultsError(message);
-      setTournamentResults([]);
-    }
-  }
-
   async function resolveTournamentNextStep() {
     if (!isTournamentMode || !tournamentId) return;
 
     setIsResolvingTournamentNextMatch(true);
-    setTournamentResultsError(null);
 
     try {
       let nextSessionId: string | null = null;
@@ -575,15 +497,6 @@ export const GamePage = ({ sessionId }: GamePageProps) => {
             onNextMatch={nextMatchSessionId ? handleNextTournamentMatch : undefined}
             onViewResults={isTournamentMode ? handleShowTournamentResults : undefined}
             isTournamentProgressLoading={isResolvingTournamentNextMatch}
-            onExit={handleExit}
-          />
-        )}
-
-        {screen === 'tournament_results' && (
-          <TournamentResultsScreen
-            tournamentId={tournamentId ?? null}
-            matches={tournamentResults}
-            error={tournamentResultsError}
             onExit={handleExit}
           />
         )}
