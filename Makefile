@@ -3,10 +3,11 @@ include make/config.mk
 # === Global ===
 
 all: volumes certs colima install
-	COMPOSE_PROFILES=ai $(D_COMPOSE) build
-	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d
+	$(D_COMPOSE_AI) build
+	$(D_COMPOSE_AI) up -d
 
-no-ai : volumes certs colima install build
+no-ai : volumes certs colima install
+	$(D_COMPOSE) build
 	$(D_COMPOSE) up -d
 
 dev: volumes certs colima install build-dev
@@ -16,16 +17,25 @@ volumes:
 	@mkdir -p $(DATABASE_PATH) $(UPLOADS_PATH)
 	@chmod -R 777 $(VOLUMES_PATH)
 
-start :
-	$(D_COMPOSE) start
+start:
+	$(D_COMPOSE_AI) start
+stop:
+	$(D_COMPOSE_AI) stop
+down:
+	$(D_COMPOSE_AI) down
+
+
 start-dev :
 	$(D_COMPOSE_DEV) start
-stop :
-	$(D_COMPOSE) stop
-down :
-	$(D_COMPOSE) down
 down-dev :
 	$(D_COMPOSE_DEV) down
+
+start-noai :
+	$(D_COMPOSE) start	
+stop-noai :
+	$(D_COMPOSE) stop	
+down-noai :
+	$(D_COMPOSE) down
 
 # --- Env files ---
 envs:
@@ -137,7 +147,7 @@ pong-ai:
 	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
 
 build:
-	$(D_COMPOSE) build
+	$(D_COMPOSE_AI) build
 build-dev:
 	$(D_COMPOSE_DEV) build
 
@@ -230,11 +240,13 @@ user-migrate-reset-dev:
 	$(D_COMPOSE_DEV) exec ${UM_SERVICE_NAME} npx prisma migrate reset
 
 logs:
-	$(D_COMPOSE) logs -f
+	$(D_COMPOSE_AI) logs -f
 # generic rule : replace % with service name
 logs-%:
 	$(CONTAINER_CMD) logs -f $*
 
+logs-ai:
+	$(D_COMPOSE_AI) logs -f $(PONG_AI_SERVICE_NAME)
 logs-nginx:
 	$(CONTAINER_CMD) logs -f $(PROXY_SERVICE_NAME)
 logs-redis:
@@ -264,7 +276,7 @@ show:
 # xargs -r won't launch next command list is empty
 clean:
 	@echo "Stopping and removing containers…"
-	@$(CONTAINER_CMD) ps -q | xargs -r $(CONTAINER_CMD) stop
+	@@$(D_COMPOSE_AI) stop
 	@$(CONTAINER_CMD) ps -aq | xargs -r $(CONTAINER_CMD) rm -f
 	@echo "Pruning unused resources (SAFE)…"
 	$(CONTAINER_CMD) system prune -f
@@ -281,7 +293,7 @@ fclean: clean
 	@echo "Volume folder cleaned (structure preserved)"
 
 re : fclean all
-re-ai: fclean ai
+re-noai: fclean no-ai
 redev : fclean dev
 
 clean-pack:
@@ -309,7 +321,7 @@ endif
 endif
 	rm -rf $(VOLUMES_PATH)
 
-.PHONY : all dev ai re re-ai redev clean fclean reset-hard clean-pack \
+.PHONY : all dev no-ai re re-noai redev clean fclean reset-hard clean-pack \
 	volumes certs envs install build build-dev \
 	start start-dev stop down down-dev \
 	nginx nginx-nc nginx-dev nginx-reload redis \
