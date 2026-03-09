@@ -233,38 +233,34 @@ We used GitHub Issues to track tasks and features. We held regular meetings to d
 
 ---
 
-## Database Schema:
+## Database Schemes
 
-Two decoupled SQLite databases — one per service. `authId` in the Users DB is a soft reference
-to `users.id` in the Auth DB, resolved at runtime via inter-service API calls.
+The key architectural pattern is "copy on write" - Auth is the source of truth for identity, but Game and Blockchain store snapshots of that data at the time of the event, ensuring historical records remain valid even if a user later changes their username or avatar.
+
+### Cross-Service Data Relationships
 
 ```
-┌─────────────────────────────────────┐     ┌─────────────────────────────────────┐
-│         AUTH SERVICE (SQLite)       │     │       USERS SERVICE (Prisma)        │
-│                                     │     │                                     │
-│  users                              │     │  UserProfile                        │
-│  ├── id            INTEGER  PK      │────▶│  ├── authId       Int  UNIQUE       │
-│  ├── username      TEXT     UNIQUE  │     │  ├── username     String  UNIQUE    │
-│  ├── email         TEXT     UNIQUE  │     │  ├── email        String? UNIQUE    │
-│  ├── password      TEXT             │     │  ├── avatarUrl    String?           │
-│  ├── role          TEXT             │     │  └── createdAt    DateTime          │
-│  ├── is_2fa_enabled INTEGER         │     │                                     │
-│  ├── totp_secret   TEXT?            │     │  Friendship                         │
-│  ├── google_id     TEXT?   UNIQUE   │     │  ├── id           Int  PK           │
-│  ├── school42_id   TEXT?   UNIQUE   │     │  ├── requesterId  Int  → authId     │
-│  └── created_at    DATETIME         │     │  ├── receiverId   Int  → authId     │
-│                                     │     │  ├── status       String            │
-│  login_tokens                       │     │  └── nickname[Requester|Receiver]   │
-│  ├── token         TEXT     PK      │     │                                     │
-│  ├── user_id       INT  → users.id  │     │  UNIQUE(requesterId, receiverId)    │
-│  └── expires_at    DATETIME         │     └─────────────────────────────────────┘
-│                                     │
-│  totp_setup_secrets                 │     ┌─────────────────────────────────────┐
-│  ├── token         TEXT     PK      │     │         REDIS (session store)       │
-│  ├── user_id       INT  → users.id  │     │                                     │
-│  ├── secret        TEXT             │     │  online:{userId}  → status + TTL    │
-│  └── expires_at    DATETIME         │     │  session:{token}  → JWT payload     │
-└─────────────────────────────────────┘     └─────────────────────────────────────┘
+[Auth DB] ──── users.id ────────────────────────────────────────────┐
+     │                                                               │
+     ├── login_tokens.token ──→ [Redis] session:{token}             │
+     └── users.id ───────────→ [Redis] online:{userId}              │
+                                                                     ▼
+                                                          [Users DB] UserProfile.authId
+                                                               │
+                                                    Friendship.requesterId / receiverId
+
+[Auth DB] users.username / avatar_url
+     │  (copied at game session creation via API call)
+     ▼
+[Game DB] player.username / player.avatar
+     │
+     ├── match.player1 / player2 / winner_id
+     ├── tournament.creator_id
+     ├── tournament_player.player_id
+     │
+     └── tournament.id ──→ [Blockchain DB] snapshot.tour_id
+                               snapshot.player1/2/3/4
+                               snapshot.tx_hash / block_number (immutable)
 ```
 
 ### Auth Service Schema
@@ -293,7 +289,7 @@ erDiagram
     }
 
     login_token_attempts {
-        TEXT token PK,FK
+        TEXT token PK,FK "REFERENCES login_tokens(token)"
         INTEGER attempts "DEFAULT 0"
     }
 
@@ -305,9 +301,8 @@ erDiagram
     }
 
     users ||--o{ login_tokens : "has"
-    login_tokens ||--o| login_token_attempts : "tracks"
     users ||--o{ totp_setup_secrets : "has"
-
+    login_tokens ||--o| login_token_attempts : "tracks"
 ```
 
 ### Users Service Schema
@@ -316,71 +311,89 @@ erDiagram
 erDiagram
     UserProfile {
         Int id PK "autoincrement"
-        Int authId "UNIQUE - FK to auth.users.id"
-        DateTime createdAt
-        String email "UNIQUE, optional"
+        Int authId "UNIQUE (Soft FK to auth.users.id)"
+        DateTime createdAt "default(now())"
         String username "UNIQUE"
-        String avatarUrl "optional"
+        String avatarUrl "nullable"
     }
 
     Friendship {
         Int id PK "autoincrement"
-        DateTime createdAt
-        String nicknameRequester "optional"
-        String nicknameReceiver "optional"
+        DateTime createdAt "default(now())"
+        String nicknameRequester "nullable"
+        String nicknameReceiver "nullable"
         String status
-        Int requesterId FK
-        Int receiverId FK
+        Int requesterId FK "REFERENCES UserProfile.authId"
+        Int receiverId FK "REFERENCES UserProfile.authId"
     }
 
-    UserProfile ||--o{ Friendship : "requested (requester)"
-    UserProfile ||--o{ Friendship : "received (receiver)"
+    UserProfile ||--o{ Friendship : "requested (requesterId)"
+    UserProfile ||--o{ Friendship : "received (receiverId)"
 ```
 
 ### Game/Tournament Schema
 
 ```mermaid
 erDiagram
-
-    TOURNAMENT {
-        INTEGER id PK
-        INTEGER creator_id
-        TEXT status
-        INTEGER created_at
-    }
-
-    MATCH {
-        INTEGER id PK
-        INTEGER tournament_id
-        TEXT  sessionId
-        INTEGER player1
-        INTEGER player2
-        INTEGER score_player1
-        INTEGER score_player2
-        INTEGER winner_id
-        TEXT round
-        INTEGER created_at
-    }
-
-    TOURNAMENT_PLAYER {
-        INTEGER tournament_id PK
-        INTEGER player_id PK
-        INTEGER final_position
-    }
-
-    PLAYER {
+    player {
         INTEGER id PK
         TEXT username
         TEXT avatar
         INTEGER updated_at
     }
 
+    tournament {
+        INTEGER id PK "AUTOINCREMENT"
+        INTEGER creator_id FK
+        TEXT status "DEFAULT 'PENDING'"
+        INTEGER created_at
+    }
 
-    TOURNAMENT ||--o{ MATCH : contains
-    TOURNAMENT ||--o{ TOURNAMENT_PLAYER : has_players
-    TOURNAMENT }o--|| PLAYER : is
-    MATCH }o--|| PLAYER : is
-    TOURNAMENT_PLAYER }o--|| PLAYER : is
+    tournament_player {
+        INTEGER tournament_id PK,FK
+        INTEGER player_id PK,FK
+        INTEGER final_position
+        INTEGER slot
+    }
+
+    match {
+        INTEGER id PK "AUTOINCREMENT"
+        INTEGER tournament_id FK "nullable"
+        INTEGER player1 FK
+        INTEGER player2 FK
+        TEXT sessionId "nullable"
+        INTEGER score_player1 "DEFAULT 0"
+        INTEGER score_player2 "DEFAULT 0"
+        INTEGER winner_id FK "nullable"
+        TEXT round "nullable"
+        INTEGER created_at
+    }
+
+    player ||--o{ tournament : "creates"
+    tournament ||--o{ tournament_player : "includes"
+    player ||--o{ tournament_player : "participates in"
+    tournament ||--o{ match : "contains"
+    player ||--o{ match : "plays as p1 / p2 / winner"
+```
+
+### Blockchain Schema
+
+```mermaid
+erDiagram
+    snapshot {
+        INTEGER id PK "AUTOINCREMENT"
+        TEXT tx_hash "UNIQUE"
+        TEXT snapshot_hash "UNIQUE"
+        INTEGER block_timestamp
+        INTEGER tour_id "UNIQUE (Soft FK to game.tournament.id)"
+        INTEGER player1
+        INTEGER player2
+        INTEGER player3
+        INTEGER player4
+        INTEGER block_number
+        TEXT verify_status "DEFAULT 'PENDING'"
+        INTEGER verified_at
+    }
 ```
 
 ### Redis Keys
