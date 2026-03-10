@@ -1,5 +1,11 @@
 This project has been created as part of the 42 curriculum by lisambet, fpetit, rcaillie, jhervoch, npolack.
 
+## Preview
+
+![Image](https://github.com/user-attachments/assets/fd3b9fea-68ea-42e5-b7d5-7a06602e1063)
+
+![Image](https://github.com/user-attachments/assets/90567b67-ed30-41ce-97aa-91cfa82208cd)
+
 ## Description
 
 > A full-stack multiplayer Pong web application. Built as a microservices SPA with real-time gameplay, tournament system, OAuth2 auth, 2FA, an AI opponent, and blockchain score storage. It covers a wide range of concepts including real-time communication, modern authentication flows, containerized deployment, and blockchain integration.
